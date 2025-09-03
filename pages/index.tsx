@@ -3,9 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import assets from "@/json/assets";
 import AppLayout from "@/layouts/AppLayout";
-import AuthLayout from "@/layouts/AuthLayout";
 import { cn } from "@/lib/utils";
-import { Info, InfoIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 

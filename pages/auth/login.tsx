@@ -1,28 +1,26 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
+import { Separator } from "@/components/ui/separator";
+import assets from "@/json/assets";
 import AuthLayout from "@/layouts/AuthLayout";
-import React from "react";
+import { yupResolver } from "@hookform/resolvers/yup";
+import Image from "next/image";
+import Link from "next/link";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
-import { yupResolver } from "@hookform/resolvers/yup";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import Image from "next/image";
-import assets from "@/json/assets";
-import { PasswordInput } from "@/components/ui/password-input";
-import Link from "next/link";
 
 const schema = yup.object().shape({
   email: yup.string().email("Invalid email").required("Email is required"),

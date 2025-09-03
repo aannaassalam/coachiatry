@@ -9,8 +9,7 @@
     "lint": "next lint --fix",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,scss,md}\"",
     "prepare": "husky",
-    "postbuild": "next-sitemap",
-    "shadcn:add-all": "npx shadcn@latest add $(npx shadcn@latest list --json | jq -r '.[].name')"
+    "postbuild": "next-sitemap"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",
