@@ -1,15 +1,18 @@
+import { cn } from "@/lib/utils";
 import React from "react";
 import AuthNavbar from "./AuthNavbar";
 
 export default function AuthLayout({
-  children
+  children,
+  className = ""
 }: {
   children: React.ReactNode;
+  className?: string;
 }) {
   return (
-    <div>
+    <div className="min-h-screen flex flex-col">
       <AuthNavbar />
-      {children}
+      <div className={cn("flex-1 bg-auth", className)}>{children}</div>
     </div>
   );
 }

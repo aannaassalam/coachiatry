@@ -1,9 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { BaseApiResponse } from "@/typescript/interface/common.interface";
-import events from "@/json/events/events";
-import { AxiosError, AxiosResponse } from "axios";
 import { parseCookies, setCookie } from "nookies";
-import eventEmitter from "services/event.emitter";
 /**
  * Check if the window object exists.
  * @returns A function that checks if the window is undefined.
@@ -50,42 +46,6 @@ export function isAppleSafari() {
   }
   return isApple() && expectedExpression.test(agent);
 }
-
-export const globalCatchSucess = (response: AxiosResponse<BaseApiResponse>) => {
-  let message = "Something went wrong";
-  if (response?.data?.message) {
-    message = response?.data.message;
-  }
-  eventEmitter.emit(events.showNotification, {
-    message,
-    variant: "success"
-  });
-};
-
-export const globalCatchWarning = (
-  response: AxiosResponse<BaseApiResponse>
-) => {
-  let message = "Something went wrong";
-  if (response?.data?.message) {
-    message = response?.data.message;
-  }
-
-  eventEmitter.emit(events.showNotification, {
-    message,
-    variant: "warning"
-  });
-};
-
-export const globalCatchError = (error: AxiosError<BaseApiResponse>) => {
-  let message = "Something went wrong";
-  if (error.response?.data?.message) {
-    message = error.response?.data.message;
-  }
-  eventEmitter.emit(events.showNotification, {
-    message,
-    variant: "error"
-  });
-};
 
 export const roleParser = (role: string) => {
   return role.replace("ROLE_", "").replaceAll("_", " ");

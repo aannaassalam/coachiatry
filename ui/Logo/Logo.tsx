@@ -9,7 +9,7 @@ export default function Logo(
   const { className, mobile, ...others } = props;
   return (
     <>
-      <Image
+      {/* <Image
         src={assets.logo_mobile}
         alt="StackWalls"
         {...others}
@@ -19,16 +19,16 @@ export default function Logo(
         })}
         width={32}
         height={32}
-      />
+      /> */}
       <Image
-        src={assets.logo2}
-        alt="StackWalls"
-        width={229}
-        height={48}
+        src={assets.logo}
+        alt="Coachiatry"
+        width={155}
+        height={32}
         {...others}
-        className={cx(className, {
-          "max-sm:hidden": mobile
-        })}
+        // className={cx(className, {
+        //   "max-sm:hidden": mobile
+        // })}
       />
     </>
   );

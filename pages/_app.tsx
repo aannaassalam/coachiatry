@@ -1,5 +1,5 @@
-import EventListeners from "@/components/EventListener/EventListener";
 import { checkWindow } from "@/lib/functions/_helpers.lib";
+import { archivo, lato } from "@/services/fonts";
 import "@/styles/globals.css";
 import {
   MutationCache,
@@ -73,10 +73,9 @@ export default function CustomApp({ Component, pageProps }: AppProps) {
   fixSSRLayout();
 
   return (
-    <main>
+    <main className={`${archivo.variable} ${lato.variable}`}>
       {/* <SessionProvider session={pageProps.session}> */}
       <QueryClientProvider client={queryClient}>
-        <EventListeners />
         <Toaster richColors position="bottom-left" />
         <Component {...pageProps} />
       </QueryClientProvider>
