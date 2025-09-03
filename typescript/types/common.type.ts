@@ -1,3 +1,5 @@
+import { JSX } from "react";
+
 export type CommonButtonType = {
   children: JSX.Element;
   variant?: "text" | "outlined" | "contained";

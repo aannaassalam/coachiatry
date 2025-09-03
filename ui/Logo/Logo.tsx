@@ -1,7 +1,5 @@
 import assets from "@/json/assets";
-import { cx } from "@/lib/utils";
 import Image, { ImageProps } from "next/image";
-import React from "react";
 
 export default function Logo(
   props: Omit<ImageProps, "src" | "alt"> & { mobile?: boolean }
@@ -13,7 +11,7 @@ export default function Logo(
         src={assets.logo_mobile}
         alt="StackWalls"
         {...others}
-        className={cx(className, {
+        className={cn(className, {
           "max-sm:block hidden": mobile,
           hidden: !mobile
         })}
