@@ -303,7 +303,7 @@ export default function Home() {
             </Link>
           </div>
           <div className="space-y-2">
-            {Documents.map((doc, index) => (
+            {Documents?.map((doc, index) => (
               <div
                 className="flex items-start gap-3 p-2.5 cursor-pointer border border-gray-100 hover:bg-gray-100 rounded-md"
                 key={index}
