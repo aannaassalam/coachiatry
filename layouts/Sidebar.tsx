@@ -17,14 +17,15 @@ export default function Sidebar() {
       <Logo />
       {sideLinks.map((links, index) => {
         return (
-          <>
+          <React.Fragment key={index}>
             <div>
               <p className="py-1.5 px-3 uppercase text-[10px] leading-3 tracking-[5%]">
                 {links.title}
               </p>
-              {links.links.map((link) => {
+              {links.links.map((link, index) => {
                 return (
                   <Link
+                    key={link.href}
                     href={link.href}
                     className={cn(
                       "px-2 py-2.5 flex items-center gap-2 text-gray-500 rounded-md hover:bg-gray-200/60 transition-all",
@@ -59,7 +60,7 @@ export default function Sidebar() {
             {index !== sideLinks.length - 1 && (
               <Separator className="text-gray-200" />
             )}
-          </>
+          </React.Fragment>
         );
       })}
     </div>

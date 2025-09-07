@@ -12,6 +12,7 @@ import type { AppContext, AppProps } from "next/app";
 import App from "next/app";
 import React from "react";
 import { toast, Toaster } from "sonner";
+import { NuqsAdapter } from "nuqs/adapters/next/pages";
 
 interface ErrorData {
   response: {
@@ -75,10 +76,12 @@ export default function CustomApp({ Component, pageProps }: AppProps) {
   return (
     <main className={`${archivo.variable} ${lato.variable}`}>
       {/* <SessionProvider session={pageProps.session}> */}
-      <QueryClientProvider client={queryClient}>
-        <Toaster richColors position="bottom-left" />
-        <Component {...pageProps} />
-      </QueryClientProvider>
+      <NuqsAdapter>
+        <QueryClientProvider client={queryClient}>
+          <Toaster richColors position="bottom-left" />
+          <Component {...pageProps} />
+        </QueryClientProvider>
+      </NuqsAdapter>
       {/* </SessionProvider> */}
     </main>
   );

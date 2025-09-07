@@ -13,6 +13,11 @@ export default {
     settings: "/assets/svg/settings.svg",
     info: "/assets/svg/info.svg",
     spline: "/assets/svg/spline.svg",
-    file: "/assets/svg/file.svg"
+    file: "/assets/svg/file.svg",
+    sort: "/assets/svg/sort.svg",
+    undo: "/assets/svg/undo.svg",
+    redo: "/assets/svg/redo.svg",
+    underline: "/assets/svg/underline.svg",
+    strikethrough: "/assets/svg/strikethrough.svg"
   }
 };

@@ -96,7 +96,7 @@ const Documents = [
 const DocumentTagColorMap: Record<string, Record<string, string>> = {
   Health: {
     bg: "bg-amber-200/40",
-    text: "text-amber-500",
+    text: "text-amber-600/80",
     dotColor: "bg-amber-600/80"
   },
   Therapy: {
@@ -107,7 +107,7 @@ const DocumentTagColorMap: Record<string, Record<string, string>> = {
   Fitness: {
     bg: "bg-green-100",
     text: "text-green-600/90",
-    dotColor: "bg-green-600/9"
+    dotColor: "bg-green-600/90"
   }
 };
 
