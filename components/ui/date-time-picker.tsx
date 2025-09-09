@@ -38,7 +38,7 @@ export function DateTimePicker({ value, onChange }: DateTimePickerProps) {
   const times = React.useMemo(() => {
     const slots: string[] = [];
     for (let h = 0; h < 24; h++) {
-      for (let m of [0, 30]) {
+      for (const m of [0, 30]) {
         slots.push(moment({ hour: h, minute: m }).format("HH:mm"));
       }
     }

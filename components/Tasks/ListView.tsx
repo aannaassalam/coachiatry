@@ -1,3 +1,4 @@
+//  @typescript-eslint/no-unused-vars
 import React, { useState } from "react";
 import {
   Collapsible,
@@ -12,7 +13,7 @@ import { Button } from "../ui/button";
 import TasksTable from "./TasksTable";
 
 function ListView() {
-  const [tasks, setTasks] = useState([
+  const [tasks] = useState([
     {
       title: "Complete 1500 steps",
       subTasks: [

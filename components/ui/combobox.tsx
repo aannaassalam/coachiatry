@@ -40,7 +40,7 @@ interface ComboboxProps {
   disabled?: boolean;
   isLoading?: boolean;
   type?: string;
-  isBadge?: Boolean;
+  isBadge?: boolean;
 }
 
 interface ReactElementWithChildren extends React.ReactElement {

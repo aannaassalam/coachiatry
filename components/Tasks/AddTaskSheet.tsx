@@ -1,9 +1,8 @@
 "use client";
 
 import { CalendarIcon, Download, X } from "lucide-react";
-import React, { useEffect } from "react";
+import React from "react";
 import { IoIosShareAlt } from "react-icons/io";
-import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import {
   Sheet,
