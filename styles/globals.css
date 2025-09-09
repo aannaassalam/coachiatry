@@ -224,3 +224,6 @@ h6 {
   font-style: italic;
   pointer-events: none;
 }
+.tasksTable .table-container {
+  overflow: visible !important;
+}
