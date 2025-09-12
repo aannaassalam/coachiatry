@@ -1,6 +1,6 @@
 import React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import assets from "@/json/assets";
+// import assets from "@/json/assets";
 import { cn } from "@/lib/utils";
 
 const messages = [

@@ -1,6 +1,6 @@
 import AppLayout from "@/layouts/AppLayout";
 import React from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { parseAsString, useQueryState } from "nuqs";
 import { Separator } from "@/components/ui/separator";
 import ChatList from "@/components/Chats/ChatList";

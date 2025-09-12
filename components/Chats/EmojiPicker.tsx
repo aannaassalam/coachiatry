@@ -6,18 +6,12 @@ import assets from "@/json/assets";
 import { Input } from "../ui/input";
 import { PopoverClose } from "@radix-ui/react-popover";
 
-type EmojiCategory = {
-  name: string;
-  icon: string;
-  emojis: string[];
-};
-
 type EmojiPickerProps = {
   setSelectedEmoji: Dispatch<SetStateAction<string | null>>;
 };
 
 const EmojiPicker: React.FC<EmojiPickerProps> = ({ setSelectedEmoji }) => {
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [selectedIndex] = useState<number | null>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState<boolean>(false);
   const [activeCategory, setActiveCategory] = useState<string>("smileys");
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -31,10 +25,6 @@ const EmojiPicker: React.FC<EmojiPickerProps> = ({ setSelectedEmoji }) => {
     { emoji: "👍", label: "thumbs up" },
     { emoji: "🤔", label: "thinking" }
   ];
-
-  const handleEmojiClick = (index: number) => {
-    setSelectedIndex(selectedIndex === index ? null : index);
-  };
 
   const handleEmojiSelect = (emoji: string) => {
     setShowEmojiPicker(false);
@@ -62,10 +52,9 @@ const EmojiPicker: React.FC<EmojiPickerProps> = ({ setSelectedEmoji }) => {
           {!showEmojiPicker && (
             <>
               {mainEmojis.map((item, index) => (
-                <PopoverClose>
+                <PopoverClose key={index}>
                   <Button
                     variant="ghost"
-                    key={index}
                     onClick={() => handleEmojiSelect(item.emoji)}
                     className={`w-10 h-10 rounded-full flex items-center justify-center text-xl hover:bg-gray-100 transition-all duration-200 transform hover:scale-110 ${
                       selectedIndex === index ? "bg-blue-100 scale-110" : ""
@@ -134,10 +123,9 @@ const EmojiPicker: React.FC<EmojiPickerProps> = ({ setSelectedEmoji }) => {
             <div className="p-2 flex-1 overflow-y-auto h-40">
               <div className="grid grid-cols-8 gap-1">
                 {filteredEmojis()?.map((emoji, index) => (
-                  <PopoverClose>
+                  <PopoverClose key={index}>
                     <Button
                       variant="ghost"
-                      key={index}
                       onClick={() => handleEmojiSelect(emoji)}
                       className="w-8 h-8 flex items-center justify-center text-lg hover:bg-gray-100 rounded transition-colors"
                       title={emoji}
