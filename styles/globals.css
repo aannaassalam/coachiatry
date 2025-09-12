@@ -226,7 +226,7 @@ h6 {
 }
 .tasksTable .table-container {
   overflow: visible !important;
-=======
+}
 /* For WebKit browsers */
 ::-webkit-scrollbar {
   width: 6px;
