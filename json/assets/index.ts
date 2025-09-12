@@ -27,6 +27,12 @@ export default {
     taskCircle: "/assets/svg/taskCircle.svg",
     tableSort: "/assets/svg/tableSort.svg",
     arrowUp: "/assets/svg/arrowUp.svg",
-    searchIcon: "/assets/svg/searchIcon.svg"
+    searchIcon: "/assets/svg/searchIcon.svg",
+    clock: "/assets/svg/clock.svg",
+    emoji: "/assets/svg/emoji.svg",
+    clip: "/assets/svg/clip.svg",
+    coachAi: "/assets/svg/coachAi.svg",
+    send: "/assets/svg/send.svg",
+    chatEmoji: "/assets/svg/chatEmoji.svg"
   }
 };
