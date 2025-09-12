@@ -224,3 +224,24 @@ h6 {
   font-style: italic;
   pointer-events: none;
 }
+.tasksTable .table-container {
+  overflow: visible !important;
+=======
+/* For WebKit browsers */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #e2e4e6; /* Tailwind gray-300 */
+  border-radius: 9999px;
+  transition: all 0.2s;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #cccfd5; /* Tailwind gray-400 */
+}
