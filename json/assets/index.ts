@@ -18,6 +18,12 @@ export default {
     undo: "/assets/svg/undo.svg",
     redo: "/assets/svg/redo.svg",
     underline: "/assets/svg/underline.svg",
-    strikethrough: "/assets/svg/strikethrough.svg"
+    strikethrough: "/assets/svg/strikethrough.svg",
+    clock: "/assets/svg/clock.svg",
+    emoji: "/assets/svg/emoji.svg",
+    clip: "/assets/svg/clip.svg",
+    coachAi: "/assets/svg/coachAi.svg",
+    send: "/assets/svg/send.svg",
+    chatEmoji: "/assets/svg/chatEmoji.svg"
   }
 };
