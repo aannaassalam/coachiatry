@@ -224,6 +224,9 @@ h6 {
   font-style: italic;
   pointer-events: none;
 }
+.tasksTable .table-container {
+  overflow: visible !important;
+=======
 /* For WebKit browsers */
 ::-webkit-scrollbar {
   width: 6px;

@@ -2,7 +2,6 @@
 
 import { Check, ChevronsUpDown } from "lucide-react";
 import { useState } from "react";
-
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -21,10 +20,14 @@ import { cn } from "@/lib/utils";
 import { CommandLoading } from "cmdk";
 import React from "react";
 import { ScrollArea } from "./scroll-area";
+import { Badge } from "./badge";
 
 type ComboboxOption = {
   label: string | React.ReactNode;
   value: string;
+  bgColor?: string;
+  textColor?: string;
+  dotColor?: string;
   searchText?: string;
 };
 
@@ -37,6 +40,7 @@ interface ComboboxProps {
   disabled?: boolean;
   isLoading?: boolean;
   type?: string;
+  isBadge?: boolean;
 }
 
 interface ReactElementWithChildren extends React.ReactElement {
@@ -52,12 +56,9 @@ const getStringFromNode = (node: string | React.ReactNode): string => {
 
   if (React.isValidElement(node)) {
     const extractText = (element: React.ReactNode): string => {
-      if (typeof element === "string") {
-        return element;
-      }
-      if (typeof element === "number") {
-        return element.toString();
-      }
+      if (typeof element === "string") return element;
+      if (typeof element === "number") return element.toString();
+
       if (React.isValidElement(element)) {
         const elementWithChildren = element as ReactElementWithChildren;
         if (elementWithChildren.props?.children) {
@@ -70,12 +71,14 @@ const getStringFromNode = (node: string | React.ReactNode): string => {
           }
         }
       }
+
       if (Array.isArray(element)) {
         for (const item of element) {
           const text = extractText(item);
           if (text) return text;
         }
       }
+
       return "";
     };
 
@@ -93,7 +96,8 @@ export function Combobox({
   className,
   disabled,
   isLoading,
-  type
+  type,
+  isBadge
 }: ComboboxProps) {
   const [open, setOpen] = useState(false);
   const selected = options.find((opt) => opt.value === value);
@@ -108,7 +112,22 @@ export function Combobox({
           disabled={disabled}
         >
           {selected ? (
-            selected.label
+            !isBadge ? (
+              selected.label
+            ) : (
+              <Badge
+                className={cn(
+                  "rounded-full py-0.5 px-2 flex items-center gap-1.5 font-archivo font-medium text-xs leading-4.5",
+                  selected.bgColor,
+                  selected.textColor
+                )}
+              >
+                <div
+                  className={cn("size-1.5 rounded-full", selected.dotColor)}
+                />
+                {selected.label}
+              </Badge>
+            )
           ) : (
             <span className="text-gray-500">{placeholder}</span>
           )}
@@ -119,9 +138,7 @@ export function Combobox({
       <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
         <Command
           filter={(itemValue, search) => {
-            // Find the option that matches this item value
             const option = options.find((opt) => opt.value === itemValue);
-
             if (option) {
               const searchableText =
                 option.searchText || getStringFromNode(option.label);
@@ -133,14 +150,18 @@ export function Combobox({
           }}
         >
           <CommandInput placeholder="Search..." />
+
           <ScrollArea
             className={cn(
-              type === "service" ? "h-[200px]" : "h-auto max-h-[200px]"
+              type === "service"
+                ? "h-[200px] overflow-auto"
+                : "h-auto max-h-[200px] overflow-auto"
             )}
           >
             <CommandList>
               <CommandEmpty>No option found</CommandEmpty>
               {isLoading && <CommandLoading>Loading...</CommandLoading>}
+
               <CommandGroup>
                 {options.map((opt) => {
                   const titleText = getStringFromNode(opt.label);
@@ -160,12 +181,31 @@ export function Combobox({
                           value === opt.value ? "opacity-100" : "opacity-0"
                         )}
                       />
-                      <span
-                        className="flex-1 truncate text-[13px]"
-                        title={titleText}
-                      >
-                        {opt.label}
-                      </span>
+
+                      {isBadge ? (
+                        <Badge
+                          className={cn(
+                            "rounded-full py-0.5 px-2 flex items-center gap-1.5 font-archivo font-medium text-xs leading-4.5",
+                            opt.bgColor,
+                            opt.textColor
+                          )}
+                        >
+                          <div
+                            className={cn(
+                              "size-1.5 rounded-full",
+                              opt.dotColor
+                            )}
+                          />
+                          {opt.label}
+                        </Badge>
+                      ) : (
+                        <span
+                          className="flex-1 truncate text-[13px]"
+                          title={titleText}
+                        >
+                          {opt.label}
+                        </span>
+                      )}
                     </CommandItem>
                   );
                 })}
