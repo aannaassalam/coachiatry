@@ -40,10 +40,13 @@ function Button({
   variant,
   size,
   asChild = false,
+  isLoading = false,
+  children,
   ...props
 }: React.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean;
+    isLoading?: boolean;
   }) {
   const Comp = asChild ? Slot : "button";
 
@@ -51,8 +54,16 @@ function Button({
     <Comp
       data-slot="button"
       className={cn(buttonVariants({ variant, size, className }))}
+      disabled={isLoading || props.disabled}
       {...props}
-    />
+    >
+      <span className="inline-flex items-center gap-2">
+        {isLoading && (
+          <div className="w-4 h-4 border-2 border-inherit border-t-transparent rounded-full animate-spin"></div>
+        )}
+        {size === "sm" && isLoading ? null : children}
+      </span>
+    </Comp>
   );
 }
 

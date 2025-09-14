@@ -1,18 +1,18 @@
 import axios from "axios";
 import { parseCookies } from "nookies";
 import { baseUrlApi } from "../endpoints";
+import { getSession } from "next-auth/react";
 // import { refreshAccessToken } from "../functions/user.api";
 
 const axiosInstance = axios.create({
   baseURL: baseUrlApi
 });
 
-axiosInstance.interceptors.request.use((config) => {
-  const cookies = parseCookies();
+axiosInstance.interceptors.request.use(async (config) => {
+  const session = await getSession();
 
-  const { token } = cookies;
-  if (token && !!config.headers) {
-    config.headers["Authorization"] = `Bearer ${token}`;
+  if (session?.token && !!config.headers) {
+    config.headers["Authorization"] = `Bearer ${session?.token}`;
   }
 
   return config;

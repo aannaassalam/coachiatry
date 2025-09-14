@@ -7,6 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { FiBold } from "react-icons/fi";
 import { TbItalic } from "react-icons/tb";
 import { PiTextUnderlineBold } from "react-icons/pi";
+import { cn } from "@/lib/utils";
 
 export default function Toolbar({ editor }: { editor: Editor | null }) {
   const [showEmoji, setShowEmoji] = useState(false);
@@ -81,28 +82,36 @@ export default function Toolbar({ editor }: { editor: Editor | null }) {
 
       <Button
         variant="ghost"
-        className="p-1.5 hover:bg-gray-200"
+        className={cn("p-1.5 hover:bg-gray-200", {
+          "bg-gray-200": isActive("bold")
+        })}
         onClick={() => editor.chain().focus().toggleBold().run()}
       >
         <FiBold className="text-primary size-6" />
       </Button>
       <Button
         variant="ghost"
-        className="p-1.5 hover:bg-gray-200"
+        className={cn("p-1.5 hover:bg-gray-200", {
+          "bg-gray-200": isActive("italic")
+        })}
         onClick={() => editor.chain().focus().toggleItalic().run()}
       >
         <TbItalic className="text-primary size-6" />
       </Button>
       <Button
         variant="ghost"
-        className="p-1.5 hover:bg-gray-200"
+        className={cn("p-1.5 hover:bg-gray-200", {
+          "bg-gray-200": isActive("underline")
+        })}
         onClick={() => editor.chain().focus().toggleUnderline().run()}
       >
         <Image src={assets.icons.underline} alt="redo" width={24} height={24} />
       </Button>
       <Button
         variant="ghost"
-        className="p-1.5 hover:bg-gray-200"
+        className={cn("p-1.5 hover:bg-gray-200", {
+          "bg-gray-200": isActive("strike")
+        })}
         onClick={() => editor.chain().focus().toggleStrike().run()}
       >
         <Image
@@ -113,93 +122,67 @@ export default function Toolbar({ editor }: { editor: Editor | null }) {
         />
       </Button>
 
-      {/* Inline formatting */}
-      {/* {button(
-        <strong>B</strong>,
-        () => editor.chain().focus().toggleBold().run(),
-        isActive("bold")
-      )}
-      {button(
-        <em>I</em>,
-        () => editor.chain().focus().toggleItalic().run(),
-        isActive("italic")
-      )}
-      {button(
-        <u>U</u>,
-        () => editor.chain().focus().toggleUnderline().run(),
-        isActive("underline")
-      )}
-      {button(
-        <s>S</s>,
-        () => editor.chain().focus().toggleStrike().run(),
-        isActive("strike")
-      )}
+      <Separator orientation="vertical" className="mx-1.5" />
 
-      {/* Lists *
-      {button("• List", debugToggleBullet, isActive("bulletList"))}
-      {button(
-        "1. List",
-        () => editor.chain().focus().toggleOrderedList().run(),
-        isActive("orderedList")
-      )}
+      <Button
+        variant="ghost"
+        className={cn("p-1.5 hover:bg-gray-200", {
+          "bg-gray-200": isActive("bulletList")
+        })}
+        onClick={() => editor.chain().focus().toggleBulletList().run()}
+      >
+        <Image
+          src={assets.icons.unorderedList}
+          alt="redo"
+          width={24}
+          height={24}
+        />
+      </Button>
 
-      {/* Text alignments *
-      {button(
-        "Left",
-        () => editor.chain().focus().setTextAlign("left").run(),
-        isActive("textAlign", { textAlign: "left" })
-      )}
-      {button(
-        "Center",
-        () => editor.chain().focus().setTextAlign("center").run(),
-        isActive("textAlign", { textAlign: "center" })
-      )}
-      {button(
-        "Right",
-        () => editor.chain().focus().setTextAlign("right").run(),
-        isActive("textAlign", { textAlign: "right" })
-      )}
-      {button(
-        "Justify",
-        () => editor.chain().focus().setTextAlign("justify").run(),
-        isActive("textAlign", { textAlign: "justify" })
-      )}
+      <Button
+        variant="ghost"
+        className={cn("p-1.5 hover:bg-gray-200", {
+          "bg-gray-200": isActive("orderedList")
+        })}
+        onClick={() => editor.chain().focus().toggleOrderedList().run()}
+      >
+        <Image
+          src={assets.icons.orderedList}
+          alt="redo"
+          width={24}
+          height={24}
+        />
+      </Button>
 
-      {/* Links *
-      {button("Link", insertLink, isActive("link"))}
-      {button("Unlink", removeLink)}
+      <Button
+        variant="ghost"
+        className={cn("p-1.5 hover:bg-gray-200", {
+          "bg-gray-200": isActive("textAlign", { textAlign: "left" })
+        })}
+        onClick={() => editor.chain().focus().toggleTextAlign("left").run()}
+      >
+        <Image src={assets.icons.alignLeft} alt="redo" width={24} height={24} />
+      </Button>
 
-      {/* Emoji picker *
-      <div className="relative">
-        {button("😊", () => setShowEmoji((s) => !s))}
-        {showEmoji && (
-          <div className="absolute z-10 mt-2 p-2 bg-white border rounded shadow-sm grid grid-cols-6 gap-1">
-            {[
-              "😀",
-              "😁",
-              "😂",
-              "😅",
-              "😊",
-              "😍",
-              "🤔",
-              "👍",
-              "🎉",
-              "🔥",
-              "✅",
-              "❌"
-            ].map((em) => (
-              <button
-                key={em}
-                className="p-1 hover:bg-gray-100 rounded"
-                onClick={() => insertEmoji(em)}
-                type="button"
-              >
-                {em}
-              </button>
-            ))}
-          </div>
-        )}
-      </div> */}
+      <Separator orientation="vertical" className="mx-1.5" />
+
+      <Button
+        variant="ghost"
+        className={cn("p-1.5 hover:bg-gray-200", {
+          "bg-gray-200": isActive("link")
+        })}
+        onClick={isActive("link") ? removeLink : insertLink}
+      >
+        <Image src={assets.icons.link} alt="redo" width={24} height={24} />
+      </Button>
+
+      <Button
+        variant="ghost"
+        className="p-1.5 hover:bg-gray-200"
+        onClick={() => editor.chain().focus().toggleBold().run()}
+      >
+        <Image src={assets.icons.emojiDoc} alt="redo" width={24} height={24} />
+      </Button>
     </div>
   );
 }

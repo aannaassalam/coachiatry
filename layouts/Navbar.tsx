@@ -1,10 +1,19 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger
+} from "@/components/ui/popover";
 import assets from "@/json/assets";
 import { Search } from "lucide-react";
+import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
 import React from "react";
 
 export default function Navbar() {
+  const { data } = useSession();
+
   return (
     <div className="px-12 py-5 flex items-center justify-end gap-6">
       <div className="border rounded-xl overflow-hidden flex">
@@ -28,12 +37,23 @@ export default function Navbar() {
           <AvatarImage src={assets.avatar} alt="AH" />
           <AvatarFallback>AH</AvatarFallback>
         </Avatar>
-        <div className="cursor-pointer">
-          <p className="font-semibold text-gray-900 text-xs leading-4.5">
-            Amanda Haydenson
-          </p>
-          <p className="text-gray-700 text-xs leading-4">amanahay@gmail.com</p>
-        </div>
+        <Popover>
+          <PopoverTrigger>
+            <div className="cursor-pointer text-left">
+              <p className="font-semibold text-gray-900 text-xs leading-4.5">
+                {data?.user?.fullName}
+              </p>
+              <p className="text-gray-700 text-xs leading-4">
+                {data?.user?.email}
+              </p>
+            </div>
+          </PopoverTrigger>
+          <PopoverContent>
+            <Button onClick={() => signOut({ callbackUrl: "/login" })}>
+              Logout
+            </Button>
+          </PopoverContent>
+        </Popover>
       </div>
     </div>
   );

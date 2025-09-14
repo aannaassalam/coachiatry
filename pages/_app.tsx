@@ -13,6 +13,7 @@ import App from "next/app";
 import React from "react";
 import { toast, Toaster } from "sonner";
 import { NuqsAdapter } from "nuqs/adapters/next/pages";
+import { SessionProvider } from "next-auth/react";
 
 interface ErrorData {
   response: {
@@ -75,14 +76,14 @@ export default function CustomApp({ Component, pageProps }: AppProps) {
 
   return (
     <main className={`${archivo.variable} ${lato.variable}`}>
-      {/* <SessionProvider session={pageProps.session}> */}
-      <NuqsAdapter>
-        <QueryClientProvider client={queryClient}>
-          <Toaster richColors position="bottom-left" />
-          <Component {...pageProps} />
-        </QueryClientProvider>
-      </NuqsAdapter>
-      {/* </SessionProvider> */}
+      <SessionProvider session={pageProps.session}>
+        <NuqsAdapter>
+          <QueryClientProvider client={queryClient}>
+            <Toaster richColors position="bottom-left" />
+            <Component {...pageProps} />
+          </QueryClientProvider>
+        </NuqsAdapter>
+      </SessionProvider>
     </main>
   );
 }

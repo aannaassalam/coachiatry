@@ -1,22 +1,22 @@
 "use client";
-import { cn } from "@/lib/utils";
-import { Check } from "lucide-react";
-import React, { useState, useMemo } from "react";
-import { Input } from "../ui/input";
-import Image from "next/image";
 import assets from "@/json/assets";
+import { cn } from "@/lib/utils";
 import * as PopoverPrimitive from "@radix-ui/react-popover";
+import { Check } from "lucide-react";
+import Image from "next/image";
+import { useMemo, useState } from "react";
+import { Input } from "../ui/input";
+
+const statuses = [
+  { label: "Todo", color: "border-gray-400", dot: "border-2 border-dotted" },
+  { label: "Struggling", color: "bg-orange-500" },
+  { label: "Overdue", color: "bg-red-500" },
+  { label: "Completed", color: "bg-green-500" }
+];
 
 function StatusBox() {
   const [selected, setSelected] = useState("Overdue");
   const [searchTerm, setSearchTerm] = useState("");
-
-  const statuses = [
-    { label: "Todo", color: "border-gray-400", dot: "border-2 border-dotted" },
-    { label: "Struggling", color: "bg-orange-500" },
-    { label: "Overdue", color: "bg-red-500" },
-    { label: "Completed", color: "bg-green-500" }
-  ];
 
   // Filtered list based on search
   const filteredStatuses = useMemo(() => {

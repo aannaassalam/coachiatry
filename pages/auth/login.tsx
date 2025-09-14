@@ -17,8 +17,10 @@ import { Separator } from "@/components/ui/separator";
 import assets from "@/json/assets";
 import AuthLayout from "@/layouts/AuthLayout";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { signIn } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
 
@@ -32,17 +34,22 @@ const schema = yup.object().shape({
 });
 
 export default function Login() {
+  const [isLoading, setIsLoading] = useState(false);
+
   const form = useForm<yup.InferType<typeof schema>>({
     resolver: yupResolver(schema),
     defaultValues: {
       email: "",
       password: "",
       rememberMe: false
-    }
+    },
+    disabled: isLoading
   });
 
   const onSubmit = (data: yup.InferType<typeof schema>) => {
-    console.log(data);
+    setIsLoading(true);
+    signIn("credentials", { ...data, callbackUrl: "/" });
+    setIsLoading(false);
   };
 
   return (
@@ -118,7 +125,7 @@ export default function Login() {
                   );
                 }}
               />
-              <Button type="submit" className="w-full">
+              <Button type="submit" className="w-full" isLoading={isLoading}>
                 Login
               </Button>
             </form>

@@ -1,5 +1,7 @@
 "use client";
 
+import { signup } from "@/api/functions/auth.api";
+import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
@@ -16,6 +18,7 @@ import { Separator } from "@/components/ui/separator";
 import assets from "@/json/assets";
 import AuthLayout from "@/layouts/AuthLayout";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { useMutation } from "@tanstack/react-query";
 import Image from "next/image";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
@@ -30,17 +33,29 @@ const schema = yup.object().shape({
 });
 
 export default function Register() {
+  const { mutate, isPending } = useMutation({
+    mutationFn: signup,
+    onSuccess: (_data, variables) => {
+      signIn("credentials", {
+        email: variables.email,
+        password: variables.password,
+        callbackUrl: "/"
+      });
+    }
+  });
+
   const form = useForm<yup.InferType<typeof schema>>({
     resolver: yupResolver(schema),
     defaultValues: {
       fullName: "",
       email: "",
       password: ""
-    }
+    },
+    disabled: isPending
   });
 
   const onSubmit = (data: yup.InferType<typeof schema>) => {
-    console.log(data);
+    mutate(data);
   };
 
   return (
@@ -102,7 +117,7 @@ export default function Register() {
                   )}
                 />
               </div>
-              <Button type="submit" className="w-full">
+              <Button type="submit" className="w-full" isLoading={isPending}>
                 Create account
               </Button>
             </form>

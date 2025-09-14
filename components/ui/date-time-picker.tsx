@@ -1,7 +1,5 @@
 "use client";
 
-import * as React from "react";
-import { Calendar as Clock } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Select,
@@ -10,7 +8,9 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
+import { Calendar as Clock } from "lucide-react";
 import moment from "moment";
+import * as React from "react";
 
 interface DateTimePickerProps {
   value?: Date;
@@ -32,7 +32,7 @@ export function DateTimePicker({ value, onChange }: DateTimePickerProps) {
     } else {
       onChange(undefined);
     }
-  }, [date, time]);
+  }, [date, time, onChange]);
 
   // Generate time slots every 30 minutes
   const times = React.useMemo(() => {

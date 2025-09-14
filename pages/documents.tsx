@@ -1,6 +1,8 @@
 const DocumentSheet = dynamic(() => import("@/components/DocumentSheet"), {
   ssr: false
 });
+import { getAllDocuments } from "@/api/functions/document.api";
+import EmptyTable from "@/components/Table/EmptyTable";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -17,49 +19,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import assets from "@/json/assets";
 import AppLayout from "@/layouts/AppLayout";
 import { cn } from "@/lib/utils";
+import { Document } from "@/typescript/interface/document.interface";
+import { useQuery } from "@tanstack/react-query";
 import { Ellipsis, ListFilter } from "lucide-react";
+import moment from "moment";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { parseAsString, useQueryState } from "nuqs";
 import { useState } from "react";
-
-const DocumentsData = [
-  {
-    name: "Mental Health Assessment – [04 Dec, 2024]",
-    tag: "Goals",
-    date: "05-06-2025"
-  },
-  {
-    name: "Doctor’s Recommendation Letter",
-    tag: "Weekly Summaries",
-    date: "05-06-2025"
-  },
-  {
-    name: "Hospital Discharge Summary",
-    tag: "Contract",
-    date: "05-06-2025"
-  },
-  {
-    name: "Prescription – Dr. Neha Sharma (05 July 2025)",
-    tag: "Weekly",
-    date: "05-06-2025"
-  },
-  {
-    name: "Medical History Summary – Uploaded (January 2025)",
-    tag: "Goals",
-    date: "05-06-2025"
-  },
-  {
-    name: "Mental Health Assessment – June 2025",
-    tag: "Therapy",
-    date: "05-06-2025"
-  },
-  {
-    name: "Therapy Session Notes – Dr. R.K. Mehta (30 June 2025)",
-    tag: "Contract",
-    date: "05-06-2025"
-  }
-];
 
 const DocumentTagColorMap: Record<string, Record<string, string>> = {
   Goals: {
@@ -89,7 +56,13 @@ const DocumentTagColorMap: Record<string, Record<string, string>> = {
   }
 };
 
-const DocumentsTable = () => {
+const DocumentsTable = ({
+  documents,
+  setSelectedDocument
+}: {
+  documents: Document[];
+  setSelectedDocument: (doc: Document) => void;
+}) => {
   return (
     <div className="mt-5">
       <Table>
@@ -107,45 +80,52 @@ const DocumentsTable = () => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {DocumentsData.map((_data, index) => (
-            <TableRow key={index}>
-              <TableCell className="py-4.5">
-                <Checkbox className="bg-white" />
-              </TableCell>
-              <TableCell className="font-medium text-sm leading-5">
-                {_data.name}
-              </TableCell>
-              <TableCell className="py-4.5">
-                <Badge
-                  className={cn(
-                    "rounded-full py-0.5 px-2 flex items-center gap-1.5 font-archivo font-medium text-xs leading-4.5",
-                    DocumentTagColorMap[_data.tag].bg,
-                    DocumentTagColorMap[_data.tag].text
-                  )}
+          {documents.length > 0 ? (
+            documents.map((document, index) => (
+              <TableRow key={index}>
+                <TableCell className="py-4.5">
+                  <Checkbox className="bg-white" />
+                </TableCell>
+                <TableCell
+                  className="font-medium text-sm leading-5 cursor-pointer"
+                  onClick={() => setSelectedDocument(document)}
                 >
-                  <div
+                  {document.title}
+                </TableCell>
+                <TableCell className="py-4.5">
+                  <Badge
                     className={cn(
-                      "size-1.5 rounded-full",
-                      DocumentTagColorMap[_data.tag].dotColor
+                      "rounded-full py-0.5 px-2 flex items-center gap-1.5 font-archivo font-medium text-xs leading-4.5",
+                      DocumentTagColorMap["Goals"].bg,
+                      DocumentTagColorMap["Goals"].text
                     )}
-                  ></div>
-                  {_data.tag}
-                </Badge>
-              </TableCell>
-              <TableCell className="py-4.5 text-sm text-gray-600">
-                {_data.date}
-              </TableCell>
-              <TableCell className="py-4.5">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="hover:bg-secondary"
-                >
-                  <Ellipsis className="text-gray-500" />
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
+                  >
+                    <div
+                      className={cn(
+                        "size-1.5 rounded-full",
+                        DocumentTagColorMap["Goals"].dotColor
+                      )}
+                    ></div>
+                    {document.tag}
+                  </Badge>
+                </TableCell>
+                <TableCell className="py-4.5 text-sm text-gray-600">
+                  {moment(document.createdAt).format("DD-MM-YYYY")}
+                </TableCell>
+                <TableCell className="py-4.5">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="hover:bg-secondary"
+                  >
+                    <Ellipsis className="text-gray-500" />
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))
+          ) : (
+            <EmptyTable message="No documents found" colSpan={5} />
+          )}
         </TableBody>
       </Table>
     </div>
@@ -154,24 +134,38 @@ const DocumentsTable = () => {
 
 export default function Documents() {
   const [tab, setTab] = useQueryState("tab", parseAsString.withDefault("all"));
-
   const [isOpen, setIsOpen] = useState(false);
-  const [markdown, setMarkdown] = useState("");
+  const [selectedDocument, setSelectedDocument] = useState<Document | null>(
+    null
+  );
+
+  const { data = { data: [] } } = useQuery({
+    queryKey: ["documents"],
+    queryFn: getAllDocuments
+  });
 
   return (
     <AppLayout>
       <DocumentSheet
         open={isOpen}
-        onOpenChange={setIsOpen}
-        value={markdown}
-        onChange={setMarkdown}
+        onOpenChange={(toggle) => {
+          setIsOpen(toggle);
+        }}
+        documentId={selectedDocument?._id ?? ""}
       />
       <div>
         <div className="flex items-center justify-between gap-5 mb-4">
           <h1 className="font-semibold text-gray-900 text-2xl leading-7 tracking-[-3%]">
             Documents
           </h1>
-          <Button onClick={() => setIsOpen(true)}>Create Doc</Button>
+          <Button
+            onClick={() => {
+              setSelectedDocument(null);
+              setIsOpen(true);
+            }}
+          >
+            Create Doc
+          </Button>
         </div>
         <Tabs value={tab} onValueChange={(value) => setTab(value)}>
           <div>
@@ -220,7 +214,13 @@ export default function Documents() {
             </div>
             <Separator />
             <TabsContent value="all">
-              <DocumentsTable />
+              <DocumentsTable
+                documents={data.data}
+                setSelectedDocument={(doc: Document) => {
+                  setIsOpen(true);
+                  setSelectedDocument(doc);
+                }}
+              />
             </TabsContent>
           </div>
         </Tabs>

@@ -1,19 +1,19 @@
 "use client";
 
-import { useEditor, EditorContent } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
 import { cn } from "@/lib/utils";
-import { useEffect, useState } from "react";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
 import TextAlign from "@tiptap/extension-text-align";
 import Underline from "@tiptap/extension-underline";
+import { EditorContent, useEditor } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import { useEffect, useState } from "react";
 // import Toolbar from "@/ui/MarkdownEditor/Toolbar";
 import ChatToolbar from "@/ui/MarkdownEditor/ChatToolbar";
 // import { GoClock } from "react-icons/go";
-import { Button } from "../ui/button";
-import Image from "next/image";
 import assets from "@/json/assets";
+import Image from "next/image";
+import { Button } from "../ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 
 const InputButtons = ({ handleSubmit }: { handleSubmit: () => void }) => {

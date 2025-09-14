@@ -90,4 +90,15 @@ export interface Task {
 }
 export type ActiveInactiveStatus = "Inactive" | "Active";
 
+export interface PaginatedResponse<T> {
+  data: T;
+  meta: {
+    results: number;
+    limit: number;
+    currentPage: number;
+    totalPages: number;
+    totalCount: number;
+  };
+}
+
 export {};

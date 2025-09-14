@@ -1,3 +1,5 @@
+import { updatePassword } from "@/api/functions/auth.api";
+import { updateProfile } from "@/api/functions/user.api";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,28 +15,62 @@ import { Separator } from "@/components/ui/separator";
 import assets from "@/json/assets";
 import AppLayout from "@/layouts/AppLayout";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { useMutation } from "@tanstack/react-query";
 import { Link2, Plus } from "lucide-react";
-import React from "react";
+import { useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
 
 const schema = yup.object().shape({
-  name: yup.string().required("Name is required"),
-  email: yup.string().email("Invalid email").required("Email is required"),
-  password: yup
-    .string()
-    .min(8, "Password must be at least 6 characters")
-    .default(null)
+  fullName: yup.string().required("Name is required"),
+  email: yup.string().email("Invalid email").required("Email is required")
 });
 
 export default function Settings() {
+  const { data, update } = useSession();
+
+  const [password, setPassword] = useState<string>("");
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: updateProfile,
+    onSuccess: () => update()
+  });
+
+  const { mutate: mutatePassword, isPending: isPasswordUpdatePending } =
+    useMutation({
+      mutationFn: updatePassword,
+      onSuccess: () => setPassword("")
+    });
+
   const form = useForm<yup.InferType<typeof schema>>({
     resolver: yupResolver(schema),
     defaultValues: {
-      name: "",
-      email: ""
-    }
+      fullName: data?.user?.fullName,
+      email: data?.user?.email
+    },
+    disabled: isPending
   });
+
+  useEffect(() => {
+    if (data?.user) {
+      form.reset({
+        fullName: data.user.fullName,
+        email: data.user.email
+      });
+    }
+  }, [data?.user, form]);
+
+  const onSubmit = (data: yup.InferType<typeof schema>) => {
+    mutate(data);
+  };
+
+  const onUpdatePassword = () => {
+    if (password && password.trim()) {
+      mutatePassword({ password });
+    }
+  };
+
   return (
     <AppLayout>
       <div className="space-y-5">
@@ -48,7 +84,11 @@ export default function Settings() {
               <h2 className="font-lato font-semibold gap-5 text-lg tracking-[-2%]">
                 Basic Information
               </h2>
-              <Button variant="default" size="sm">
+              <Button
+                variant="default"
+                size="sm"
+                onClick={form.handleSubmit(onSubmit)}
+              >
                 Save Changes
               </Button>
             </div>
@@ -60,7 +100,7 @@ export default function Settings() {
                 </Avatar>
                 <FormField
                   control={form.control}
-                  name="name"
+                  name="fullName"
                   render={({ field }) => (
                     <FormItem className="space-y-0.5 flex-1">
                       <FormLabel>Name</FormLabel>
@@ -93,33 +133,30 @@ export default function Settings() {
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem className="space-y-0.5 flex-1">
-                      <FormLabel>Password</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Input
-                            type="text"
-                            placeholder="Enter password"
-                            className="h-12 font-bold text-base bg-gray-50/60 pr-24"
-                            {...field}
-                          />
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="absolute right-2 top-[7px] bg-white font-semibold"
-                          >
-                            Change
-                          </Button>
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <FormItem className="space-y-0.5 flex-1">
+                  <FormLabel>Password</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <Input
+                        type="text"
+                        placeholder="Enter password"
+                        className="h-12 font-bold text-base bg-gray-50/60 pr-24"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                      />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="absolute right-2 top-[7px] bg-white font-semibold"
+                        isLoading={isPasswordUpdatePending}
+                        onClick={onUpdatePassword}
+                      >
+                        Change
+                      </Button>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               </div>
             </Form>
           </div>
