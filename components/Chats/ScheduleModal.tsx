@@ -213,7 +213,7 @@ export default function ScheduleMessageModal() {
                         value={field.value}
                         onValueChange={(val) => field.onChange(val)}
                       >
-                        <SelectTrigger className="w-full">
+                        <SelectTrigger className="w-full !h-[42px]">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent className="max-h-60">
