@@ -7,7 +7,7 @@ import TextAlign from "@tiptap/extension-text-align";
 import Underline from "@tiptap/extension-underline";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 // import Toolbar from "@/ui/MarkdownEditor/Toolbar";
 import ChatToolbar from "@/ui/MarkdownEditor/ChatToolbar";
 // import { GoClock } from "react-icons/go";
@@ -15,8 +15,16 @@ import assets from "@/json/assets";
 import Image from "next/image";
 import { Button } from "../ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
+import ScheduleMessageModal from "./ScheduleModal";
+import { Dialog } from "../ui/dialog";
 
-const InputButtons = ({ handleSubmit }: { handleSubmit: () => void }) => {
+const InputButtons = ({
+  handleSubmit,
+  setModalOpen
+}: {
+  handleSubmit: () => void;
+  setModalOpen: Dispatch<SetStateAction<boolean>>;
+}) => {
   return (
     <div className="flex items-stretch">
       <Tooltip>
@@ -24,6 +32,7 @@ const InputButtons = ({ handleSubmit }: { handleSubmit: () => void }) => {
           <Button
             variant="ghost"
             size="sm"
+            onClick={() => setModalOpen(true)}
             className="hover:bg-secondary p-2 aspect-square"
           >
             <Image
@@ -105,6 +114,7 @@ export default function ChatInput({
 }) {
   const [value, setValue] = useState("");
   const [showToolBar, setShowToolBar] = useState(false);
+  const [open, setOpen] = useState(false);
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -190,8 +200,11 @@ export default function ChatInput({
           )}
         />
 
-        <InputButtons handleSubmit={handleSubmit} />
+        <InputButtons handleSubmit={handleSubmit} setModalOpen={setOpen} />
         <ChatToolbar editor={editor} showToolBar={showToolBar} />
+        <Dialog open={open} onOpenChange={setOpen}>
+          <ScheduleMessageModal />
+        </Dialog>
       </div>
     </form>
   );
