@@ -38,6 +38,7 @@ export default {
     clip: "/assets/svg/clip.svg",
     coachAi: "/assets/svg/coachAi.svg",
     send: "/assets/svg/send.svg",
-    chatEmoji: "/assets/svg/chatEmoji.svg"
+    chatEmoji: "/assets/svg/chatEmoji.svg",
+    alertTriangle: "/assets/svg/alert-triangle.svg"
   }
 };
