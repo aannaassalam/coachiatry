@@ -6,14 +6,14 @@ export default withAuth(
     const { pathname } = req.nextUrl;
 
     // If user is not logged in, allow only /auth/* routes
-    if (!req.nextauth.token && !pathname.startsWith("/auth")) {
-      return NextResponse.redirect(new URL("/auth/login", req.url));
-    }
+    // if (!req.nextauth.token && !pathname.startsWith("/auth")) {
+    //   return NextResponse.redirect(new URL("/auth/login", req.url));
+    // }
 
-    // If user is logged in and tries to access /auth/*, redirect to home (optional)
-    if (req.nextauth.token && pathname.startsWith("/auth")) {
-      return NextResponse.redirect(new URL("/", req.url));
-    }
+    // // If user is logged in and tries to access /auth/*, redirect to home (optional)
+    // if (req.nextauth.token && pathname.startsWith("/auth")) {
+    //   return NextResponse.redirect(new URL("/", req.url));
+    // }
 
     return NextResponse.next();
   },

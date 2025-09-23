@@ -24,28 +24,28 @@ import {
   TooltipContent
 } from "@/components/ui/tooltip";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-const PriorityTagColorMap: Record<string, Record<string, string>> = {
-  Medium: {
+const CategoryTagColorMap: Record<string, Record<string, string>> = {
+  Health: {
     bg: "bg-amber-200/40",
     text: "text-amber-600/80",
     dotColor: "bg-amber-600/80"
   },
-  Low: {
+  Fitness: {
     bg: "bg-green-100",
     text: "text-green-600/90",
     dotColor: "bg-green-600/90"
   },
-  High: {
+  Goal: {
     text: "text-red-600/80",
     bg: "bg-red-100/80",
     dotColor: "bg-red-600/80"
   }
 };
-const CategoryColor: Record<string, string> = {
-  Health: "text-[#F16A24]",
-  Fitness: "text-green-600/90",
-  Goal: "text-red-600/80"
-};
+// const CategoryColor: Record<string, string> = {
+//   Health: "text-[#F16A24]",
+//   Fitness: "text-green-600/90",
+//   Goal: "text-red-600/80"
+// };
 const SubTasksTable = ({
   subTasks
 }: {
@@ -239,27 +239,34 @@ function TasksTable({ tasks }: { tasks: Task[] }) {
                     {moment(task.dueDate).format("DD-MM-YYYY")}
                   </TableCell>
                   <TableCell className="tracking-[-0.05px]">
-                    <p
-                      className={cn(
-                        "rounded-full py-0.5 px-2 flex items-center gap-1.5 font-archivo font-medium text-xs leading-4.5",
-                        CategoryColor[task.category]
-                      )}
-                    >
-                      {task.category}
-                    </p>
-                  </TableCell>
-                  <TableCell className="tracking-[-0.05px]">
                     <Badge
                       className={cn(
                         "rounded-full py-0.5 px-2 flex items-center gap-1.5 font-archivo font-medium text-xs leading-4.5",
-                        PriorityTagColorMap[task.priority].bg,
-                        PriorityTagColorMap[task.priority].text
+                        CategoryTagColorMap[task.category].bg,
+                        CategoryTagColorMap[task.category].text
                       )}
                     >
                       <div
                         className={cn(
                           "size-1.5 rounded-full",
-                          PriorityTagColorMap[task.priority].dotColor
+                          CategoryTagColorMap[task.category].dotColor
+                        )}
+                      ></div>
+                      {task.category}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="tracking-[-0.05px]">
+                    <Badge
+                      className={cn(
+                        "rounded-full py-0.5 px-2 flex items-center gap-1.5 font-archivo font-medium text-xs leading-4.5",
+                        CategoryTagColorMap[task.category].bg,
+                        CategoryTagColorMap[task.category].text
+                      )}
+                    >
+                      <div
+                        className={cn(
+                          "size-1.5 rounded-full",
+                          CategoryTagColorMap[task.category].dotColor
                         )}
                       ></div>
                       {task.priority}
