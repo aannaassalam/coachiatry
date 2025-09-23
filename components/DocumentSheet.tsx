@@ -88,12 +88,12 @@ export default function DocumentSheet({
         showOnlyWhenEditable: true
       })
     ],
-    content: documentData?.content || "",
+    content: "",
     immediatelyRender: false, // Next.js SSR
     onUpdate: ({ editor }) => {
       const html = editor.getHTML();
-      if (html !== documentData?.content)
-        setDocumentData((prev) => ({ ...prev, content: html }));
+      // if (html !== documentData?.content)
+      setDocumentData((prev) => ({ ...prev, content: html }));
     }
   });
 
@@ -101,20 +101,12 @@ export default function DocumentSheet({
   useEffect(() => {
     if (!editor) return;
 
-    if (!documentId) {
-      editor.commands.setContent("");
-      return;
-    }
-
-    const current = editor.getHTML();
-
-    // Allow empty string reset too
-    if ((documentData?.content ?? "") !== current) {
+    if (documentData?.content !== editor.getHTML()) {
       editor.commands.setContent(documentData?.content ?? "", {
         parseOptions: { preserveWhitespace: "full" }
       });
     }
-  }, [documentId, documentData?.content, editor]);
+  }, [documentData?.content, editor]);
 
   const { mutate, isPending } = useMutation({
     mutationFn: createDocument,

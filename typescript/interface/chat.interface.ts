@@ -1,0 +1,27 @@
+import { User } from "./user.interface";
+
+export interface ChatConversation {
+  _id?: string;
+  type: "direct" | "group";
+  name?: string;
+  createdBy: string;
+  members: [
+    {
+      user: User;
+      role: "member" | "admin" | "owner";
+      joinedAt: string;
+      lastReadAt: string;
+    }
+  ];
+  lastMessage: {
+    message?: string;
+    sender?: User;
+    content?: string;
+    type?: "text" | "image" | "video" | "file" | "system";
+    sentAt?: string;
+    status?: "pending" | "sent" | "delivered" | "seen" | "failed";
+    createdAt?: string;
+  } | null;
+  createdAt: string;
+  updatedAt?: string;
+}

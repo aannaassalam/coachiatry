@@ -1,17 +1,18 @@
-import AppLayout from "@/layouts/AppLayout";
-import React from "react";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { parseAsString, useQueryState } from "nuqs";
-import { Separator } from "@/components/ui/separator";
-import ChatList from "@/components/Chats/ChatList";
 import ChatConversation from "@/components/Chats/ChatConversation";
+import ChatList from "@/components/Chats/ChatList";
+import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import AppLayout from "@/layouts/AppLayout";
+import { SocketProvider } from "@/lib/socketContext";
+import { parseAsString, useQueryState } from "nuqs";
 
 function Chat() {
   const [tab, setTab] = useQueryState("tab", parseAsString.withDefault("all"));
+  const [room] = useQueryState("room", parseAsString.withDefault(""));
 
   return (
-    <AppLayout isPaddingBottom={false}>
-      <div>
+    <SocketProvider>
+      <AppLayout isPaddingBottom={false}>
         <div className="flex justify-between items-center mb-2">
           <div className="flex items-center justify-between gap-5 ">
             <h1 className="font-semibold text-gray-900 text-2xl leading-7 tracking-[-3%]">
@@ -44,12 +45,12 @@ function Chat() {
           </Tabs>
         </div>
         <Separator />
-        <div className="w-full grid grid-cols-[0.3fr_auto]">
+        <div className="w-full grid grid-cols-[0.3fr_auto] flex-1 min-h-0">
           <ChatList />
-          <ChatConversation />
+          {room && <ChatConversation />}
         </div>
-      </div>
-    </AppLayout>
+      </AppLayout>
+    </SocketProvider>
   );
 }
 

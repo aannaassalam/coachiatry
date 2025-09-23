@@ -1,81 +1,47 @@
-import React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 // import assets from "@/json/assets";
+import { getAllConversations } from "@/api/functions/chat.api";
 import { cn } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
+import moment from "moment";
+import { useSession } from "next-auth/react";
+import { parseAsString, useQueryState } from "nuqs";
 
-const messages = [
-  {
-    id: 1,
-    name: "Eleanor Pena",
-    message: "Paperless opt-out email sent",
-    time: "5s",
-    avatar: "https://randomuser.me/api/portraits/women/44.jpg",
-    unread: false
-  },
-  {
-    id: 2,
-    name: "Cody Fisher",
-    message:
-      "Im trying to book an appointment but the assistant isnt picking up the phone....",
-    time: "59m",
-    avatar: "https://randomuser.me/api/portraits/men/32.jpg",
-    unread: false
-  },
-  {
-    id: 3,
-    name: "We Are Three",
-    message:
-      "I have something on my mind that's been bothering me, but I'm not sure",
-    time: "1h",
-    avatar: null,
-    unread: false
-  },
-  {
-    id: 4,
-    name: "Robert Fox",
-    message:
-      "I've been procrastinating on important tasks, and it's causing unnecessary stress.",
-    time: "2w",
-    avatar: "https://randomuser.me/api/portraits/men/65.jpg",
-    unread: true
-  },
-  {
-    id: 5,
-    name: "Albert Flores",
-    message: "😩 Cansei de filme de herói 😭",
-    time: "2w",
-    avatar: "https://randomuser.me/api/portraits/men/28.jpg",
-    unread: false
-  },
-  {
-    id: 6,
-    name: "Cooper, Kristin",
-    message: "I'm trying to adopt a more sustainable lifestyle",
-    time: "3w",
-    avatar: "https://randomuser.me/api/portraits/women/19.jpg",
-    unread: true
-  },
-  {
-    id: 1,
-    name: "Eleanor Pena",
-    message: "Paperless opt-out email sent",
-    time: "5s",
-    avatar: "https://randomuser.me/api/portraits/women/44.jpg",
-    unread: false
-  },
-  {
-    id: 6,
-    name: "Cooper, Kristin",
-    message: "I'm trying to adopt a more sustainable lifestyle",
-    time: "3w",
-    avatar: "https://randomuser.me/api/portraits/women/19.jpg",
-    unread: true
+moment.updateLocale("en", {
+  relativeTime: {
+    future: "in %s",
+    past: "%s",
+    s: "%ds",
+    ss: "%ds",
+    m: "1m",
+    mm: "%dm",
+    h: "1h",
+    hh: "%dh",
+    w: "1w",
+    ww: "%dw",
+    d: "1d",
+    dd: "%dd",
+    M: "1m",
+    MM: "%dm",
+    y: "1y",
+    yy: "%dy"
   }
-];
+});
 
 export default function ChatList() {
+  const [, setSelectedChat] = useQueryState(
+    "room",
+    parseAsString.withDefault("")
+  );
+  const { data } = useSession();
+
+  const { data: chats } = useQuery({
+    queryKey: ["conversations"],
+    queryFn: getAllConversations
+  });
+
   return (
-    <div className="max-w-md mr-auto bg-white pt-4 rounded-lg flex flex-col">
+    <div className="w-xs mr-auto bg-white pt-4 rounded-lg flex flex-col">
       {/* Header / Content Above */}
       <h2 className="text-sm font-semibold mb-3 text-gray-800 pl-3">
         All messages
@@ -83,42 +49,54 @@ export default function ChatList() {
 
       {/* Scrollable List */}
       <ul className="space-y-2 overflow-y-auto pr-2 pb-6 max-h-[calc(100vh-200px)]">
-        {messages.map((msg) => (
-          <li
-            key={msg.id}
-            className="flex cursor-pointer items-start justify-between py-2.5 px-3 rounded-[8px] hover:bg-gray-100 transition"
-          >
-            <div className="flex items-start space-x-3">
+        {chats?.data?.map((_chat) => {
+          const chatUser = _chat.members.find(
+            (_member) => _member.user._id !== data?.user?._id
+          );
+          return (
+            <li
+              key={_chat._id}
+              className="flex cursor-pointer items-start justify-between gap-2 py-2.5 px-3 rounded-[8px] hover:bg-gray-100 transition"
+              onClick={() => setSelectedChat(_chat._id!)}
+            >
+              {/* <div className="flex-1 inline-flex items-start space-x-3"> */}
               <Avatar className="size-10">
-                <AvatarImage src={msg.avatar ?? undefined} alt="AH" />
+                <AvatarImage
+                  src={"https://randomuser.me/api/portraits/women/44.jpg"}
+                  alt="AH"
+                />
                 <AvatarFallback className=" bg-orange-100 flex items-center justify-center font-semibold text-orange-600">
-                  {msg.name[0]}
+                  {chatUser?.user.fullName[0]}
                 </AvatarFallback>
               </Avatar>
-              <div>
-                <div className="flex items-center space-x-2">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center">
                   <span className="font-medium  text-sm text-gray-900">
-                    {msg.name}
+                    {chatUser?.user.fullName}
                   </span>
-                  {msg.unread && (
-                    <span className="w-[7px] h-[7px] rounded-full bg-primary"></span>
-                  )}
+                  {/* {msg.unread && (
+                      <span className="w-[7px] h-[7px] rounded-full bg-primary"></span>
+                    )} */}
                 </div>
                 <p
                   className={cn(
-                    "text-xs text-gray-500 truncate w-56",
-                    msg.unread && "font-semibold"
+                    "text-xs text-gray-500 truncate"
+                    // msg.unread && "font-semibold"
                   )}
                 >
-                  {msg.message}
+                  {_chat.lastMessage?.sender?._id === data?.user?._id
+                    ? "You: "
+                    : null}
+                  {_chat.lastMessage?.content}
                 </p>
               </div>
-            </div>
-            <span className="text-xs text-gray-500 whitespace-nowrap ">
-              {msg.time}
-            </span>
-          </li>
-        ))}
+              <span className="text-xs text-gray-500 whitespace-nowrap ">
+                {moment(_chat.lastMessage?.createdAt).fromNow(true)}
+              </span>
+              {/* </div> */}
+            </li>
+          );
+        })}
       </ul>
     </div>
   );

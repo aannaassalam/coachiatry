@@ -23,7 +23,7 @@ function StatusBox() {
     return statuses.filter((status) =>
       status.label.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [searchTerm, statuses]);
+  }, [searchTerm]);
 
   return (
     <div className="">

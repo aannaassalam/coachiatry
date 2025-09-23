@@ -26,5 +26,12 @@ export const endpoints = {
   user: {
     getProfile: "/user/me",
     updateProfile: "/user/me"
+  },
+  chat: {
+    getConversations: "/chat",
+    getConversation: (roomId: string) => `/chat/${roomId}`
+  },
+  messages: {
+    getMessages: (room: string) => `/message/${room}`
   }
 };
