@@ -4,6 +4,7 @@ export default {
   google_logo: "/assets/svg/google.svg",
   ai: "/assets/svg/ai.svg",
   avatar: "/assets/images/avatar.png",
+  avatar2: "/assets/images/avatar2.png",
   taskCircle: "/assets/images/taskCircle.png",
 
   icons: {
@@ -39,6 +40,11 @@ export default {
     coachAi: "/assets/svg/coachAi.svg",
     send: "/assets/svg/send.svg",
     chatEmoji: "/assets/svg/chatEmoji.svg",
-    alertTriangle: "/assets/svg/alert-triangle.svg"
+    alertTriangle: "/assets/svg/alert-triangle.svg",
+    calendar: "/assets/svg/calendar.svg",
+    shortSummary: "/assets/svg/short-summary.svg",
+    detailSummary: "/assets/svg/detail-summary.svg",
+    generateTask: "/assets/svg/generate-task.svg",
+    aiStar: "/assets/svg/ai-star.svg"
   }
 };
