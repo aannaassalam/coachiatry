@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   //   Dialog,
   //   DialogTrigger,
@@ -42,6 +42,7 @@ import {
 import { Combobox } from "../ui/combobox";
 import Image from "next/image";
 import assets from "@/json/assets";
+import Link from "next/link";
 const archivo = Archivo({ subsets: ["latin"], variable: "--font-archivo" });
 const lato = Lato({
   display: "swap",
@@ -50,7 +51,16 @@ const lato = Lato({
   weight: ["100", "300", "400", "700", "900"]
 });
 
-export default function ScheduleMessageModal() {
+export default function ScheduleMessageModal({
+  selectedMessage
+}: {
+  selectedMessage?: {
+    message: string;
+    time: string;
+    date: Date;
+    repeat: string;
+  };
+}) {
   const schema = yup.object().shape({
     message: yup.string().required("Message is required"),
     date: yup.date().required("Scheduled Date is required"),
@@ -61,11 +71,12 @@ export default function ScheduleMessageModal() {
   const form = useForm<yup.InferType<typeof schema>>({
     resolver: yupResolver(schema),
     defaultValues: {
-      message:
-        "Hey Riya, just checking in on your journaling habit this week. Let me  know how it's going 😊  \nHave you had at least 3 deep-breath moments today?” ",
-      date: undefined,
+      message: selectedMessage
+        ? selectedMessage.message
+        : "Hey Riya, just checking in on your journaling habit this week. Let me  know how it's going 😊  \nHave you had at least 3 deep-breath moments today?” ",
+      date: selectedMessage ? selectedMessage.date : undefined,
       frequency: "",
-      time: "12:00"
+      time: selectedMessage ? selectedMessage.time : "12:00"
     }
   });
 
@@ -73,7 +84,7 @@ export default function ScheduleMessageModal() {
     console.log({ ...data });
   };
 
-  const [editMessage, setEditMessage] = useState(true);
+  const [editMessage, setEditMessage] = useState(false);
   const times = React.useMemo(() => {
     const slots: string[] = [];
     for (let h = 0; h < 24; h++) {
@@ -89,6 +100,16 @@ export default function ScheduleMessageModal() {
     { label: "Monthly", value: "monthly" },
     { label: "Yearly", value: "yearly" }
   ];
+  useEffect(() => {
+    if (selectedMessage) {
+      form.reset({
+        message: selectedMessage.message,
+        date: selectedMessage.date,
+        frequency: selectedMessage.repeat, // or selectedMessage.frequency if you rename
+        time: selectedMessage.time
+      });
+    }
+  }, [selectedMessage, form]);
   return (
     <DialogContent
       className={`${archivo.variable} ${lato.variable} sm:max-w-xl p-0`}
@@ -273,8 +294,10 @@ export default function ScheduleMessageModal() {
           <Button variant="outline">Cancel</Button>
         </DialogClose>
         <div className="flex gap-2">
-          <Button variant="outline">View All Scheduled</Button>
-          <Button>Create</Button>
+          <Link href="/chat/scheduled-messages">
+            <Button variant="outline">View All Scheduled</Button>
+          </Link>
+          <Button>{selectedMessage ? "Update" : "Create"}</Button>
         </div>
       </DialogFooter>
     </DialogContent>
