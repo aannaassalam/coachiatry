@@ -49,7 +49,7 @@ export default function Navbar() {
             </div>
           </PopoverTrigger>
           <PopoverContent>
-            <Button onClick={() => signOut({ callbackUrl: "/login" })}>
+            <Button onClick={() => signOut({ callbackUrl: "/auth/login" })}>
               Logout
             </Button>
           </PopoverContent>

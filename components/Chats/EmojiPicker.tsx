@@ -1,18 +1,22 @@
-import { emojiCategories } from "@/lib/emojis";
-import React, { useState, Dispatch, SetStateAction } from "react";
-import { Button } from "../ui/button";
-import Image from "next/image";
 import assets from "@/json/assets";
-import { Input } from "../ui/input";
+import { emojiCategories } from "@/lib/emojis";
 import { PopoverClose } from "@radix-ui/react-popover";
+import Image from "next/image";
+import React, { useState } from "react";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
 
 type EmojiPickerProps = {
-  setSelectedEmoji: Dispatch<SetStateAction<string | null>>;
+  setSelectedEmoji: (emoji: string) => void;
+  largePicker?: boolean;
 };
 
-const EmojiPicker: React.FC<EmojiPickerProps> = ({ setSelectedEmoji }) => {
+const EmojiPicker: React.FC<EmojiPickerProps> = ({
+  setSelectedEmoji,
+  largePicker = false
+}) => {
   const [selectedIndex] = useState<number | null>(null);
-  const [showEmojiPicker, setShowEmojiPicker] = useState<boolean>(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState<boolean>(largePicker);
   const [activeCategory, setActiveCategory] = useState<string>("smileys");
   const [searchQuery, setSearchQuery] = useState<string>("");
 
@@ -21,9 +25,9 @@ const EmojiPicker: React.FC<EmojiPickerProps> = ({ setSelectedEmoji }) => {
     { emoji: "👀", label: "eyes" },
     { emoji: "🙌", label: "raised hands" },
     { emoji: "🔥", label: "fire" },
-    { emoji: "😃", label: "grinning" },
-    { emoji: "👍", label: "thumbs up" },
-    { emoji: "🤔", label: "thinking" }
+    { emoji: "😮", label: "face with open mouth" },
+    { emoji: "👍", label: "thumbs up" }
+    // { emoji: "🤔", label: "thinking" }
   ];
 
   const handleEmojiSelect = (emoji: string) => {
@@ -45,51 +49,51 @@ const EmojiPicker: React.FC<EmojiPickerProps> = ({ setSelectedEmoji }) => {
   };
 
   return (
-    <div className="flex items-center justify-center">
-      <div className="relative -top-[50%]">
+    <div className="border-0">
+      <div className="">
         {/* Main emoji reaction bar */}
-        <div className="bg-white rounded-full shadow-lg p-2 flex items-center gap-0 overflow-y-auto">
-          {!showEmojiPicker && (
-            <>
-              {mainEmojis.map((item, index) => (
-                <PopoverClose key={index}>
-                  <Button
-                    variant="ghost"
-                    onClick={() => handleEmojiSelect(item.emoji)}
-                    className={`w-10 h-10 rounded-full flex items-center justify-center text-xl hover:bg-gray-100 transition-all duration-200 transform hover:scale-110 ${
-                      selectedIndex === index ? "bg-blue-100 scale-110" : ""
-                    }`}
-                    title={item.label}
-                  >
-                    {item.emoji}
-                  </Button>
-                </PopoverClose>
-              ))}
-            </>
-          )}
-          {/* Add more button */}
-          <Button
-            variant="ghost"
-            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-            className={`w-10 h-10 rounded-full p-0 flex items-center justify-center text-xl hover:bg-gray-100 transition-all duration-200 transform hover:scale-110 ${
-              showEmojiPicker ? "bg-gray-100 scale-110 hidden" : ""
-            }`}
-            title="Add reaction"
-          >
-            <span className="text-gray-400">
-              <Image
-                src={assets.icons.emoji}
-                alt="add"
-                width={20}
-                height={20}
-              />
-            </span>
-          </Button>
-        </div>
+        {!showEmojiPicker && (
+          <div className="bg-white rounded-full shadow-lg p-2 flex items-center gap-0 overflow-y-auto">
+            {/* <> */}
+            {mainEmojis.map((item, index) => (
+              <PopoverClose key={index}>
+                <Button
+                  variant="ghost"
+                  onClick={() => handleEmojiSelect(item.emoji)}
+                  className={`size-9.5 rounded-full flex items-center justify-center text-xl hover:bg-gray-100 transition-all duration-200 transform hover:scale-110 ${
+                    selectedIndex === index ? "bg-blue-100 scale-110" : ""
+                  }`}
+                  title={item.label}
+                >
+                  {item.emoji}
+                </Button>
+              </PopoverClose>
+            ))}
+            {/* </> */}
+            {/* Add more button */}
+            <Button
+              variant="ghost"
+              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+              className={`w-10 h-10 rounded-full p-0 flex items-center justify-center text-xl hover:bg-gray-100 transition-all duration-200 transform hover:scale-110 ${
+                showEmojiPicker ? "bg-gray-100 scale-110 hidden" : ""
+              }`}
+              title="Add reaction"
+            >
+              <span className="text-gray-400">
+                <Image
+                  src={assets.icons.emoji}
+                  alt="add"
+                  width={20}
+                  height={20}
+                />
+              </span>
+            </Button>
+          </div>
+        )}
 
         {/* Emoji Picker */}
         {showEmojiPicker && (
-          <div className="absolute -bottom-[140px] mt-2 -right-[160px] bg-white rounded-2xl shadow-xl border w-80 h-70 z-50">
+          <div className="bg-white rounded-2xl shadow-xl border w-80 h-70 z-50">
             {/* Search bar */}
             <div className="p-3 border-b">
               <Input

@@ -11,7 +11,12 @@ import React from "react";
 export default function Sidebar() {
   const router = useRouter();
   const pathname = router.pathname;
-
+  const isActive = (href: string) => {
+    if (href === "/") {
+      return pathname === "/";
+    }
+    return pathname.startsWith(href);
+  };
   return (
     <div className="w-[312px] min-h-screen p-4 space-y-4">
       <Logo />
@@ -23,6 +28,8 @@ export default function Sidebar() {
                 {links.title}
               </p>
               {links.links.map((link, index) => {
+                const active = isActive(link.href);
+
                 return (
                   <Link
                     key={link.href}
@@ -30,7 +37,7 @@ export default function Sidebar() {
                     className={cn(
                       "px-2 py-2.5 flex items-center gap-2 text-gray-500 rounded-md hover:bg-gray-200/60 transition-all",
                       {
-                        "bg-primary hover:bg-primary": pathname === link.href
+                        "bg-primary hover:bg-primary": active
                       }
                     )}
                   >
@@ -40,14 +47,14 @@ export default function Sidebar() {
                       width={20}
                       height={20}
                       className={cn({
-                        "invert brightness-0": pathname === link.href
+                        "invert brightness-0": active
                       })}
                     />
                     <p
                       className={cn(
                         "capitalize text-sm leading-5 tracking-[0.05px]",
                         {
-                          "text-white": pathname === link.href
+                          "text-white": active
                         }
                       )}
                     >
