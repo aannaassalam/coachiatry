@@ -36,6 +36,12 @@ const schema = yup.object().shape({
 export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
 
+  console.log(
+    process.env.NEXT_PUBLIC_BASE_URL,
+    process.env.NEXTAUTH_URL,
+    process.env.NEXTAUTH_SECRET
+  );
+
   const form = useForm<yup.InferType<typeof schema>>({
     resolver: yupResolver(schema),
     defaultValues: {
