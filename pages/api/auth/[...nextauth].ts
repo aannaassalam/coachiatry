@@ -13,21 +13,26 @@ export default NextAuth({
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        const res = await login(credentials as LoginBody);
+        try {
+          const res = await login(credentials as LoginBody);
+          console.log("login response", res);
+          if (!res.data) return null;
 
-        if (!res.data) return null;
+          // must return a plain object
+          const user: User & { token: string } = {
+            ...res.data.user,
+            token: res.data.token
+          };
 
-        // must return a plain object
-        const user: User & { token: string } = {
-          ...res.data.user,
-          token: res.data.token
-        };
+          // MUST have id at minimum
+          if (!user._id) return null;
+          user.id = user._id; // normalize if API only provides _id
 
-        // MUST have id at minimum
-        if (!user._id) return null;
-        user.id = user._id; // normalize if API only provides _id
-
-        return user;
+          return user;
+        } catch (err) {
+          console.log(err);
+          return null;
+        }
       }
     })
   ],
@@ -36,7 +41,7 @@ export default NextAuth({
     strategy: "jwt"
   },
   pages: {
-    signIn: "/login"
+    signIn: "/auth/login"
   },
   callbacks: {
     async jwt({ token, trigger, user }) {
