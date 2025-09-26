@@ -21,6 +21,7 @@ import { CommandLoading } from "cmdk";
 import React from "react";
 import { ScrollArea } from "./scroll-area";
 import { Badge } from "./badge";
+import PriorityFlag from "../Tasks/PriorityFlag";
 
 type ComboboxOption = {
   label: string | React.ReactNode;
@@ -41,6 +42,7 @@ interface ComboboxProps {
   isLoading?: boolean;
   type?: string;
   isBadge?: boolean;
+  isFlag?: boolean;
 }
 
 interface ReactElementWithChildren extends React.ReactElement {
@@ -97,7 +99,8 @@ export function Combobox({
   disabled,
   isLoading,
   type,
-  isBadge
+  isBadge,
+  isFlag
 }: ComboboxProps) {
   const [open, setOpen] = useState(false);
   const selected = options.find((opt) => opt.value === value);
@@ -112,7 +115,12 @@ export function Combobox({
           disabled={disabled}
         >
           {selected ? (
-            !isBadge ? (
+            isFlag ? (
+              <div className="flex items-center gap-1.5">
+                <PriorityFlag priority={selected.value} />
+                <span>{selected.label}</span>
+              </div>
+            ) : !isBadge ? (
               selected.label
             ) : (
               <Badge
@@ -198,6 +206,11 @@ export function Combobox({
                           />
                           {opt.label}
                         </Badge>
+                      ) : isFlag ? (
+                        <div className="flex items-center gap-1.5">
+                          <PriorityFlag priority={opt.value} />
+                          <span>{opt.label}</span>
+                        </div>
                       ) : (
                         <span
                           className="flex-1 truncate text-[13px]"

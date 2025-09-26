@@ -8,7 +8,7 @@ import {
   TableRow
 } from "@/components/ui/table";
 import { Checkbox } from "../ui/checkbox";
-import { Task } from "@/typescript/interface/common.interface";
+import { Task } from "@/typescript/interface/tasks.interface";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
 import { cn } from "@/lib/utils";
@@ -24,6 +24,8 @@ import {
   TooltipContent
 } from "@/components/ui/tooltip";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import AddTaskSheet from "./AddTaskSheet";
+import PriorityFlag from "./PriorityFlag";
 const CategoryTagColorMap: Record<string, Record<string, string>> = {
   Health: {
     bg: "bg-amber-200/40",
@@ -41,11 +43,6 @@ const CategoryTagColorMap: Record<string, Record<string, string>> = {
     dotColor: "bg-red-600/80"
   }
 };
-// const CategoryColor: Record<string, string> = {
-//   Health: "text-[#F16A24]",
-//   Fitness: "text-green-600/90",
-//   Goal: "text-red-600/80"
-// };
 const SubTasksTable = ({
   subTasks
 }: {
@@ -113,6 +110,8 @@ const RenderTableSortingIcon = () => {
 function TasksTable({ tasks }: { tasks: Task[] }) {
   const [openTasksIndex, setOpenTasksIndex] = useState<number[]>([]);
   const [statusBoxIndex, setStatusBoxIndex] = useState<number>(-1);
+  const [selectedTask, setSelectedTask] = useState<Task>({} as Task);
+  const [isOpen, setIsOpen] = useState(false);
   return (
     <div className="mt-2 w-full tasksTable">
       {tasks.length != 0 && (
@@ -151,7 +150,11 @@ function TasksTable({ tasks }: { tasks: Task[] }) {
               <>
                 <TableRow
                   key={index}
-                  className="!h-[44px] hover:bg-gray-50 !border-b-1 !border-gray-100"
+                  className="!h-[44px] hover:bg-gray-50 !border-b-1 !border-gray-100 cursor-pointer"
+                  onClick={() => {
+                    setSelectedTask(task);
+                    setIsOpen(true);
+                  }}
                 >
                   <TableCell
                     className={cn(
@@ -162,15 +165,16 @@ function TasksTable({ tasks }: { tasks: Task[] }) {
                     {task.subTasks && task.subTasks.length > 0 && (
                       <div
                         className="flex items-center justify-center rounded-sm p-2 hover:bg-gray-100 transition-all duration-200 mr-2"
-                        onClick={() =>
+                        onClick={(e) => {
+                          e.stopPropagation();
                           setOpenTasksIndex((prev) => {
                             if (prev.includes(index)) {
                               return prev.filter((i) => i !== index);
                             } else {
                               return [...prev, index];
                             }
-                          })
-                        }
+                          });
+                        }}
                       >
                         <Image
                           src={assets.icons.triangle}
@@ -186,7 +190,6 @@ function TasksTable({ tasks }: { tasks: Task[] }) {
                         />
                       </div>
                     )}
-
                     <Popover>
                       <PopoverTrigger asChild>
                         <Image
@@ -195,11 +198,12 @@ function TasksTable({ tasks }: { tasks: Task[] }) {
                           width={24}
                           height={24}
                           className="inline mr-3 cursor-pointer"
-                          onClick={() =>
+                          onClick={(e) => {
+                            e.stopPropagation();
                             setStatusBoxIndex(
                               statusBoxIndex === index ? -1 : index
-                            )
-                          }
+                            );
+                          }}
                         />
                       </PopoverTrigger>
                       <PopoverContent className="w-[245px] p-0 relative left-[111px]">
@@ -255,22 +259,11 @@ function TasksTable({ tasks }: { tasks: Task[] }) {
                       {task.category}
                     </Badge>
                   </TableCell>
-                  <TableCell className="tracking-[-0.05px]">
-                    <Badge
-                      className={cn(
-                        "rounded-full py-0.5 px-2 flex items-center gap-1.5 font-archivo font-medium text-xs leading-4.5",
-                        CategoryTagColorMap[task.category].bg,
-                        CategoryTagColorMap[task.category].text
-                      )}
-                    >
-                      <div
-                        className={cn(
-                          "size-1.5 rounded-full",
-                          CategoryTagColorMap[task.category].dotColor
-                        )}
-                      ></div>
-                      {task.priority}
-                    </Badge>
+                  <TableCell className="tracking-[-0.05px] flex gap-2">
+                    <PriorityFlag
+                      priority={task.priority.toLocaleLowerCase()}
+                    />
+                    {task.priority}
                   </TableCell>
                   <TableCell className="">
                     <Button
@@ -296,10 +289,16 @@ function TasksTable({ tasks }: { tasks: Task[] }) {
         variant="ghost"
         className="text-gray-400 text-[12px] mt-2"
         size="sm"
+        onClick={() => setIsOpen(true)}
       >
         <Image src={assets.icons.plus} alt="add" width={14} height={14} />
         Add Task
       </Button>
+      <AddTaskSheet
+        open={isOpen}
+        onOpenChange={setIsOpen}
+        selectedTask={selectedTask}
+      />
     </div>
   );
 }

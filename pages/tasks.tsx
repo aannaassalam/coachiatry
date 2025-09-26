@@ -10,6 +10,12 @@ import assets from "@/json/assets";
 import { parseAsString, useQueryState } from "nuqs";
 import ListView from "@/components/Tasks/ListView";
 import AddTaskSheet from "@/components/Tasks/AddTaskSheet";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger
+} from "@/components/ui/popover";
+import ColumnBox from "@/components/Tasks/ColumnBox";
 
 function Tasks() {
   const [tab, setTab] = useQueryState("tab", parseAsString.withDefault("list"));
@@ -52,15 +58,23 @@ function Tasks() {
               </TabsTrigger>
             </TabsList>
             <div>
-              <Button variant="ghost">
-                <Image
-                  src={assets.icons.column}
-                  alt="column"
-                  width={15}
-                  height={15}
-                />
-                Column
-              </Button>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="ghost">
+                    <Image
+                      src={assets.icons.column}
+                      alt="column"
+                      width={15}
+                      height={15}
+                    />
+                    Column
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[245px] p-0 ">
+                  <ColumnBox />
+                </PopoverContent>
+              </Popover>
+
               {/* <Button variant="ghost">
                 <Image
                   src={assets.icons.sort}

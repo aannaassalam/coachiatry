@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import TasksTable from "./TasksTable";
+import AddTaskSheet from "./AddTaskSheet";
 
 function ListView() {
   const [tasks] = useState([
@@ -132,6 +133,7 @@ function ListView() {
     }
   ];
   const [openIndexes, setOpenIndexes] = useState<number[]>([]);
+  const [isOpen, setIsOpen] = useState(false);
 
   const handleToggle = (idx: number, isOpen: boolean) => {
     setOpenIndexes((prev) =>
@@ -182,6 +184,7 @@ function ListView() {
               variant="ghost"
               className="text-gray-400 text-[12px] self-end"
               size="sm"
+              onClick={() => setIsOpen(true)}
             >
               <Image src={assets.icons.plus} alt="add" width={14} height={14} />
               Add Task
@@ -194,6 +197,7 @@ function ListView() {
           </CollapsibleContent>
         </Collapsible>
       ))}
+      <AddTaskSheet open={isOpen} onOpenChange={setIsOpen} />
     </div>
   );
 }
