@@ -4,6 +4,12 @@ import { User } from "@/typescript/interface/user.interface";
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 
+console.log(
+  "Runtime vars",
+  process.env.NEXTAUTH_URL,
+  process.env.NEXTAUTH_SECRET
+);
+
 export default NextAuth({
   providers: [
     Credentials({
