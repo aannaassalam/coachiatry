@@ -37,7 +37,7 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
 
   console.log(
-    process.env.NEXT_APP_BASE_URL,
+    "Runtime vars",
     process.env.NEXTAUTH_URL,
     process.env.NEXTAUTH_SECRET
   );
