@@ -1,7 +1,7 @@
 const DocumentSheet = dynamic(() => import("@/components/DocumentSheet"), {
   ssr: false
 });
-import { getAllDocuments } from "@/api/functions/document.api";
+import { getAllDocuments } from "@/external-api/functions/document.api";
 import EmptyTable from "@/components/Table/EmptyTable";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

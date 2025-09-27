@@ -1,5 +1,5 @@
-import { login, LoginBody } from "@/api/functions/auth.api";
-import { fetchProfile } from "@/api/functions/user.api";
+import { login, LoginBody } from "@/external-api/functions/auth.api";
+import { fetchProfile } from "@/external-api/functions/user.api";
 import { User } from "@/typescript/interface/user.interface";
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";

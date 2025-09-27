@@ -1,5 +1,5 @@
-import { updatePassword } from "@/api/functions/auth.api";
-import { updateProfile } from "@/api/functions/user.api";
+import { updatePassword } from "@/external-api/functions/auth.api";
+import { updateProfile } from "@/external-api/functions/user.api";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {

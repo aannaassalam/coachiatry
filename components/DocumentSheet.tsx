@@ -4,7 +4,7 @@ import {
   createDocument,
   editDocument,
   getDocument
-} from "@/api/functions/document.api";
+} from "@/external-api/functions/document.api";
 import assets from "@/json/assets";
 import { cn } from "@/lib/utils";
 import Toolbar from "@/ui/MarkdownEditor/Toolbar";

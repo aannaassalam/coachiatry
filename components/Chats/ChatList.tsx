@@ -1,6 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 // import assets from "@/json/assets";
-import { getAllConversations } from "@/api/functions/chat.api";
+import { getAllConversations } from "@/external-api/functions/chat.api";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import moment from "moment";

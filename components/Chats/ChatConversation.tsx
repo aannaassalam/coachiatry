@@ -1,5 +1,5 @@
-import { getConversation } from "@/api/functions/chat.api";
-import { getMessages } from "@/api/functions/message.api";
+import { getConversation } from "@/external-api/functions/chat.api";
+import { getMessages } from "@/external-api/functions/message.api";
 import assets from "@/json/assets";
 import { useSocket } from "@/lib/socketContext";
 import { queryClient } from "@/pages/_app";
