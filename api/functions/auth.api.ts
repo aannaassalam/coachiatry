@@ -22,8 +22,13 @@ export const login = async (
 ): Promise<{
   data: { token: string; user: User };
 }> => {
-  const res = await axiosInstance.post(endpoints.auth.login, body);
-  return res;
+  try {
+    const res = await axiosInstance.post(endpoints.auth.login, body);
+    return res;
+  } catch (err) {
+    console.log(err);
+    throw err;
+  }
 };
 
 export const updatePassword = async (body: { password: string }) => {
