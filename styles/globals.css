@@ -253,3 +253,6 @@ h6 {
     #0e1734
   ) !important;
 }
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}

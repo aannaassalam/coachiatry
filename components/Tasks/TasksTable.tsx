@@ -51,16 +51,18 @@ const SubTasksTable = ({
   return subTasks.map((subTasks, idx) => (
     <TableRow
       key={idx}
-      className="!h-[44px] !border-b-1 !border-gray-100 w-full hover:!bg-transparent"
+      className="!h-[44px] flex !border-b-1 !border-gray-100 w-full hover:!bg-transparent"
     >
       <TableCell
         colSpan={7}
         className="font-medium text-sm leading-5 flex items-center font-lato tracking-[-0.05px]  pl-10 my-auto w-full"
       >
-        <Checkbox className="bg-white mt-[-3px]" />
-        <span className="ml-3 text-sm font-lato text-gray-600 font-medium">
-          {subTasks.title}
-        </span>
+        <label className="w-full cursor-pointer">
+          <Checkbox className="bg-white mb-[-6px]" />
+          <span className="ml-3 text-sm font-lato text-gray-600 font-medium">
+            {subTasks.title}
+          </span>
+        </label>
       </TableCell>
     </TableRow>
   ));

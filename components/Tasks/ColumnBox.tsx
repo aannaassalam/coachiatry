@@ -76,7 +76,7 @@ function ColumnBox() {
               >
                 <div className="flex items-center gap-3">{column.label}</div>
                 <Switch
-                  checked={column.active}
+                  //   checked={column.active}
                   onCheckedChange={() => handleColumn(column)}
                 />
               </label>
