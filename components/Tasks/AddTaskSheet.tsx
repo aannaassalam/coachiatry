@@ -1,8 +1,7 @@
 "use client";
 
-import { CalendarIcon, Download, X } from "lucide-react";
+import { CalendarIcon, X } from "lucide-react";
 import React from "react";
-import { IoIosShareAlt } from "react-icons/io";
 import { Button } from "../ui/button";
 import {
   Sheet,
@@ -32,12 +31,18 @@ import moment from "moment";
 import { cn } from "@/lib/utils";
 import { DateTimePicker } from "../ui/date-time-picker";
 
+import { FaBell } from "react-icons/fa";
+import { Switch } from "../ui/switch";
+import { Task } from "@/typescript/interface/tasks.interface";
+
 export default function AddTaskSheet({
   open,
-  onOpenChange
+  onOpenChange,
+  selectedTask
 }: {
   open: boolean;
   onOpenChange: React.Dispatch<React.SetStateAction<boolean>>;
+  selectedTask?: Task;
 }) {
   const [subtasks, setSubtasks] = React.useState<string[]>([]);
   const schema = yup.object().shape({
@@ -73,33 +78,33 @@ export default function AddTaskSheet({
     console.log({ ...data, subtasks });
   };
   const dropDownOptions = {
-    priority: [
+    category: [
       {
-        label: "Low",
-        value: "low",
+        label: "Health",
+        value: "health",
         bgColor: "bg-green-100",
         textColor: "text-green-600/90",
         dotColor: "bg-green-600/90"
       },
       {
-        label: "Medium",
-        value: "medium",
+        label: "Fitness",
+        value: "fitness",
         bgColor: "bg-amber-200/40",
         textColor: "text-amber-600/80",
         dotColor: "bg-amber-600/80"
       },
       {
-        label: "High",
-        value: "high",
+        label: "Goal",
+        value: "goal",
         bgColor: "bg-red-100/80",
         textColor: "text-red-600/80",
         dotColor: "bg-red-600/80"
       }
     ],
-    category: [
-      { label: "Health", value: "health" },
-      { label: "Fitness", value: "fitness" },
-      { label: "Goal", value: "goal" }
+    priority: [
+      { label: "High", value: "high" },
+      { label: "Medium", value: "medium" },
+      { label: "Low", value: "low" }
     ],
     status: [
       { label: "Todo", value: "todo" },
@@ -180,7 +185,11 @@ export default function AddTaskSheet({
                     </FormItem>
                   )}
                 />
-                <SubtaskList subtasks={subtasks} onChange={setSubtasks} />
+                <SubtaskList
+                  subtasks={subtasks}
+                  onChange={setSubtasks}
+                  selectedTask={selectedTask}
+                />
                 <div className="grid grid-cols-2 space-y-2 gap-3 pt-4 mt-4 border-t border-gray-100 items-start">
                   <FormField
                     control={form.control}
@@ -196,7 +205,7 @@ export default function AddTaskSheet({
                             onChange={field.onChange}
                             options={dropDownOptions.priority}
                             placeholder="Select priority"
-                            isBadge={true}
+                            isFlag={true}
                           />
                         </FormControl>
                         <FormMessage />
@@ -217,6 +226,7 @@ export default function AddTaskSheet({
                             onChange={field.onChange}
                             options={dropDownOptions.category}
                             placeholder="Select category"
+                            isBadge={true}
                           />
                         </FormControl>
                         <FormMessage />
@@ -389,23 +399,24 @@ export default function AddTaskSheet({
                     )}
                   />
                 </div>
+
+                <label className="text-sm cursor-pointer font-lato text-gray-500 flex justify-between pt-4 border-t border-gray-100">
+                  <div className="flex items-center gap-3">
+                    <FaBell />
+                    Send reminder via chat
+                  </div>
+                  <Switch />
+                </label>
               </div>
             </form>
           </Form>
         </div>
         <SheetFooter className="pt-4 px-4.5 pb-5 border-t">
           <div className="flex gap-3">
-            <Button variant="outline">Cancel</Button>
-            <Button
-              variant="outline"
-              className="border-primary ml-auto py-2 px-2.5 text-primary"
-            >
-              <IoIosShareAlt className="size-5" />
-            </Button>
-            <Button className="gap-2">
-              <Download />
-              Download
-            </Button>
+            <SheetClose className="cursor-pointer">
+              <Button variant="outline">Cancel</Button>
+            </SheetClose>
+            <Button className="gap-2 ml-auto">Add Task</Button>
           </div>
         </SheetFooter>
       </SheetContent>

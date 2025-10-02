@@ -12,13 +12,13 @@ export default function AppLayout({
   isPaddingBottom?: boolean;
 }) {
   return (
-    <div className="h-screen bg-background flex">
+    <div className="h-screen bg-background flex overflow-hidden">
       <Sidebar />
       <div className="flex-1 inline-flex flex-col gap-1.5 min-h-0">
         <Navbar />
         <Card
           className={cn(
-            "flex-1 inline-flex flex-col gap-0 border-gray-200 border-r-0 border-b-0 rounded-none rounded-tl-xl p-7 min-h-0",
+            "flex-1 overflow-y-auto inline-flex flex-col gap-0 border-gray-200 border-r-0 border-b-0 rounded-none rounded-tl-xl p-7 min-h-0",
             !isPaddingBottom && "pb-0"
           )}
         >
