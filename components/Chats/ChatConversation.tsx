@@ -134,8 +134,8 @@ export default function ChatConversation() {
               return {
                 ...page,
                 data: [
-                  { ...msg, status: "delivered" as MessageStatus },
-                  ...page.data
+                  ...page.data,
+                  { ...msg, status: "delivered" as MessageStatus }
                 ]
               };
             });
@@ -328,8 +328,8 @@ export default function ChatConversation() {
             return {
               ...page,
               data: [
-                ...page.data,
-                { ...message, replyTo: replyingTo, sender: data?.user }
+                { ...message, replyTo: replyingTo, sender: data?.user },
+                ...page.data
               ]
             };
           });
@@ -414,7 +414,7 @@ export default function ChatConversation() {
             <p className="text-center text-xs">Loading older messages…</p>
           )}
           <AnimatePresence initial={false}>
-            {[...allMessages].reverse().map((msg, idx) => {
+            {[...allMessages].map((msg, idx) => {
               const previous = [...allMessages].reverse()[idx - 1];
               const showAvatar =
                 msg.sender?._id !== data?.user?._id &&
@@ -422,7 +422,7 @@ export default function ChatConversation() {
 
               return (
                 <motion.div
-                  key={msg._id ?? idx}
+                  key={msg._id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 10 }}

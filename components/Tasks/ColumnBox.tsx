@@ -3,8 +3,8 @@ import assets from "@/json/assets";
 
 import Image from "next/image";
 import { useMemo, useState } from "react";
-import { Input } from "../ui/input";
 import { Button } from "../ui/button";
+import { Input } from "../ui/input";
 import { Switch } from "../ui/switch";
 
 function ColumnBox() {
@@ -22,7 +22,8 @@ function ColumnBox() {
     return columns.filter((status) =>
       status.label.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [searchTerm]);
+  }, [searchTerm, columns]);
+
   const handleColumn = (column: { label: string; active: boolean }) => {
     setColumns((prev) =>
       prev.map((col) =>

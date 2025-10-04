@@ -95,4 +95,10 @@ export type InfiniteData<T> = {
   pageParams: unknown[];
 };
 
+export type Filter = {
+  selectedKey: string;
+  selectedOperator: string;
+  selectedValue: string;
+};
+
 export {};

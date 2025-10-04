@@ -47,6 +47,7 @@ export const queryClient = new QueryClient({
   mutationCache: new MutationCache({
     onSuccess: (data, _variables, _context, mutation) => {
       const message = (data as AxiosResponse).headers["x-message"];
+      console.log(message);
       const showToast = mutation.meta?.showToast !== false;
       if (showToast && message) {
         toast.success(message);

@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { Filter } from "@/typescript/interface/common.interface";
 import { parseCookies, setCookie } from "nookies";
 /**
  * Check if the window object exists.
@@ -50,3 +51,9 @@ export function isAppleSafari() {
 export const roleParser = (role: string) => {
   return role.replace("ROLE_", "").replaceAll("_", " ");
 };
+
+export function sanitizeFilters(values: Filter[]): Filter[] {
+  return values.filter(
+    (f) => f.selectedKey && f.selectedOperator && f.selectedValue
+  );
+}

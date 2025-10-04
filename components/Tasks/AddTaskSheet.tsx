@@ -1,20 +1,15 @@
 "use client";
 
+import { cn } from "@/lib/utils";
+import { yupResolver } from "@hookform/resolvers/yup";
 import { CalendarIcon, X } from "lucide-react";
-import React from "react";
-import { Button } from "../ui/button";
-import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle
-} from "../ui/sheet";
-import { Input } from "../ui/input";
+import moment from "moment";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
-import { yupResolver } from "@hookform/resolvers/yup";
+import { Button } from "../ui/button";
+import { Combobox } from "../ui/combobox";
+import { DateTimePicker } from "../ui/date-time-picker";
 import {
   Form,
   FormControl,
@@ -23,39 +18,131 @@ import {
   FormLabel,
   FormMessage
 } from "../ui/form";
+import { Input } from "../ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle
+} from "../ui/sheet";
 import { Textarea } from "../ui/textarea";
 import SubtaskList from "./AddSubTasks";
-import { Combobox } from "../ui/combobox";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import moment from "moment";
-import { cn } from "@/lib/utils";
-import { DateTimePicker } from "../ui/date-time-picker";
 
+import { getAllCategories } from "@/external-api/functions/category.api";
+import { getAllStatuses } from "@/external-api/functions/status.api";
+import { addTask, editTask } from "@/external-api/functions/task.api";
+import { Subtask, Task } from "@/typescript/interface/task.interface";
+import { useMutation, useQueries } from "@tanstack/react-query";
 import { FaBell } from "react-icons/fa";
 import { Switch } from "../ui/switch";
-import { Task } from "@/typescript/interface/tasks.interface";
+
+const schema = yup.object().shape({
+  title: yup.string().required("Title is required"),
+  description: yup.string().required("Description is required"),
+  priority: yup.string().required("Priority is required"),
+  category: yup.string().required("Category is required"),
+  dueDate: yup.date().required("Due date is required"),
+  status: yup.string().required("Status is required"),
+  frequency: yup.string().default(""),
+  minutesDuration: yup.string().default(""),
+  hoursDuration: yup.string().default(""),
+  remindBefore: yup.string().default(""),
+  subtasks: yup
+    .array()
+    .of(
+      yup
+        .object()
+        .shape({
+          title: yup
+            .string()
+            .required(
+              "Please fill in this subtask or delete it if not needed."
+            ),
+          completed: yup.boolean().default(false)
+        })
+        .required()
+    )
+    .default([])
+});
 
 export default function AddTaskSheet({
   open,
   onOpenChange,
-  selectedTask
+  selectedTask,
+  editing,
+  predefinedStatus,
+  predefinedDueDate
 }: {
   open: boolean;
-  onOpenChange: React.Dispatch<React.SetStateAction<boolean>>;
-  selectedTask?: Task;
+  onOpenChange: (toggle: boolean) => void;
+  selectedTask?: Task | null;
+  editing?: boolean;
+  predefinedStatus?: string | null;
+  predefinedDueDate?: string | null;
 }) {
-  const [subtasks, setSubtasks] = React.useState<string[]>([]);
-  const schema = yup.object().shape({
-    title: yup.string().required("Title is required"),
-    description: yup.string().required("Description is required"),
-    priority: yup.string().required("Priority is required"),
-    category: yup.string().required("Category is required"),
-    dueDate: yup.date().required("Due date is required"),
-    status: yup.string().required("Status is required"),
-    frequency: yup.string().default(""),
-    minutesDuration: yup.string().default(""),
-    hoursDuration: yup.string().default(""),
-    reminder: yup.string().default("")
+  const [
+    { data: categories, isLoading: isCategoryLoading },
+    { data: statuses, isLoading: isStatusLoading }
+  ] = useQueries({
+    queries: [
+      {
+        queryKey: ["categories"],
+        queryFn: getAllCategories
+      },
+      {
+        queryKey: ["status"],
+        queryFn: getAllStatuses
+      }
+    ]
+  });
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: addTask,
+    onSuccess: () => {
+      form.reset({
+        title: "",
+        description: "",
+        priority: "low",
+        category: "",
+        dueDate: undefined,
+        status: "",
+        frequency: "",
+        minutesDuration: "",
+        hoursDuration: "",
+        remindBefore: "",
+        subtasks: []
+      });
+      onOpenChange(false);
+    },
+    meta: {
+      invalidateQueries: ["tasks"]
+    }
+  });
+
+  const { mutate: editMutate, isPending: isEditPending } = useMutation({
+    mutationFn: editTask,
+    onSuccess: () => {
+      form.reset({
+        title: "",
+        description: "",
+        priority: "low",
+        category: "",
+        dueDate: undefined,
+        status: "",
+        frequency: "",
+        minutesDuration: "",
+        hoursDuration: "",
+        remindBefore: "",
+        subtasks: []
+      });
+      onOpenChange(false);
+    },
+    meta: {
+      invalidateQueries: ["tasks"]
+    }
   });
 
   const form = useForm<yup.InferType<typeof schema>>({
@@ -63,20 +150,84 @@ export default function AddTaskSheet({
     defaultValues: {
       title: "",
       description: "",
-      priority: "",
+      priority: "low",
       category: "",
       dueDate: undefined,
       status: "",
       frequency: "",
       minutesDuration: "",
       hoursDuration: "",
-      reminder: ""
-    }
+      remindBefore: "",
+      subtasks: []
+    },
+    disabled: isPending || isEditPending
   });
 
+  useEffect(() => {
+    form.reset({
+      title: "",
+      description: "",
+      priority: "low",
+      category: "",
+      dueDate: predefinedDueDate ? new Date(predefinedDueDate) : undefined,
+      status: predefinedStatus ?? "",
+      frequency: "",
+      minutesDuration: "",
+      hoursDuration: "",
+      remindBefore: "",
+      subtasks: []
+    });
+  }, [predefinedStatus, predefinedDueDate, form]);
+
   const onSubmit = (data: yup.InferType<typeof schema>) => {
-    console.log({ ...data, subtasks });
+    const finalData = {
+      ...data,
+      remindBefore: data.remindBefore ? parseInt(data.remindBefore) : undefined,
+      taskDuration: data.hoursDuration
+        ? data.minutesDuration
+          ? parseInt(data.hoursDuration) * 60 + parseInt(data.minutesDuration)
+          : parseInt(data.hoursDuration) * 60
+        : data.minutesDuration
+          ? parseInt(data.minutesDuration)
+          : undefined,
+      frequency:
+        data.frequency === "" || !data.frequency ? undefined : data.frequency
+    };
+    if (selectedTask && editing) {
+      editMutate({ task_id: selectedTask._id, data: finalData });
+    } else {
+      mutate(finalData);
+    }
   };
+
+  useEffect(() => {
+    if (selectedTask && editing) {
+      form.reset({
+        title: selectedTask.title,
+        description: selectedTask.description,
+        priority: selectedTask.priority,
+        category: selectedTask.category._id,
+        dueDate: selectedTask.dueDate
+          ? new Date(selectedTask.dueDate)
+          : undefined,
+        status: selectedTask.status._id,
+        frequency: selectedTask.frequency || "",
+        minutesDuration: selectedTask.taskDuration
+          ? (selectedTask.taskDuration % 60).toString().padStart(2, "0")
+          : "",
+        hoursDuration: selectedTask.taskDuration
+          ? Math.floor(selectedTask.taskDuration / 60)
+              .toString()
+              .padStart(2, "0")
+          : "",
+        remindBefore: selectedTask.remindBefore
+          ? selectedTask.remindBefore.toString().padStart(2, "0")
+          : "",
+        subtasks: selectedTask.subtasks as Subtask[]
+      });
+    }
+  }, [selectedTask, form, editing]);
+
   const dropDownOptions = {
     category: [
       {
@@ -106,12 +257,6 @@ export default function AddTaskSheet({
       { label: "Medium", value: "medium" },
       { label: "Low", value: "low" }
     ],
-    status: [
-      { label: "Todo", value: "todo" },
-      { label: "Struggling", value: "struggling" },
-      { label: "Overdue", value: "overdue" },
-      { label: "Completed", value: "completed" }
-    ],
     frequency: [
       { label: "Daily", value: "daily" },
       { label: "Weekly", value: "weekly" },
@@ -131,13 +276,13 @@ export default function AddTaskSheet({
       return { label, value: label };
     })
   };
-  console.log(form.getValues("dueDate"));
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="lg:max-w-2xl gap-0">
         <SheetHeader className="border-b p-6 flex-row items-center justify-between">
           <SheetTitle className="font-archivo font-semibold text-xl text-gray-900">
-            Add New Task
+            {editing ? "Edit Task" : "Add New Task"}
           </SheetTitle>
           <SheetClose className="cursor-pointer">
             <X />
@@ -185,11 +330,7 @@ export default function AddTaskSheet({
                     </FormItem>
                   )}
                 />
-                <SubtaskList
-                  subtasks={subtasks}
-                  onChange={setSubtasks}
-                  selectedTask={selectedTask}
-                />
+                <SubtaskList />
                 <div className="grid grid-cols-2 space-y-2 gap-3 pt-4 mt-4 border-t border-gray-100 items-start">
                   <FormField
                     control={form.control}
@@ -224,7 +365,21 @@ export default function AddTaskSheet({
                           <Combobox
                             value={field.value}
                             onChange={field.onChange}
-                            options={dropDownOptions.category}
+                            options={
+                              categories?.map((cat) => {
+                                const category = dropDownOptions.category.find(
+                                  (c) => c.label === cat.title
+                                );
+                                return {
+                                  label: cat.title,
+                                  value: cat._id,
+                                  bgColor: category?.bgColor,
+                                  textColor: category?.textColor,
+                                  dotColor: category?.dotColor
+                                };
+                              }) || []
+                            }
+                            isLoading={isCategoryLoading}
                             placeholder="Select category"
                             isBadge={true}
                           />
@@ -247,7 +402,7 @@ export default function AddTaskSheet({
                               <Button
                                 variant="outline"
                                 className={cn(
-                                  "w-full justify-between text-left font-normal",
+                                  "w-full justify-between text-left font-normal [&>span]:justify-between",
                                   !field.value && "text-muted-foreground"
                                 )}
                               >
@@ -291,7 +446,13 @@ export default function AddTaskSheet({
                           <Combobox
                             value={field.value}
                             onChange={field.onChange}
-                            options={dropDownOptions.status}
+                            options={
+                              statuses?.map((status) => ({
+                                label: status.title,
+                                value: status._id
+                              })) || []
+                            }
+                            isLoading={isStatusLoading}
                             placeholder="Select status"
                           />
                         </FormControl>
@@ -352,29 +513,31 @@ export default function AddTaskSheet({
                       />
                     </div>
                   </div>
+                  {!selectedTask && (
+                    <FormField
+                      control={form.control}
+                      name="frequency"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm text-gray-500">
+                            Frequency
+                          </FormLabel>
+                          <FormControl>
+                            <Combobox
+                              value={field.value}
+                              onChange={field.onChange}
+                              options={dropDownOptions.frequency}
+                              placeholder="Select frequency"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
                   <FormField
                     control={form.control}
-                    name="frequency"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-sm text-gray-500">
-                          Frequency
-                        </FormLabel>
-                        <FormControl>
-                          <Combobox
-                            value={field.value}
-                            onChange={field.onChange}
-                            options={dropDownOptions.frequency}
-                            placeholder="Select frequency"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="reminder"
+                    name="remindBefore"
                     render={({ field }) => (
                       <FormItem className="max-w-full">
                         <FormLabel className="text-sm text-gray-500">
@@ -413,10 +576,15 @@ export default function AddTaskSheet({
         </div>
         <SheetFooter className="pt-4 px-4.5 pb-5 border-t">
           <div className="flex gap-3">
-            <SheetClose className="cursor-pointer">
+            <SheetClose className="cursor-pointer" asChild>
               <Button variant="outline">Cancel</Button>
             </SheetClose>
-            <Button className="gap-2 ml-auto">Add Task</Button>
+            <Button
+              className="gap-2 ml-auto"
+              onClick={form.handleSubmit(onSubmit)}
+            >
+              {editing ? "Update" : "Add Task"}
+            </Button>
           </div>
         </SheetFooter>
       </SheetContent>

@@ -1,84 +1,81 @@
 "use client";
 
-import { useState } from "react";
+import { useQueryState } from "nuqs";
+import { parseAsJson } from "nuqs"; // we'll use JSON encoding
 import { Button } from "../ui/button";
-import { Archivo } from "next/font/google";
 import { Plus, Trash2, X } from "lucide-react";
 import { Combobox } from "../ui/combobox";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import { PopoverClose } from "@radix-ui/react-popover";
+import { Archivo } from "next/font/google";
+import { Filter } from "@/typescript/interface/common.interface";
+import { useQueries } from "@tanstack/react-query";
+import { getAllCategories } from "@/external-api/functions/category.api";
+import { getAllStatuses } from "@/external-api/functions/status.api";
+
 const archivo = Archivo({ subsets: ["latin"], variable: "--font-archivo" });
+
 type FilterOption = {
   compareOperator: { label: string; value: string }[];
   compareWith: { label: string; value: string }[];
 };
 
 function FilterBox() {
-  const [values, setValues] = useState([
-    {
-      selectedKey: "",
-      selectedOperator: "",
-      selectedValue: ""
-    }
-  ]);
-  const [filterKeys] = useState([
+  // ✅ store filters in URL instead of local state
+  const [values, setValues] = useQueryState<Filter[]>(
+    "filters",
+    parseAsJson<Filter[]>((v) =>
+      Array.isArray(v) ? (v as Filter[]) : null
+    ).withDefault([
+      { selectedKey: "", selectedOperator: "", selectedValue: "" }
+    ])
+  );
+
+  const [
+    { data: categories = [], isLoading: isCategoryLoading },
+    { data: statuses = [], isLoading: isStatusLoading }
+  ] = useQueries({
+    queries: [
+      {
+        queryKey: ["categories"],
+        queryFn: getAllCategories
+      },
+      {
+        queryKey: ["status"],
+        queryFn: getAllStatuses
+      }
+    ]
+  });
+
+  const filterKeys = [
     { label: "Status", value: "status" },
-    { label: "Due Date", value: "duedate" },
+    { label: "Due Date", value: "dueDate" }, // 👈 lowercase to match filterOptions
     { label: "Category", value: "category" },
     { label: "Priority", value: "priority" }
-  ]);
+  ];
 
-  const [filterOptions] = useState<Record<string, FilterOption>>({
+  const filterOptions: Record<string, FilterOption> = {
     status: {
       compareOperator: [
         { label: "is", value: "is" },
         { label: "is not", value: "is not" }
       ],
-      compareWith: [
-        {
-          label: "Todo",
-          value: "todo"
-        },
-        {
-          label: "Struggling",
-          value: "struggling"
-        },
-        {
-          label: "Overdue",
-          value: "overdue"
-        },
-        {
-          label: "Completed",
-          value: "completed"
-        }
-      ]
+      compareWith: statuses.map((_status) => ({
+        label: _status.title,
+        value: _status._id
+      }))
     },
-    duedate: {
+    dueDate: {
       compareOperator: [
         { label: "is", value: "is" },
         { label: "is not", value: "is not" }
       ],
       compareWith: [
-        {
-          label: "Today",
-          value: "today"
-        },
-        {
-          label: "Yesterday",
-          value: "yesterday"
-        },
-        {
-          label: "Tomorrow",
-          value: "tomorrow"
-        },
-        {
-          label: "This Week",
-          value: "thisweek"
-        },
-        {
-          label: "Next Week",
-          value: "nextweek"
-        }
+        { label: "Today", value: "today" },
+        { label: "Yesterday", value: "yesterday" },
+        { label: "Tomorrow", value: "tomorrow" },
+        { label: "This Week", value: "thisWeek" },
+        { label: "Next Week", value: "nextWeek" }
       ]
     },
     category: {
@@ -86,24 +83,10 @@ function FilterBox() {
         { label: "is", value: "is" },
         { label: "is not", value: "is not" }
       ],
-      compareWith: [
-        {
-          label: "Goal",
-          value: "goal"
-        },
-        {
-          label: "Fitness",
-          value: "fitness"
-        },
-        {
-          label: "Productive",
-          value: "productive"
-        },
-        {
-          label: "Health",
-          value: "health"
-        }
-      ]
+      compareWith: categories.map((_cat) => ({
+        label: _cat.title,
+        value: _cat._id
+      }))
     },
     priority: {
       compareOperator: [
@@ -111,22 +94,13 @@ function FilterBox() {
         { label: "is not", value: "is not" }
       ],
       compareWith: [
-        {
-          label: "High",
-          value: "high"
-        },
-        {
-          label: "Medium",
-          value: "medium"
-        },
-        {
-          label: "Low",
-          value: "low"
-        }
+        { label: "High", value: "high" },
+        { label: "Medium", value: "medium" },
+        { label: "Low", value: "low" }
       ]
     }
-  });
-  // console.log(values.selectedKey);
+  };
+
   return (
     <div className={`${archivo.variable}`}>
       <div className="p-4">
@@ -144,26 +118,32 @@ function FilterBox() {
             </Button>
           </PopoverClose>
         </div>
+
         {values.length > 0 && (
           <div className="p-4 mt-2 bg-gray-100 rounded-[8px] flex flex-col gap-2">
             {values.map((filter, index) => (
               <div key={index} className="flex w-full items-center gap-3">
                 <Combobox
                   value={filter.selectedKey}
-                  options={filterKeys}
+                  options={filterKeys.filter(
+                    (_item) =>
+                      _item.value === filter.selectedKey || // ✅ allow current row's key
+                      !values.some(
+                        (item, i) =>
+                          i !== index && item.selectedKey === _item.value
+                      ) // exclude if another row has it
+                  )}
+                  isLoading={isCategoryLoading || isStatusLoading}
                   placeholder="Select"
                   onChange={(e) => {
-                    setValues((prev) => {
-                      const next = [...prev]; // clone array
-                      next[index] = {
-                        // update just this filter
-                        ...next[index],
-                        selectedKey: e,
-                        selectedOperator: "", // optional: reset next fields
-                        selectedValue: ""
-                      };
-                      return next;
-                    });
+                    const next = [...values];
+                    next[index] = {
+                      ...next[index],
+                      selectedKey: e.toString(),
+                      selectedOperator: "",
+                      selectedValue: ""
+                    };
+                    setValues(next);
                   }}
                   className="flex-1 max-w-[200px]"
                 />
@@ -173,16 +153,15 @@ function FilterBox() {
                     options={filterOptions[filter.selectedKey]?.compareOperator}
                     placeholder="Select"
                     onChange={(e) => {
-                      setValues((prev) => {
-                        const next = [...prev];
-                        next[index] = {
-                          ...next[index],
-                          selectedOperator: e,
-                          selectedValue: ""
-                        };
-                        return next;
-                      });
+                      const next = [...values];
+                      next[index] = {
+                        ...next[index],
+                        selectedOperator: e.toString(),
+                        selectedValue: ""
+                      };
+                      setValues(next);
                     }}
+                    isLoading={isCategoryLoading || isStatusLoading}
                     className="flex-1 max-w-[200px]"
                     value={filter.selectedOperator}
                   />
@@ -193,15 +172,14 @@ function FilterBox() {
                     options={filterOptions[filter.selectedKey]?.compareWith}
                     placeholder="Select"
                     onChange={(e) => {
-                      setValues((prev) => {
-                        const next = [...prev];
-                        next[index] = {
-                          ...next[index],
-                          selectedValue: e
-                        };
-                        return next;
-                      });
+                      const next = [...values];
+                      next[index] = {
+                        ...next[index],
+                        selectedValue: e.toString()
+                      };
+                      setValues(next);
                     }}
+                    isLoading={isCategoryLoading || isStatusLoading}
                     value={filter.selectedValue}
                     className="flex-1 max-w-[200px]"
                   />
@@ -212,7 +190,7 @@ function FilterBox() {
                     <Button
                       variant="ghost"
                       onClick={() =>
-                        setValues((prev) => prev.filter((_, i) => i !== index))
+                        setValues(values.filter((_, i) => i !== index))
                       }
                       className="px-2 ml-auto hover:text-red-600"
                     >
@@ -228,8 +206,8 @@ function FilterBox() {
 
         <Button
           onClick={() =>
-            setValues((prev) => [
-              ...prev,
+            setValues([
+              ...values,
               { selectedKey: "", selectedOperator: "", selectedValue: "" }
             ])
           }

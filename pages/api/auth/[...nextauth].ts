@@ -4,12 +4,6 @@ import { User } from "@/typescript/interface/user.interface";
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 
-console.log(
-  "Runtime vars",
-  process.env.NEXTAUTH_URL,
-  process.env.NEXTAUTH_SECRET
-);
-
 export default NextAuth({
   providers: [
     Credentials({
@@ -19,26 +13,20 @@ export default NextAuth({
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        try {
-          const res = await login(credentials as LoginBody);
-          console.log("login response", res);
-          if (!res.data) return null;
+        const res = await login(credentials as LoginBody);
+        if (!res.data) return null;
 
-          // must return a plain object
-          const user: User & { token: string } = {
-            ...res.data.user,
-            token: res.data.token
-          };
+        // must return a plain object
+        const user: User & { token: string } = {
+          ...res.data.user,
+          token: res.data.token
+        };
 
-          // MUST have id at minimum
-          if (!user._id) return null;
-          user.id = user._id; // normalize if API only provides _id
+        // MUST have id at minimum
+        if (!user._id) return null;
+        user.id = user._id; // normalize if API only provides _id
 
-          return user;
-        } catch (err) {
-          console.log(err);
-          return null;
-        }
+        return user;
       }
     })
   ],

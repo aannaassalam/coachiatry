@@ -1,7 +1,5 @@
 "use client";
 
-import { Check, ChevronsUpDown } from "lucide-react";
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -18,14 +16,14 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { CommandLoading } from "cmdk";
-import React from "react";
-import { ScrollArea } from "./scroll-area";
-import { Badge } from "./badge";
+import { Check, ChevronsUpDown } from "lucide-react";
+import React, { useState } from "react";
 import PriorityFlag from "../Tasks/PriorityFlag";
+import { Badge } from "./badge";
 
 type ComboboxOption = {
   label: string | React.ReactNode;
-  value: string;
+  value: string | number;
   bgColor?: string;
   textColor?: string;
   dotColor?: string;
@@ -34,13 +32,12 @@ type ComboboxOption = {
 
 interface ComboboxProps {
   value?: string;
-  onChange: (value: string) => void;
+  onChange: (value: string | number) => void;
   options: ComboboxOption[];
   placeholder?: string;
   className?: string;
   disabled?: boolean;
   isLoading?: boolean;
-  type?: string;
   isBadge?: boolean;
   isFlag?: boolean;
 }
@@ -98,7 +95,6 @@ export function Combobox({
   className,
   disabled,
   isLoading,
-  type,
   isBadge,
   isFlag
 }: ComboboxProps) {
@@ -117,7 +113,7 @@ export function Combobox({
           {selected ? (
             isFlag ? (
               <div className="flex items-center gap-1.5">
-                <PriorityFlag priority={selected.value} />
+                <PriorityFlag priority={selected.value as string} />
                 <span>{selected.label}</span>
               </div>
             ) : !isBadge ? (
@@ -144,7 +140,11 @@ export function Combobox({
         </Button>
       </PopoverTrigger>
 
-      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
+      <PopoverContent
+        className="w-[var(--radix-popover-trigger-width)] p-0 overflow-hidden"
+        onWheel={(e) => e.stopPropagation()}
+        onTouchMove={(e) => e.stopPropagation()}
+      >
         <Command
           filter={(itemValue, search) => {
             const option = options.find((opt) => opt.value === itemValue);
@@ -160,25 +160,21 @@ export function Combobox({
         >
           <CommandInput placeholder="Search..." />
 
-          <ScrollArea
-            className={cn(
-              type === "service"
-                ? "h-[200px] overflow-auto"
-                : "h-auto max-h-[200px] overflow-auto"
-            )}
-          >
+          <div>
             <CommandList>
               <CommandEmpty>No option found</CommandEmpty>
-              {isLoading && <CommandLoading>Loading...</CommandLoading>}
-
+              {isLoading && (
+                <CommandLoading className="p-2 px-3 text-sm text-center bg-gray-50">
+                  Loading...
+                </CommandLoading>
+              )}
               <CommandGroup>
                 {options.map((opt) => {
                   const titleText = getStringFromNode(opt.label);
-
                   return (
                     <CommandItem
                       key={opt.value}
-                      value={opt.value}
+                      value={opt.value.toString()}
                       onSelect={() => {
                         onChange(opt.value);
                         setOpen(false);
@@ -190,7 +186,6 @@ export function Combobox({
                           value === opt.value ? "opacity-100" : "opacity-0"
                         )}
                       />
-
                       {isBadge ? (
                         <Badge
                           className={cn(
@@ -209,7 +204,7 @@ export function Combobox({
                         </Badge>
                       ) : isFlag ? (
                         <div className="flex items-center gap-1.5">
-                          <PriorityFlag priority={opt.value} />
+                          <PriorityFlag priority={opt.value.toString()} />
                           <span>{opt.label}</span>
                         </div>
                       ) : (
@@ -225,7 +220,7 @@ export function Combobox({
                 })}
               </CommandGroup>
             </CommandList>
-          </ScrollArea>
+          </div>
         </Command>
       </PopoverContent>
     </Popover>
