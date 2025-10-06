@@ -577,11 +577,14 @@ export default function AddTaskSheet({
         <SheetFooter className="pt-4 px-4.5 pb-5 border-t">
           <div className="flex gap-3">
             <SheetClose className="cursor-pointer" asChild>
-              <Button variant="outline">Cancel</Button>
+              <Button variant="outline" disabled={isEditPending || isPending}>
+                Cancel
+              </Button>
             </SheetClose>
             <Button
               className="gap-2 ml-auto"
               onClick={form.handleSubmit(onSubmit)}
+              isLoading={isPending || isEditPending}
             >
               {editing ? "Update" : "Add Task"}
             </Button>

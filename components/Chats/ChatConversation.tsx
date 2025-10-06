@@ -120,6 +120,8 @@ export default function ChatConversation() {
                 (m) => m.tempId && m.tempId === msg.tempId
               );
 
+              console.log(tempIdx);
+
               if (tempIdx > -1) {
                 // replace optimistic
                 const newData = [...page.data];
@@ -134,8 +136,8 @@ export default function ChatConversation() {
               return {
                 ...page,
                 data: [
-                  ...page.data,
-                  { ...msg, status: "delivered" as MessageStatus }
+                  { ...msg, status: "delivered" as MessageStatus },
+                  ...page.data
                 ]
               };
             });
