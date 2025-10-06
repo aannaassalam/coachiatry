@@ -8,7 +8,10 @@ import { SocketProvider } from "@/lib/socketContext";
 import { parseAsString, useQueryState } from "nuqs";
 
 function Chat() {
-  const [tab, setTab] = useQueryState("tab", parseAsString.withDefault("all"));
+  const [tab, setTab] = useQueryState(
+    "tab",
+    parseAsString.withDefault("chats")
+  );
   const [room] = useQueryState("room", parseAsString.withDefault(""));
 
   return (
