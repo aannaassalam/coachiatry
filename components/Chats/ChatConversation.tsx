@@ -111,19 +111,17 @@ export default function ChatConversation() {
           (old) => {
             if (!old) return old;
 
-            // update only the first page (newest batch)
             const updatedPages = old.pages.map((page, idx) => {
               if (idx !== 0) return page;
 
-              // check if optimistic message exists
               const tempIdx = page.data.findIndex(
-                (m) => m.tempId && m.tempId === msg.tempId
+                (m) => m.tempId === msg.tempId
+              );
+              const alreadyExists = page.data.some(
+                (m) => m._id === msg._id || m.tempId === msg.tempId
               );
 
-              console.log(tempIdx);
-
               if (tempIdx > -1) {
-                // replace optimistic
                 const newData = [...page.data];
                 newData[tempIdx] = {
                   ...msg,
@@ -132,7 +130,8 @@ export default function ChatConversation() {
                 return { ...page, data: newData };
               }
 
-              // append new at the start (same as handleSend)
+              if (alreadyExists) return page;
+
               return {
                 ...page,
                 data: [
@@ -143,47 +142,6 @@ export default function ChatConversation() {
             });
 
             return { ...old, pages: updatedPages };
-          }
-        );
-
-        queryClient.setQueryData<PaginatedResponse<Conversation[]>>(
-          ["conversations"],
-          (old) => {
-            if (!old) return old;
-
-            const idx = old.data.findIndex((c) => c._id === msg.chat);
-
-            let newData: Conversation[];
-
-            if (idx > -1) {
-              // ✅ update existing conversation
-              const updatedConv = {
-                ...old.data[idx],
-                lastMessage: msg,
-                updatedAt: msg.updatedAt
-              };
-
-              newData = [...old.data];
-              newData[idx] = updatedConv;
-            } else {
-              // 🚨 conversation not found → insert new one at top
-              // const newConv: Conversation = {
-              //   _id: msg.chat,
-              //   lastMessage: msg,
-              //   updatedAt: msg.updatedAt
-              //   // fill other required fields (like members) if needed
-              // };
-
-              newData = [...old.data];
-            }
-
-            // Resort
-            newData.sort(
-              (a, b) =>
-                moment(b.updatedAt).valueOf() - moment(a.updatedAt).valueOf()
-            );
-
-            return { ...old, data: newData };
           }
         );
       }
@@ -299,6 +257,8 @@ export default function ChatConversation() {
         status: "pending",
         replyTo: replyingTo?._id
       };
+
+      console.log(message.tempId);
       socket?.emit("send_message", message);
 
       queryClient.setQueryData<InfiniteData<PaginatedResponse<Message[]>>>(
