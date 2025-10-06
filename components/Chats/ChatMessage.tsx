@@ -18,6 +18,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Button } from "../ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import EmojiPicker from "./EmojiPicker";
+import moment from "moment";
 
 type ChatMessageProps = {
   sender?: User;
@@ -189,6 +190,9 @@ export default function ChatMessage({
             </Popover>
           </div>
         )}
+        <p className="text-sm">
+          {moment(message.createdAt).format("DD/MM/YYYY hh:mm A")}
+        </p>
 
         <div
           className={cn(
