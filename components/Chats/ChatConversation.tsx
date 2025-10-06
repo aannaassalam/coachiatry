@@ -43,7 +43,8 @@ export default function ChatConversation() {
     data: messagesData,
     fetchNextPage,
     hasNextPage,
-    isFetchingNextPage
+    isFetchingNextPage,
+    isLoading
   } = useInfiniteQuery({
     queryKey: ["messages", room],
     queryFn: getMessages,
@@ -57,7 +58,7 @@ export default function ChatConversation() {
     }
   });
 
-  const { data: conversation } = useQuery({
+  const { data: conversation, isLoading: isConversationLoading } = useQuery({
     queryKey: ["conversations", room],
     queryFn: () => getConversation(room),
     enabled: !!room
@@ -380,23 +381,33 @@ export default function ChatConversation() {
     <div className="flex flex-col h-full min-h-0 border-r border-l border-gray-200 relative">
       {/* Header */}
       <div className="flex justify-between items-center p-4 border-b bg-white">
-        <div className="flex items-center gap-4">
-          <Avatar className="size-10">
-            <AvatarImage src={assets.avatar ?? undefined} alt="AH" />
-            <AvatarFallback className="bg-orange-100 flex items-center justify-center font-semibold text-orange-600">
-              AH
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <p className="font-semibold font-lato text-base">
-              {friend?.user.fullName}
-            </p>
-            <p className="text-xs font-lato flex items-center gap-1">
-              <span className="bg-green-500 rounded-full w-2 h-2 flex"></span>
-              Online
-            </p>
+        {isConversationLoading ? (
+          <div className="flex items-start gap-3">
+            <div className="size-10 bg-gray-200 rounded-full animate-pulse"></div>
+            <div className="space-y-1">
+              <div className="h-6 w-25 bg-gray-200 rounded-sm animate-pulse " />
+              <div className="h-4 w-15 bg-gray-200 rounded-sm animate-pulse " />
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="flex items-center gap-4">
+            <Avatar className="size-10">
+              <AvatarImage src={assets.avatar ?? undefined} alt="AH" />
+              <AvatarFallback className="bg-orange-100 flex items-center justify-center font-semibold text-orange-600">
+                AH
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <p className="font-semibold font-lato text-base">
+                {friend?.user.fullName}
+              </p>
+              <p className="text-xs font-lato flex items-center gap-1">
+                <span className="bg-green-500 rounded-full w-2 h-2 flex"></span>
+                Online
+              </p>
+            </div>
+          </div>
+        )}
         <Button variant="ghost" size="sm" className="hover:bg-secondary">
           <Ellipsis className="text-gray-500" />
         </Button>
@@ -419,32 +430,88 @@ export default function ChatConversation() {
             <p className="text-center text-xs">Loading older messages…</p>
           )}
           <AnimatePresence initial={false}>
-            {allMessages.map((msg, idx) => {
-              // previous is the message above (older) in the list when rendering oldest -> newest
-              const previous = allMessages[idx - 1];
-              const showAvatar =
-                msg.sender?._id !== data?.user?._id &&
-                (!previous || previous.sender?._id !== msg.sender?._id);
+            {isLoading ? (
+              <div className="space-y-2 flex flex-col">
+                <div className="space-y-1">
+                  <div className="space-x-2 flex items-center">
+                    <div className="bg-gray-200 size-8 rounded-full animate-pulse" />
+                    <div className="bg-gray-200 h-8 w-20 rounded-md animate-pulse" />
+                  </div>
+                  <div className="space-x-2 flex items-center">
+                    <div className="bg-gray-200 size-8 rounded-full animate-pulse" />
+                    <div className="bg-gray-200 h-8 w-40 rounded-md animate-pulse" />
+                  </div>
+                  <div className="space-x-2 flex items-center">
+                    <div className="bg-gray-200 size-8 rounded-full animate-pulse" />
+                    <div className="bg-gray-200 h-8 w-30 rounded-md animate-pulse" />
+                  </div>
+                  <div className="space-x-2 flex items-center">
+                    <div className="bg-gray-200 size-8 rounded-full animate-pulse" />
+                    <div className="bg-gray-200 h-8 w-70 rounded-md animate-pulse" />
+                  </div>
+                </div>
+                <div className="space-y-1 ml-auto flex flex-col items-end">
+                  <div className="bg-gray-200 h-8 w-20 rounded-md animate-pulse" />
+                  <div className="bg-gray-200 h-8 w-35 rounded-md animate-pulse" />
+                  <div className="bg-gray-200 h-8 w-55 rounded-md animate-pulse" />
+                </div>
+                <div className="space-y-1">
+                  <div className="space-x-2 flex items-center">
+                    <div className="bg-gray-200 size-8 rounded-full animate-pulse" />
+                    <div className="bg-gray-200 h-8 w-52 rounded-md animate-pulse" />
+                  </div>
+                  <div className="space-x-2 flex items-center">
+                    <div className="bg-gray-200 size-8 rounded-full animate-pulse" />
+                    <div className="bg-gray-200 h-8 w-34 rounded-md animate-pulse" />
+                  </div>
+                </div>
+                <div className="space-y-1 ml-auto flex flex-col items-end">
+                  <div className="bg-gray-200 h-8 w-44 rounded-md animate-pulse" />
+                  <div className="bg-gray-200 h-8 w-33 rounded-md animate-pulse" />
+                  <div className="bg-gray-200 h-8 w-22 rounded-md animate-pulse" />
+                  <div className="bg-gray-200 h-8 w-44 rounded-md animate-pulse" />
+                  <div className="bg-gray-200 h-8 w-52 rounded-md animate-pulse" />
+                  <div className="bg-gray-200 h-8 w-33 rounded-md animate-pulse" />
+                </div>
+                <div className="space-y-1">
+                  <div className="space-x-2 flex items-center">
+                    <div className="bg-gray-200 size-8 rounded-full animate-pulse" />
+                    <div className="bg-gray-200 h-8 w-64 rounded-md animate-pulse" />
+                  </div>
+                  <div className="space-x-2 flex items-center">
+                    <div className="bg-gray-200 size-8 rounded-full animate-pulse" />
+                    <div className="bg-gray-200 h-8 w-23 rounded-md animate-pulse" />
+                  </div>
+                </div>
+              </div>
+            ) : (
+              allMessages.map((msg, idx) => {
+                // previous is the message above (older) in the list when rendering oldest -> newest
+                const previous = allMessages[idx - 1];
+                const showAvatar =
+                  msg.sender?._id !== data?.user?._id &&
+                  (!previous || previous.sender?._id !== msg.sender?._id);
 
-              const key = msg._id ?? msg.tempId;
+                const key = msg._id ?? msg.tempId;
 
-              return (
-                <motion.div
-                  key={key}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  transition={{ duration: 0.25, ease: "easeOut" }}
-                >
-                  <ChatMessage
-                    sender={msg.sender}
-                    message={msg}
-                    showAvatar={showAvatar}
-                    setReplyingTo={setReplyingTo}
-                  />
-                </motion.div>
-              );
-            })}
+                return (
+                  <motion.div
+                    key={key}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    transition={{ duration: 0.25, ease: "easeOut" }}
+                  >
+                    <ChatMessage
+                      sender={msg.sender}
+                      message={msg}
+                      showAvatar={showAvatar}
+                      setReplyingTo={setReplyingTo}
+                    />
+                  </motion.div>
+                );
+              })
+            )}
           </AnimatePresence>
 
           <div ref={bottomRef} />

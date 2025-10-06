@@ -12,7 +12,7 @@ export const getMessages = async (
   const res = await axiosInstance.get(endpoints.messages.getMessages(room), {
     params: {
       page,
-      limit: 15
+      limit: 25
     }
   });
   return res.data;
