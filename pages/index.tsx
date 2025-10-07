@@ -4,6 +4,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import assets from "@/json/assets";
 import AppLayout from "@/layouts/AppLayout";
 import { cn } from "@/lib/utils";
+import moment from "moment";
+import { useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -195,14 +197,17 @@ const TaskBox = ({
 };
 
 export default function Home() {
+  const { data } = useSession();
+
   return (
     <AppLayout>
       <div className="mb-4">
         <h1 className="text-2xl leading-7 tracking-[-3%] font-semibold text-gray-900 mb-2">
-          👋 Hey, Badal
+          👋 Hey, {data?.user?.fullName.split(" ").shift()}
         </h1>
         <p className="flex items-center gap-2 text-sm leading-5 text-gray-800">
-          July 01 - July 31
+          {moment().startOf("month").format("MMMM DD")} -{" "}
+          {moment().endOf("month").format("MMMM DD")}
           <Image
             src={assets.icons.info}
             alt="Info icon"

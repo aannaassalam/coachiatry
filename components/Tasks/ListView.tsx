@@ -211,9 +211,8 @@ function ListView() {
               <CollapsibleContent className="pl-7 data-[state=closed]:animate-slideUp data-[state=open]:animate-slideDown">
                 <TasksTable
                   tasks={
-                    tasks?.filter(
-                      (task) => task.status.title === _status?.title
-                    ) ?? []
+                    tasks?.filter((task) => task.status._id === _status?._id) ??
+                    []
                   }
                   isLoading={isLoading}
                 />

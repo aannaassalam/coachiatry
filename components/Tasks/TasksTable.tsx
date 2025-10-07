@@ -24,7 +24,7 @@ import { Ellipsis, Pencil, Trash } from "lucide-react";
 import moment from "moment";
 import Image from "next/image";
 import { parseAsArrayOf, parseAsString, useQueryState } from "nuqs";
-import { useState } from "react";
+import React, { useState } from "react";
 import DeleteDialog from "../DeleteDialog";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
@@ -274,9 +274,8 @@ function TasksTable({
                   />
                 ))
               : tasks.map((task) => (
-                  <>
+                  <React.Fragment key={task._id}>
                     <TableRow
-                      key={task._id}
                       className="!h-[44px] hover:bg-gray-50 !border-b-1 !border-gray-100 cursor-pointer"
                       // onClick={() => {
                       //   setSelectedTask(task);
@@ -436,7 +435,7 @@ function TasksTable({
                           taskId={task._id}
                         />
                       )}
-                  </>
+                  </React.Fragment>
                 ))}
           </TableBody>
         </Table>

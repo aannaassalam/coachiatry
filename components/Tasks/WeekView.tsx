@@ -200,20 +200,23 @@ function WeekView() {
     "dates",
     parseAsJson<{ start: string; end: string }>((v) =>
       v && typeof v === "object" ? (v as { start: string; end: string }) : null
-    ).withDefault({ start: "", end: "" })
+    ).withDefault({
+      start: moment().startOf("week").toISOString(),
+      end: moment().endOf("week").toISOString()
+    })
   );
 
   const validatedFilters = sanitizeFilters(values);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["tasks", validatedFilters],
+    queryKey: ["tasks", validatedFilters, dates],
     queryFn: () =>
       getAllTasks({
         filter: validatedFilters,
         startDate: dates.start,
         endDate: dates.end
-      }),
-    placeholderData: (prev: Task[] | undefined) => prev
+      })
+    // placeholderData: (prev: Task[] | undefined) => prev
   });
 
   const { mutate, isPending } = useMutation({
