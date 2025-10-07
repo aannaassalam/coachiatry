@@ -1,3 +1,4 @@
+import Documents from "@/components/Clients/Documents";
 import Transcriptions from "@/components/Clients/Transcriptions";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -113,6 +114,9 @@ function ClientDetails() {
         </TabsList>
         <TabsContent value="transcriptions">
           <Transcriptions />
+        </TabsContent>
+        <TabsContent value="documents">
+          <Documents />
         </TabsContent>
       </Tabs>
     </AppLayout>

@@ -56,7 +56,7 @@ const DocumentTagColorMap: Record<string, Record<string, string>> = {
   }
 };
 
-const DocumentsTable = ({
+export const DocumentsTable = ({
   documents,
   setSelectedDocument
 }: {

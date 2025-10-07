@@ -68,7 +68,7 @@ function Transcriptions() {
           placeholder="Search List"
         />
       </div>
-      <p className="font-lato font-semibold text-base mt-3">Meetings</p>
+      <p className="font-lato font-semibold text-sm mt-4 ml-3">Meetings</p>
       <div className="flex flex-col gap-3 mt-4">
         {transcriptions.map((data, id) => {
           const isSelected = selected.includes(id);
