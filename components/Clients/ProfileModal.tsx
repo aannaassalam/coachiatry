@@ -7,6 +7,7 @@ import { Archivo, Lato } from "next/font/google";
 import { Button } from "../ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import assets from "@/json/assets";
+import Link from "next/link";
 const archivo = Archivo({ subsets: ["latin"], variable: "--font-archivo" });
 const lato = Lato({
   display: "swap",
@@ -33,7 +34,9 @@ function ProfileModal() {
           <Button className="bg-gray-200 text-gray-900 hover:bg-gray-300 hover:text-gray-900">
             Cancel
           </Button>
-          <Button>View Profile</Button>
+          <Link href="/clients/1">
+            <Button className="w-full">View Profile</Button>
+          </Link>
         </div>
       </div>
     </DialogContent>
