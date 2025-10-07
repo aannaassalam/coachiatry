@@ -97,7 +97,7 @@ function Tasks() {
         }}
       >
         <div>
-          <div className="flex items-center justify-start gap-5 pb-3">
+          <div className="flex items-center justify-start gap-5 pb-3 max-sm:mt-3">
             <TabsList className="h-auto">
               <TabsTrigger
                 value="list"
@@ -176,7 +176,7 @@ function Tasks() {
           <TabsContent value="list">
             <ListView />
           </TabsContent>
-          <TabsContent value="week" className="w-full">
+          <TabsContent value="week" className="w-full ">
             <WeekView />
           </TabsContent>
         </div>

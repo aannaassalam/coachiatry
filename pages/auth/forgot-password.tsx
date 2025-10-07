@@ -34,7 +34,7 @@ export default function ForgotPassword() {
 
   return (
     <AuthLayout className="flex items-center justify-center">
-      <Card className="w-full max-w-lg py-9">
+      <Card className="w-full max-w-lg py-9 max-sm:max-w-[95%]">
         <CardHeader className="text-center">
           <h1 className="font-semibold text-[32px] leading-10 tracking-[-3%] text-primary-text">
             Forgot Password

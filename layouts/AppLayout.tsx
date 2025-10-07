@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
 import { Card } from "@/components/ui/card";
@@ -11,14 +11,15 @@ export default function AppLayout({
   children: React.ReactNode;
   isPaddingBottom?: boolean;
 }) {
+  const [navopen, setNavOpen] = useState(false);
   return (
-    <div className="h-screen bg-background flex overflow-hidden">
-      <Sidebar />
+    <div className="h-screen bg-background flex overflow-hidden max-lg:h-auto max-lg:min-h-screen">
+      <Sidebar navOpen={navopen} setNavOpen={setNavOpen} />
       <div className="flex-1 inline-flex flex-col gap-1.5 min-h-0">
-        <Navbar />
+        <Navbar navOpen={navopen} setNavOpen={setNavOpen} />
         <Card
           className={cn(
-            "flex-1 overflow-y-auto inline-flex flex-col gap-0 border-gray-200 border-r-0 border-b-0 rounded-none rounded-tl-xl p-7 min-h-0",
+            "flex-1 overflow-y-auto inline-flex flex-col gap-0 border-gray-200 border-r-0 border-b-0 rounded-none rounded-tl-xl p-7 max-sm:p-4 min-h-0 max-lg:rounded-tl-none",
             !isPaddingBottom && "pb-0"
           )}
         >

@@ -6,28 +6,39 @@ import {
   PopoverTrigger
 } from "@/components/ui/popover";
 import assets from "@/json/assets";
-import { Search } from "lucide-react";
+import Logo from "@/ui/Logo/Logo";
+import { Menu, Search } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
 import React from "react";
 
-export default function Navbar() {
+export default function Navbar({
+  navOpen,
+  setNavOpen
+}: {
+  navOpen: boolean;
+  setNavOpen: React.Dispatch<React.SetStateAction<boolean>>;
+}) {
   const { data } = useSession();
 
   return (
-    <div className="px-12 py-5 flex items-center justify-end gap-6">
-      <div className="border rounded-xl overflow-hidden flex">
+    <div className="px-12 py-5 flex items-center justify-end gap-6 max-lg:px-7 max-sm:py-4 max-sm:gap-8">
+      <div className="lg:hidden mr-auto">
+        <Logo />
+      </div>
+
+      <div className="border rounded-xl overflow-hidden flex max-sm:hidden">
         <div className="bg-white flex items-center pl-2.5">
           <Search className="text-gray-500 size-4.5" />
           <input
             type="text"
-            className="py-2.5 pl-1 pr-2 text-gray-900 placeholder:text-gray-500 font-lato text-sm outline-none min-w-52.5"
+            className="py-2.5 pl-1 pr-2 text-gray-900 placeholder:text-gray-500 font-lato text-sm outline-none min-w-52.5 max-lg:!min-w-0 max-lg:w-30"
             placeholder="Search"
           />
         </div>
-        <div className="px-2.5 flex items-center gap-2">
+        <div className="px-2.5 flex items-center gap-2 shrink-0">
           <Image src={assets.ai} alt="AI" width={24} height={24} />
-          <p className="text-gray-900 font-semibold text-sm leading-4.5">
+          <p className="text-gray-900 font-semibold text-sm leading-4.5 max-md:hidden">
             Coach AI
           </p>
         </div>
@@ -55,6 +66,10 @@ export default function Navbar() {
           </PopoverContent>
         </Popover>
       </div>
+      <Menu
+        className="lg:hidden cursor-pointer"
+        onClick={() => setNavOpen(!navOpen)}
+      />
     </div>
   );
 }

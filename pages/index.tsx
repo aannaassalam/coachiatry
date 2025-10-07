@@ -211,8 +211,8 @@ export default function Home() {
           />
         </p>
       </div>
-      <div className="grid grid-cols-2 grid-rows-2 gap-5 flex-1">
-        <div className="row-span-2 col-span-1 p-4 border border-gray-200 rounded-md shadow-xs">
+      <div className="grid grid-cols-2 grid-rows-2 gap-5 flex-1 max-md:grid-cols-1">
+        <div className="row-span-2 col-span-1 p-4 border border-gray-200 rounded-md shadow-xs max-sm:p-3">
           <div className="flex items-center justify-between gap-5 mb-2.5">
             <h6 className="text-sm font-semibold leading-[150%] text-gray-900">
               Task Management
@@ -255,7 +255,7 @@ export default function Home() {
             />
           </div>
         </div>
-        <div className="p-4 border border-gray-200 rounded-md shadow-xs">
+        <div className="p-4 border border-gray-200 rounded-md shadow-xs max-sm:p-3">
           <div className="flex items-center justify-between gap-5 mb-2 px-2.5 py-0.5">
             <h6 className="text-sm font-semibold leading-[150%] text-gray-900">
               All messages
@@ -291,7 +291,7 @@ export default function Home() {
             ))}
           </div>
         </div>
-        <div className="p-4 border border-gray-200 rounded-md shadow-xs">
+        <div className="p-4 border border-gray-200 rounded-md shadow-xs max-sm:p-3">
           <div className="flex items-center justify-between gap-5 mb-2 px-2 py-0.5">
             <h6 className="text-sm font-semibold leading-[150%] text-gray-900">
               Documents

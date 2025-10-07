@@ -279,8 +279,8 @@ export default function AddTaskSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="lg:max-w-2xl gap-0">
-        <SheetHeader className="border-b p-6 flex-row items-center justify-between">
+      <SheetContent className="lg:max-w-2xl gap-0 max-sm:w-full">
+        <SheetHeader className="border-b p-6 max-sm:p-4 flex-row items-center justify-between">
           <SheetTitle className="font-archivo font-semibold text-xl text-gray-900">
             {editing ? "Edit Task" : "Add New Task"}
           </SheetTitle>
@@ -288,7 +288,7 @@ export default function AddTaskSheet({
             <X />
           </SheetClose>
         </SheetHeader>
-        <div className="flex-1 p-6 py-4 inline-flex flex-col overflow-auto">
+        <div className="flex-1 p-6 py-4 inline-flex flex-col overflow-auto max-sm:p-4">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
               <div className="space-y-4">
@@ -331,7 +331,7 @@ export default function AddTaskSheet({
                   )}
                 />
                 <SubtaskList />
-                <div className="grid grid-cols-2 space-y-2 gap-3 pt-4 mt-4 border-t border-gray-100 items-start">
+                <div className="grid grid-cols-2 max-sm:grid-cols-1 max-sm:gap-2 space-y-2 gap-3 pt-4 mt-4 border-t border-gray-100 items-start">
                   <FormField
                     control={form.control}
                     name="priority"
@@ -574,7 +574,7 @@ export default function AddTaskSheet({
             </form>
           </Form>
         </div>
-        <SheetFooter className="pt-4 px-4.5 pb-5 border-t">
+        <SheetFooter className="pt-4 px-4.5 pb-5 border-t max-sm:p-4">
           <div className="flex gap-3">
             <SheetClose className="cursor-pointer" asChild>
               <Button variant="outline" disabled={isEditPending || isPending}>

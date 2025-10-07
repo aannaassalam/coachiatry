@@ -208,7 +208,7 @@ function ListView() {
                   Add Task
                 </Button>
               </div>
-              <CollapsibleContent className="pl-7 data-[state=closed]:animate-slideUp data-[state=open]:animate-slideDown">
+              <CollapsibleContent className="pl-7 data-[state=closed]:animate-slideUp data-[state=open]:animate-slideDown max-md:w-[94vw] max-md:overflow-auto scrollbar-hide">
                 <TasksTable
                   tasks={
                     tasks?.filter(
