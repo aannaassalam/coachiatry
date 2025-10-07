@@ -16,11 +16,11 @@ import Image from "next/image";
 import { parseAsJson, useQueryState } from "nuqs";
 import { useState } from "react";
 import DeleteDialog from "../DeleteDialog";
-import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { SmartAvatar } from "../ui/smart-avatar";
 import AddTaskSheet from "./AddTaskSheet";
 import PriorityFlag from "./PriorityFlag";
 
@@ -163,10 +163,12 @@ const TaskCard = ({
           </div>
           <div className="w-1 h-1 bg-gray-300 rounded-full"></div>
           <div className="flex gap-1 items-center">
-            <Avatar className="size-5">
-              <AvatarImage src={assets.avatar} alt="AH" />
-              <AvatarFallback>AH</AvatarFallback>
-            </Avatar>
+            <SmartAvatar
+              src={task?.user?.photo}
+              name={task?.user?.fullName}
+              key={task?.user?.updatedAt}
+              className="size-5"
+            />
             <span className="text-xs text-gray-900 font-lato font-medium">
               {task.user?.fullName}
             </span>

@@ -26,11 +26,11 @@ import Image from "next/image";
 import { parseAsArrayOf, parseAsString, useQueryState } from "nuqs";
 import { useState } from "react";
 import DeleteDialog from "../DeleteDialog";
-import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { SmartAvatar } from "../ui/smart-avatar";
 import AddTaskSheet from "./AddTaskSheet";
 import PriorityFlag from "./PriorityFlag";
 import StatusBox from "./StatusBox";
@@ -53,65 +53,76 @@ const CategoryTagColorMap: Record<string, Record<string, string>> = {
   }
 };
 
-const SubTasksTable = ({
+export const SubTasksTable = ({
   subTasks,
   taskId
 }: {
   subTasks: { _id: string; title: string; completed: boolean }[];
   taskId: string;
 }) => {
-  const { mutate, isPending } = useMutation({
+  const [localCompleted, setLocalCompleted] = useState<Record<string, boolean>>(
+    () => Object.fromEntries(subTasks.map((s) => [s._id, s.completed ?? false]))
+  );
+
+  const { mutate } = useMutation({
     mutationFn: markSubtaskAsCompleted,
     onMutate: async ({ task_id, subtask_id }) => {
+      // Cancel ongoing queries to avoid overwrite
+      await queryClient.cancelQueries({ queryKey: ["tasks"] });
+
       const previousResponse = queryClient.getQueryData<Task[]>(["tasks"]);
 
-      if (previousResponse) {
-        const updatedTasks = previousResponse.map((task) => {
-          if (task._id !== task_id) return task;
-          return {
-            ...task,
-            subtasks: task?.subtasks?.map((subtask) =>
-              subtask._id === subtask_id
-                ? { ...subtask, completed: !subtask.completed }
-                : subtask
-            )
-          };
-        });
-        queryClient.setQueryData(["tasks"], updatedTasks);
-      }
+      // Update query cache immediately
+      const updatedTasks = previousResponse?.map((task) =>
+        task._id === task_id
+          ? {
+              ...task,
+              subtasks: task?.subtasks?.map((subtask) =>
+                subtask._id === subtask_id
+                  ? { ...subtask, completed: !subtask.completed }
+                  : subtask
+              )
+            }
+          : task
+      );
 
+      queryClient.setQueryData(["tasks"], updatedTasks);
       return { previousResponse };
-    },
-    meta: {
-      invalidateQueries: ["tasks"]
     }
   });
 
-  return subTasks.map((subTasks) => (
+  const handleToggle = (id: string) => {
+    // 🔥 Instant local update (no wait)
+    setLocalCompleted((prev) => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+
+    // 🧠 Run mutation silently in background
+    mutate({ task_id: taskId, subtask_id: id });
+  };
+
+  return subTasks.map((subTask) => (
     <TableRow
-      key={subTasks._id}
+      key={subTask._id}
       className={cn(
-        "!h-[44px] flex !border-b-1 !border-gray-100 w-full hover:!bg-transparent",
-        {
-          "animate-pulse": isPending
-        }
+        "!h-[44px] flex !border-b-1 !border-gray-100 w-full hover:!bg-transparent"
       )}
     >
       <TableCell
         colSpan={7}
-        className="font-medium text-sm leading-5 flex items-center font-lato tracking-[-0.05px]  pl-10 my-auto w-full"
+        className="font-medium text-sm leading-5 flex items-center font-lato tracking-[-0.05px] pl-10 my-auto w-full"
       >
         <label
-          className="w-full"
-          onClick={() => mutate({ task_id: taskId, subtask_id: subTasks._id })}
+          className="w-full flex items-center cursor-pointer select-none"
+          onClick={() => handleToggle(subTask._id)}
         >
           <Checkbox
-            className="bg-white mb-[-6px] cursor-pointer"
-            checked={subTasks.completed}
-            disabled={isPending}
+            checked={localCompleted[subTask._id]}
+            className="bg-white mb-[-6px] cursor-pointer transition-all duration-150"
           />
           <span className="ml-3 text-sm font-lato text-gray-600 font-medium">
-            {subTasks.title}
+            {subTask.title}
           </span>
         </label>
       </TableCell>
@@ -119,7 +130,7 @@ const SubTasksTable = ({
   ));
 };
 
-const RenderTableSortingIcon = ({ name }: { name: string }) => {
+export const RenderTableSortingIcon = ({ name }: { name: string }) => {
   const [sortBy, setSortBy] = useQueryState(
     "sort",
     parseAsArrayOf(parseAsString.withDefault("")).withDefault([])
@@ -163,7 +174,7 @@ const RenderTableSortingIcon = ({ name }: { name: string }) => {
         <div
           onClick={handleClick}
           className={cn(
-            "opacity-0 flex items-center justify-center rounded-sm p-[6px] ml-2 hover:bg-gray-100 transition-all duration-200 mr-2 group-hover:opacity-100",
+            "opacity-0 flex items-center justify-center rounded-sm p-[6px] ml-2 hover:bg-gray-100 transition-all duration-200 mr-2 group-hover:opacity-100 cursor-pointer",
             currentSortItem && "bg-gray-100 opacity-100"
           )}
         >
@@ -335,10 +346,12 @@ function TasksTable({
                       </TableCell>
                       <TableCell className="tracking-[-0.05px]">
                         <div className="flex items-center gap-2">
-                          <Avatar className="size-5">
-                            <AvatarImage src={assets.avatar} alt="AH" />
-                            <AvatarFallback>AH</AvatarFallback>
-                          </Avatar>
+                          <SmartAvatar
+                            src={task?.user?.photo}
+                            name={task?.user?.fullName}
+                            key={task?.user?.updatedAt}
+                            className="size-5"
+                          />
                           <span className="font-lato font-medium text-sm text-gray-700">
                             me
                           </span>
@@ -389,7 +402,7 @@ function TasksTable({
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="cursor-pointer flex items-center gap-2 w-full"
+                              className="cursor-pointer flex items-center gap-2 w-full [&>span]:justify-start"
                               onClick={() => {
                                 setSelectedTask(task);
                                 setIsOpen(true);
@@ -405,7 +418,7 @@ function TasksTable({
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="cursor-pointer flex items-center gap-2 w-full text-red-500 hover:text-red-500 hover:bg-red-50"
+                                className="cursor-pointer flex items-center gap-2 w-full text-red-500 hover:text-red-500 hover:bg-red-50 [&>span]:justify-start"
                               >
                                 <Trash />
                                 Delete

@@ -14,9 +14,9 @@ import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { parseAsString, useQueryState } from "nuqs";
 import React from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Button } from "../ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { SmartAvatar } from "../ui/smart-avatar";
 import EmojiPicker from "./EmojiPicker";
 
 type ChatMessageProps = {
@@ -141,12 +141,12 @@ export default function ChatMessage({
     >
       <div className="flex items-start gap-3 relative">
         {!isUser && showAvatar && (
-          <Avatar className="size-8">
-            <AvatarImage src={assets.avatar ?? undefined} alt="AH" />
-            <AvatarFallback className=" bg-orange-100 flex items-center justify-center font-semibold text-orange-600">
-              AH
-            </AvatarFallback>
-          </Avatar>
+          <SmartAvatar
+            src={sender?.photo}
+            name={sender?.fullName}
+            key={sender?.updatedAt}
+            className="size-8"
+          />
         )}
 
         {/* If user: Emoji first then bubble; if not user: bubble then emoji */}

@@ -38,10 +38,15 @@ export default function DeleteDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel type="button">Close</AlertDialogCancel>
+          <AlertDialogCancel type="button" disabled={isLoading}>
+            Close
+          </AlertDialogCancel>
           <AlertDialogAction
             className="bg-red-500 text-white hover:bg-red-600 hover:text-white"
-            onClick={onDelete}
+            onClick={(e) => {
+              e.preventDefault();
+              onDelete();
+            }}
             disabled={isLoading}
           >
             Delete

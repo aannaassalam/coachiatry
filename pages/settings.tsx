@@ -1,5 +1,3 @@
-import { updatePassword } from "@/external-api/functions/auth.api";
-import { updateProfile } from "@/external-api/functions/user.api";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,11 +10,17 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { SmartAvatar } from "@/components/ui/smart-avatar";
+import { updatePassword } from "@/external-api/functions/auth.api";
+import {
+  updateProfile,
+  updateProfilePicture
+} from "@/external-api/functions/user.api";
 import assets from "@/json/assets";
 import AppLayout from "@/layouts/AppLayout";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useMutation } from "@tanstack/react-query";
-import { Link2, Plus } from "lucide-react";
+import { Camera, Link2, Plus } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -34,6 +38,11 @@ export default function Settings() {
 
   const { mutate, isPending } = useMutation({
     mutationFn: updateProfile,
+    onSuccess: () => update()
+  });
+
+  const { mutate: updatePicture, isPending: isPictureUpdating } = useMutation({
+    mutationFn: updateProfilePicture,
     onSuccess: () => update()
   });
 
@@ -94,10 +103,65 @@ export default function Settings() {
             </div>
             <Form {...form}>
               <div className="flex items-center gap-4">
-                <Avatar className="size-20 mr-2">
-                  <AvatarImage src={assets.avatar} alt="AH" />
-                  <AvatarFallback>AH</AvatarFallback>
-                </Avatar>
+                <div className="relative size-20 mr-2 group">
+                  <SmartAvatar
+                    src={data?.user?.photo}
+                    name={data?.user?.fullName}
+                    key={data?.user?.updatedAt}
+                    className="size-20"
+                  />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="absolute inset-0 opacity-0 cursor-pointer"
+                    style={{ zIndex: 2 }}
+                    disabled={isPictureUpdating}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        updatePicture(file);
+                      }
+                    }}
+                  />
+                  <div
+                    className={`absolute inset-0 bg-black/25 flex items-center justify-center rounded-full cursor-pointer transition-opacity z-1 ${
+                      isPictureUpdating
+                        ? "opacity-100"
+                        : "opacity-0 group-hover:opacity-100 pointer-events-none"
+                    }`}
+                  >
+                    {isPictureUpdating ? (
+                      // Replace with your loading spinner if you have one
+                      <div className="relative flex items-center justify-center">
+                        <svg
+                          className="w-8 h-8 animate-spin"
+                          viewBox="0 0 32 32"
+                        >
+                          <circle
+                            cx="16"
+                            cy="16"
+                            r="12"
+                            fill="none"
+                            stroke="rgba(255,255,255,0.4)"
+                            strokeWidth="4"
+                          />
+                          <path
+                            // Arc for 60% of the circle (216 degrees)
+                            d="M28 16
+                              A12 12 0 0 1
+                              16.97 27.85"
+                            fill="none"
+                            stroke="white"
+                            strokeWidth="4"
+                            strokeLinecap="round"
+                          />
+                        </svg>
+                      </div>
+                    ) : (
+                      <Camera className="text-white" />
+                    )}
+                  </div>
+                </div>
                 <FormField
                   control={form.control}
                   name="fullName"
@@ -187,7 +251,9 @@ export default function Settings() {
             <div className="flex items-center gap-3 not-last:border-b py-5 px-6">
               <Avatar className="size-13">
                 <AvatarImage src={assets.avatar} alt="AH" />
-                <AvatarFallback>AH</AvatarFallback>
+                <AvatarFallback className="bg-orange-100 flex items-center justify-center font-semibold text-orange-600">
+                  AH
+                </AvatarFallback>
               </Avatar>
               <div>
                 <p className="font-medium text-gray-800 leading-[150%]">Mom</p>
@@ -206,7 +272,9 @@ export default function Settings() {
             <div className="flex items-center gap-3 not-last:border-b py-5 px-6">
               <Avatar className="size-13">
                 <AvatarImage src={assets.avatar} alt="AH" />
-                <AvatarFallback>AH</AvatarFallback>
+                <AvatarFallback className="bg-orange-100 flex items-center justify-center font-semibold text-orange-600">
+                  AH
+                </AvatarFallback>
               </Avatar>
               <div>
                 <p className="font-medium text-gray-800 leading-[150%]">Mom</p>

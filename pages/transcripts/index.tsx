@@ -101,7 +101,9 @@ function Transcripts() {
                 />
                 <Avatar className="size-8">
                   <AvatarImage src={assets.avatar} alt="AH" />
-                  <AvatarFallback>AH</AvatarFallback>
+                  <AvatarFallback className="bg-orange-100 flex items-center justify-center font-semibold text-orange-600">
+                    AH
+                  </AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col">
                   <span className="text-sm font-medium font-lato text-gray-900">

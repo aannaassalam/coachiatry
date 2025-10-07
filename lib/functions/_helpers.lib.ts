@@ -57,3 +57,10 @@ export function sanitizeFilters(values: Filter[]): Filter[] {
     (f) => f.selectedKey && f.selectedOperator && f.selectedValue
   );
 }
+
+export function getInitials(fullName?: string): string {
+  if (!fullName) return "";
+  const parts = fullName.trim().split(/\s+/);
+  const initials = parts.slice(0, 2).map((name) => name[0].toUpperCase());
+  return initials.join("");
+}

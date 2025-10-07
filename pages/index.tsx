@@ -274,7 +274,9 @@ export default function Home() {
               >
                 <Avatar className="size-10">
                   <AvatarImage src={msg.avatar} alt="AH" sizes="" />
-                  <AvatarFallback>AH</AvatarFallback>
+                  <AvatarFallback className="bg-orange-100 flex items-center justify-center font-semibold text-orange-600">
+                    AH
+                  </AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
                   <p className="font-semibold text-sm leading-5 text-gray-900">
