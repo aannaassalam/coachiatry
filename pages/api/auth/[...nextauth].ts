@@ -1,5 +1,5 @@
-import { login, LoginBody } from "@/api/functions/auth.api";
-import { fetchProfile } from "@/api/functions/user.api";
+import { login, LoginBody } from "@/external-api/functions/auth.api";
+import { fetchProfile } from "@/external-api/functions/user.api";
 import { User } from "@/typescript/interface/user.interface";
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
@@ -14,7 +14,6 @@ export default NextAuth({
       },
       async authorize(credentials) {
         const res = await login(credentials as LoginBody);
-
         if (!res.data) return null;
 
         // must return a plain object
@@ -36,7 +35,7 @@ export default NextAuth({
     strategy: "jwt"
   },
   pages: {
-    signIn: "/login"
+    signIn: "/auth/login"
   },
   callbacks: {
     async jwt({ token, trigger, user }) {

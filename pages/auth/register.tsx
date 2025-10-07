@@ -1,6 +1,6 @@
 "use client";
 
-import { signup } from "@/api/functions/auth.api";
+import { signup } from "@/external-api/functions/auth.api";
 import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";

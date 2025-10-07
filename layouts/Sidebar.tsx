@@ -18,7 +18,7 @@ export default function Sidebar() {
     return pathname.startsWith(href);
   };
   return (
-    <div className="w-[312px] min-h-screen p-4 space-y-4">
+    <div className="w-[312px] shrink-0 min-h-screen p-4 space-y-4">
       <Logo />
       {sideLinks.map((links, index) => {
         return (

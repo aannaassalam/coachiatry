@@ -23,6 +23,22 @@ export const endpoints = {
     edit: (documentId: string) => `/documents/${documentId}`,
     delete: (documentId: string) => `/documents/${documentId}`
   },
+  category: {
+    getAll: "/categories"
+  },
+  status: {
+    getAll: "/statuses"
+  },
+  task: {
+    getAll: "/task",
+    post: "/task",
+    getOne: (taskId: string) => `/task/${taskId}`,
+    edit: (taskId: string) => `/task/${taskId}`,
+    delete: (taskId: string) => `/task/${taskId}`,
+    moveToStatus: (taskId: string) => `/task/move-to-status/${taskId}`,
+    markSubtaskAsComplete: (taskId: string, subtaskId: string) =>
+      `/task/completed/${taskId}/${subtaskId}`
+  },
   user: {
     getProfile: "/user/me",
     updateProfile: "/user/me"

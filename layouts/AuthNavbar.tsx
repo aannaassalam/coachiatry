@@ -18,7 +18,7 @@ export default function AuthNavbar() {
             ? "Already have account?"
             : "Don't have account?"}
         </p>
-        <Button asChild>
+        <Button asChild className="!w-auto">
           <Link
             href={
               router.pathname.includes("/auth/register")

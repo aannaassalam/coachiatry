@@ -47,7 +47,7 @@ export function DateTimePicker({ value, onChange }: DateTimePickerProps) {
 
   return (
     <div className="w-auto p-3 space-y-3">
-      <Calendar mode="single" selected={date} onSelect={setDate} initialFocus />
+      <Calendar mode="single" selected={date} onSelect={setDate} />
       <div className="flex items-center gap-2">
         <Clock className="h-4 w-4 text-muted-foreground" />
         <Select value={time} onValueChange={(val) => setTime(val)}>

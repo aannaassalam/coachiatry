@@ -1,6 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 // import assets from "@/json/assets";
-import { getAllConversations } from "@/api/functions/chat.api";
+import { getAllConversations } from "@/external-api/functions/chat.api";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import moment from "moment";
@@ -35,7 +35,7 @@ export default function ChatList() {
   );
   const { data } = useSession();
 
-  const { data: chats } = useQuery({
+  const { data: chats, isLoading } = useQuery({
     queryKey: ["conversations"],
     queryFn: getAllConversations
   });
@@ -49,54 +49,94 @@ export default function ChatList() {
 
       {/* Scrollable List */}
       <ul className="space-y-2 overflow-y-auto pr-2 pb-6 max-h-[calc(100vh-200px)]">
-        {chats?.data?.map((_chat) => {
-          const chatUser = _chat.members.find(
-            (_member) => _member.user._id !== data?.user?._id
-          );
-          return (
-            <li
-              key={_chat._id}
-              className="flex cursor-pointer items-start justify-between gap-2 py-2.5 px-3 rounded-[8px] hover:bg-gray-100 transition"
-              onClick={() => setSelectedChat(_chat._id!)}
-            >
-              {/* <div className="flex-1 inline-flex items-start space-x-3"> */}
-              <Avatar className="size-10">
-                <AvatarImage
-                  src={"https://randomuser.me/api/portraits/women/44.jpg"}
-                  alt="AH"
-                />
-                <AvatarFallback className=" bg-orange-100 flex items-center justify-center font-semibold text-orange-600">
-                  {chatUser?.user.fullName[0]}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center">
-                  <span className="font-medium  text-sm text-gray-900">
-                    {chatUser?.user.fullName}
-                  </span>
-                  {/* {msg.unread && (
+        {isLoading ? (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 px-3 py-2.5 rounded-sm animate-pulse">
+              <div className="size-10 bg-gray-200 rounded-full" />
+              <div className="space-y-1">
+                <div className="h-5 w-15 bg-gray-200 rounded-sm" />
+                <div className="h-4 w-30 bg-gray-200 rounded-sm" />
+              </div>
+            </div>
+            <div className="flex items-center gap-2 px-3 py-2.5 rounded-sm animate-pulse">
+              <div className="size-10 bg-gray-200 rounded-full" />
+              <div className="space-y-1">
+                <div className="h-5 w-15 bg-gray-200 rounded-sm" />
+                <div className="h-4 w-30 bg-gray-200 rounded-sm" />
+              </div>
+            </div>
+            <div className="flex items-center gap-2 px-3 py-2.5 rounded-sm animate-pulse">
+              <div className="size-10 bg-gray-200 rounded-full" />
+              <div className="space-y-1">
+                <div className="h-5 w-15 bg-gray-200 rounded-sm" />
+                <div className="h-4 w-30 bg-gray-200 rounded-sm" />
+              </div>
+            </div>
+            <div className="flex items-center gap-2 px-3 py-2.5 rounded-sm animate-pulse">
+              <div className="size-10 bg-gray-200 rounded-full" />
+              <div className="space-y-1">
+                <div className="h-5 w-15 bg-gray-200 rounded-sm" />
+                <div className="h-4 w-30 bg-gray-200 rounded-sm" />
+              </div>
+            </div>
+            <div className="flex items-center gap-2 px-3 py-2.5 rounded-sm animate-pulse">
+              <div className="size-10 bg-gray-200 rounded-full" />
+              <div className="space-y-1">
+                <div className="h-5 w-15 bg-gray-200 rounded-sm" />
+                <div className="h-4 w-30 bg-gray-200 rounded-sm" />
+              </div>
+            </div>
+          </div>
+        ) : (
+          chats?.data?.map((_chat) => {
+            const chatUser = _chat.members.find(
+              (_member) => _member.user._id !== data?.user?._id
+            );
+            return (
+              <li
+                key={_chat._id}
+                className="flex cursor-pointer items-start justify-between gap-2 py-2.5 px-3 rounded-[8px] hover:bg-gray-100 transition"
+                onClick={() => setSelectedChat(_chat._id!)}
+              >
+                {/* <div className="flex-1 inline-flex items-start space-x-3"> */}
+                <Avatar className="size-10">
+                  <AvatarImage
+                    src={"https://randomuser.me/api/portraits/women/44.jpg"}
+                    alt="AH"
+                  />
+                  <AvatarFallback className=" bg-orange-100 flex items-center justify-center font-semibold text-orange-600">
+                    {chatUser?.user.fullName[0]}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center">
+                    <span className="font-medium  text-sm text-gray-900">
+                      {chatUser?.user.fullName}
+                    </span>
+                    {/* {msg.unread && (
                       <span className="w-[7px] h-[7px] rounded-full bg-primary"></span>
                     )} */}
+                  </div>
+                  <p
+                    className={cn(
+                      "text-xs text-gray-500 truncate"
+                      // msg.unread && "font-semibold"
+                    )}
+                  >
+                    {_chat.lastMessage?.sender?._id === data?.user?._id
+                      ? "You: "
+                      : null}
+                    {_chat.lastMessage?.content}
+                  </p>
                 </div>
-                <p
-                  className={cn(
-                    "text-xs text-gray-500 truncate"
-                    // msg.unread && "font-semibold"
-                  )}
-                >
-                  {_chat.lastMessage?.sender?._id === data?.user?._id
-                    ? "You: "
-                    : null}
-                  {_chat.lastMessage?.content}
-                </p>
-              </div>
-              <span className="text-xs text-gray-500 whitespace-nowrap ">
-                {moment(_chat.lastMessage?.createdAt).fromNow(true)}
-              </span>
-              {/* </div> */}
-            </li>
-          );
-        })}
+                <span className="text-xs text-gray-500 whitespace-nowrap ">
+                  {moment(_chat.lastMessage?.createdAt).fromNow(true)}
+                </span>
+                {/* </div> */}
+              </li>
+            );
+          })
+        )}
       </ul>
     </div>
   );

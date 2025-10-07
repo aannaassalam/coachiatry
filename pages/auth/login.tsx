@@ -46,9 +46,9 @@ export default function Login() {
     disabled: isLoading
   });
 
-  const onSubmit = (data: yup.InferType<typeof schema>) => {
+  const onSubmit = async (data: yup.InferType<typeof schema>) => {
     setIsLoading(true);
-    signIn("credentials", { ...data, callbackUrl: "/" });
+    await signIn("credentials", { ...data, callbackUrl: "/" });
     setIsLoading(false);
   };
 

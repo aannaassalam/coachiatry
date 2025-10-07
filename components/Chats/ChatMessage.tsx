@@ -176,7 +176,7 @@ export default function ChatMessage({
                 </Button>
               </PopoverTrigger>
               <PopoverContent
-                className="p-0 bg-transparent border-none shadow-none"
+                className="p-0 bg-transparent border-none shadow-none w-auto"
                 side="top" // 👈 prefers top
                 align="start" // 👈 aligns with button
                 sideOffset={8} // 👈 adds spacing from the trigger

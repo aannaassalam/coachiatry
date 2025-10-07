@@ -1,5 +1,6 @@
 import ChatConversation from "@/components/Chats/ChatConversation";
 import ChatList from "@/components/Chats/ChatList";
+import ScheduledTable from "@/components/Chats/ScheduledTable";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AppLayout from "@/layouts/AppLayout";
@@ -7,7 +8,10 @@ import { SocketProvider } from "@/lib/socketContext";
 import { parseAsString, useQueryState } from "nuqs";
 
 function Chat() {
-  const [tab, setTab] = useQueryState("tab", parseAsString.withDefault("all"));
+  const [tab, setTab] = useQueryState(
+    "tab",
+    parseAsString.withDefault("chats")
+  );
   const [room] = useQueryState("room", parseAsString.withDefault(""));
 
   return (
@@ -16,39 +20,39 @@ function Chat() {
         <div className="flex justify-between items-center mb-2">
           <div className="flex items-center justify-between gap-5 ">
             <h1 className="font-semibold text-gray-900 text-2xl leading-7 tracking-[-3%]">
-              Chats
+              {tab === "chats"
+                ? "Chats"
+                : tab === "scheduled" && "Scheduled Messages"}
             </h1>
           </div>
           <Tabs value={tab} onValueChange={(value) => setTab(value)}>
             <div className="flex items-center justify-between gap-5 pb-2">
               <TabsList className="h-auto">
                 <TabsTrigger
-                  value="all"
-                  className="py-1.5 px-6 text-sm leading-5"
+                  value="chats"
+                  className="py-1.5 px-6 text-sm leading-5 cursor-pointer"
                 >
-                  All
+                  Chats
                 </TabsTrigger>
                 <TabsTrigger
-                  value="archeived"
-                  className="py-1.5 px-4 text-sm leading-5"
+                  value="scheduled"
+                  className="py-1.5 px-4 text-sm leading-5 cursor-pointer"
                 >
-                  Archeived
-                </TabsTrigger>
-                <TabsTrigger
-                  value="drafts"
-                  className="py-1.5 px-4 text-sm leading-5"
-                >
-                  Draft
+                  Scheduled
                 </TabsTrigger>
               </TabsList>
             </div>
           </Tabs>
         </div>
         <Separator />
-        <div className="w-full grid grid-cols-[0.3fr_auto] flex-1 min-h-0">
-          <ChatList />
-          {room && <ChatConversation />}
-        </div>
+        {tab === "chats" ? (
+          <div className="w-full grid grid-cols-[0.3fr_auto] flex-1 min-h-0">
+            <ChatList />
+            {room && <ChatConversation />}
+          </div>
+        ) : (
+          tab === "scheduled" && <ScheduledTable />
+        )}
       </AppLayout>
     </SocketProvider>
   );

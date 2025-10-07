@@ -53,14 +53,14 @@ const EmojiPicker: React.FC<EmojiPickerProps> = ({
       <div className="">
         {/* Main emoji reaction bar */}
         {!showEmojiPicker && (
-          <div className="bg-white rounded-full shadow-lg p-2 flex items-center gap-0 overflow-y-auto">
+          <div className="bg-white rounded-full shadow-lg p-1 px-2 flex items-center gap-0 overflow-y-auto">
             {/* <> */}
             {mainEmojis.map((item, index) => (
               <PopoverClose key={index}>
                 <Button
                   variant="ghost"
                   onClick={() => handleEmojiSelect(item.emoji)}
-                  className={`size-9.5 rounded-full flex items-center justify-center text-xl hover:bg-gray-100 transition-all duration-200 transform hover:scale-110 ${
+                  className={`p-0 size-8.5 rounded-full flex items-center justify-center text-xl hover:bg-gray-100 transition-all duration-200 transform hover:scale-110 ${
                     selectedIndex === index ? "bg-blue-100 scale-110" : ""
                   }`}
                   title={item.label}

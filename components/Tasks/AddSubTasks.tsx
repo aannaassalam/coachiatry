@@ -2,31 +2,21 @@
 import { X } from "lucide-react";
 import { Input } from "../ui/input";
 
-import React from "react";
 import assets from "@/json/assets";
-import { Button } from "../ui/button";
 import Image from "next/image";
+import { useFieldArray, useFormContext } from "react-hook-form";
+import { Button } from "../ui/button";
 
-interface SubtaskListProps {
-  subtasks: string[];
-  onChange: (subtasks: string[]) => void;
-}
+export default function SubtaskList() {
+  const {
+    control,
+    formState: { errors }
+  } = useFormContext();
 
-export default function SubtaskList({ subtasks, onChange }: SubtaskListProps) {
-  const handleAdd = () => {
-    onChange([...subtasks, ""]);
-  };
-
-  const handleRemove = (index: number) => {
-    const updated = subtasks.filter((_, i) => i !== index);
-    onChange(updated);
-  };
-
-  const handleChange = (index: number, value: string) => {
-    const updated = [...subtasks];
-    updated[index] = value;
-    onChange(updated);
-  };
+  const { append, remove, fields } = useFieldArray({
+    name: "subtasks",
+    control
+  });
 
   return (
     <div className="space-y-3">
@@ -36,27 +26,34 @@ export default function SubtaskList({ subtasks, onChange }: SubtaskListProps) {
         </p>
       </div>
 
-      {subtasks.length === 0 && (
+      {fields.length === 0 && (
         <p className="text-sm text-gray-500">No subtasks yet.</p>
       )}
 
       <div className="space-y-2">
-        {subtasks.map((subtask, index) => (
-          <div key={index} className="flex items-center gap-2">
-            <Input
-              value={subtask}
-              onChange={(e) => handleChange(index, e.target.value)}
-              placeholder={`Subtask ${index + 1}`}
-            />
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={() => handleRemove(index)}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              <X className="h-4 w-4" />
-            </Button>
+        {fields.map((field, index) => (
+          <div key={field.id} className="flex flex-col gap-1">
+            <div className="flex items-center gap-2">
+              <Input
+                {...control.register(`subtasks.${index}.title` as const)} // register each subtask
+                placeholder={`Subtask ${index + 1}`}
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => remove(index)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            {Array.isArray(errors.subtasks) &&
+              errors.subtasks?.[index]?.title && (
+                <p className="text-sm text-red-500">
+                  {errors.subtasks[index]?.title?.message as string}
+                </p>
+              )}
           </div>
         ))}
       </div>
@@ -64,7 +61,7 @@ export default function SubtaskList({ subtasks, onChange }: SubtaskListProps) {
         type="button"
         variant="outline"
         size="sm"
-        onClick={handleAdd}
+        onClick={() => append({ title: "", completed: false })}
         className="text-gray-500 text-[12px]"
       >
         <Image src={assets.icons.plus} alt="add" width={14} height={14} />

@@ -76,18 +76,7 @@ export interface BaseApiResponse {
   type: string;
   token: string;
 }
-export interface Task {
-  title: string;
-  subTasks: {
-    title: string;
-    isCompleted: boolean;
-  }[];
-  dueDate: Date;
-  priority: string;
-  status: string;
-  assignedTo: string;
-  category: string;
-}
+
 export type ActiveInactiveStatus = "Inactive" | "Active";
 
 export interface PaginatedResponse<T> {
@@ -104,6 +93,12 @@ export interface PaginatedResponse<T> {
 export type InfiniteData<T> = {
   pages: T[];
   pageParams: unknown[];
+};
+
+export type Filter = {
+  selectedKey: string;
+  selectedOperator: string;
+  selectedValue: string;
 };
 
 export {};
