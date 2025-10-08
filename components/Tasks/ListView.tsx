@@ -184,9 +184,8 @@ function ListView() {
                   </h5>
                   <Badge variant="counter" className={_status?.accentColor}>
                     {
-                      tasks?.filter(
-                        (task) => task.status.title === _status?.title
-                      ).length
+                      tasks?.filter((task) => task.status._id === _status?._id)
+                        .length
                     }
                   </Badge>
                 </div>

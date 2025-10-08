@@ -391,9 +391,9 @@ export default function ChatConversation() {
         ) : (
           <div className="flex items-center gap-4">
             <SmartAvatar
-              src={data?.user?.photo}
-              name={data?.user?.fullName}
-              key={data?.user?.updatedAt}
+              src={friend?.user?.photo}
+              name={friend?.user?.fullName}
+              key={friend?.user?.updatedAt}
               className="size-10"
             />
             <div>
