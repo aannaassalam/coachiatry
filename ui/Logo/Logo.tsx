@@ -24,6 +24,7 @@ export default function Logo(
         width={155}
         height={32}
         {...others}
+
         // className={cx(className, {
         //   "max-sm:hidden": mobile
         // })}

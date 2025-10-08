@@ -54,7 +54,10 @@ export default function Login() {
 
   return (
     <AuthLayout className="flex items-center justify-center">
-      <Card className="w-full max-w-lg py-9" key="login-card">
+      <Card
+        className="w-full max-w-lg max-sm:max-w-[95%] py-9"
+        key="login-card"
+      >
         <CardHeader className="text-center">
           <h1 className="font-semibold text-[32px] leading-10 tracking-[-3%] text-primary-text">
             Login to account

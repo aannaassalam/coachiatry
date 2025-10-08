@@ -256,3 +256,6 @@ h6 {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+.weekContainer {
+  max-width: calc(100vw - 368px);
+}

@@ -208,7 +208,7 @@ export default function ChatInput({
         e.preventDefault();
         handleSend();
       }}
-      className="flex items-center p-5 pt-3.5 border-t bg-white"
+      className="flex items-center p-5 pt-3.5 border-t bg-white max-md:p-3 max-md:pb-0"
     >
       <div className="border rounded-md flex-1 overflow-hidden">
         <div className="bg-white min-h-[48px] px-3 py-2 flex flex-col w-full relative">

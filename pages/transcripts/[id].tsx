@@ -50,7 +50,7 @@ const TranscriptHeader = ({
             John Nick
           </span>
         </div>
-        <div className="flex gap-6">
+        <div className="flex gap-6 max-sm:flex-wrap">
           <Badge
             className={cn(
               "rounded-full py-0.5 px-2 flex items-center gap-1.5 font-archivo font-medium text-xs leading-4.5",
@@ -77,12 +77,12 @@ const TranscriptHeader = ({
           </div>
         </div>
       </div>
-      <h2 className="text-gray-900 font-archivo text-2xl tracking-[-3%] font-semibold mt-4">
+      <h2 className="text-gray-900 font-archivo text-2xl tracking-[-3%] font-semibold mt-4 max-sm:text-xl ">
         Any mechanical keyboard enthusiasts in design?
       </h2>
       <div className="border-1 border-[#E6E6E6] p-4 rounded-[6px] mt-4">
         <p className="font-archivo font-medium text-lg">AI Tools</p>
-        <div className="grid grid-cols-3 w-full mt-4 gap-4">
+        <div className="grid grid-cols-3 w-full mt-4 gap-4 max-sm:grid-cols-1">
           <Button
             variant="secondary"
             className="justify-start bg-[#f9f9f9] border-1 border-gray-200"

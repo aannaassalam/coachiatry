@@ -78,11 +78,11 @@ export const DocumentsTable = ({
   });
 
   return (
-    <div className="mt-5">
+    <div className="mt-5 max-md:w-[95vw] max-md:overflow-auto scrollbar-hide max-[480px]:!w-[93vw]">
       <Table>
         <TableHeader className="bg-gray-100">
           <TableRow className="border-none">
-            <TableHead className="rounded-l-md text-gray-500 min-w-[200px]">
+            <TableHead className="rounded-l-md text-gray-500 min-w-[200px] max-md:min-w-[100px] max-md:max-w-[250px]">
               <div className="w-full flex items-center group text-xs pl-1.5">
                 Name
                 <RenderTableSortingIcon name="title" />
@@ -136,7 +136,7 @@ export const DocumentsTable = ({
                 >
                   {document.title}
                 </TableCell>
-                <TableCell className="py-4.5">
+                <TableCell className="py-3.5">
                   <Badge
                     className={cn(
                       "rounded-full py-0.5 px-2 flex items-center gap-1.5 font-archivo font-medium text-xs leading-4.5",
@@ -153,7 +153,7 @@ export const DocumentsTable = ({
                     {document.tag}
                   </Badge>
                 </TableCell>
-                <TableCell className="py-4.5 text-sm text-gray-600">
+                <TableCell className="py-3.5 text-sm text-gray-600">
                   {moment(document.createdAt).format("DD-MM-YYYY")}
                 </TableCell>
                 <TableCell className="py-4.5">

@@ -62,54 +62,72 @@ export default function Toolbar({ editor }: { editor: Editor | null }) {
   };
 
   return (
-    <div className="flex gap-1 py-3 px-4 self-end">
+    <div className="flex gap-1 py-3 px-4 self-end max-sm:!px-0">
       <Button
         variant="ghost"
-        className="p-1.5 hover:bg-gray-200"
+        className="p-1.5 max-sm:p-0.5 hover:bg-gray-200"
         onClick={() => editor.chain().focus().undo().run()}
       >
-        <Image src={assets.icons.undo} alt="undo" width={24} height={24} />
+        <Image
+          src={assets.icons.undo}
+          alt="undo"
+          width={24}
+          height={24}
+          className="max-sm:w-5 max-sm:h-5"
+        />
       </Button>
       <Button
         variant="ghost"
-        className="p-1.5 hover:bg-gray-200"
+        className="p-1.5 max-sm:p-0.5 hover:bg-gray-200"
         onClick={() => editor.chain().focus().redo().run()}
       >
-        <Image src={assets.icons.redo} alt="redo" width={24} height={24} />
+        <Image
+          src={assets.icons.redo}
+          alt="redo"
+          width={24}
+          height={24}
+          className="max-sm:w-5 max-sm:h-5"
+        />
       </Button>
 
       <Separator orientation="vertical" className="mx-1.5" />
 
       <Button
         variant="ghost"
-        className={cn("p-1.5 hover:bg-gray-200", {
+        className={cn("p-1.5 max-sm:p-0.5 hover:bg-gray-200", {
           "bg-gray-200": isActive("bold")
         })}
         onClick={() => editor.chain().focus().toggleBold().run()}
       >
-        <FiBold className="text-primary size-6" />
+        <FiBold className="text-primary size-6 max-sm:size-5" />
       </Button>
       <Button
         variant="ghost"
-        className={cn("p-1.5 hover:bg-gray-200", {
+        className={cn("p-1.5 max-sm:p-0.5 hover:bg-gray-200", {
           "bg-gray-200": isActive("italic")
         })}
         onClick={() => editor.chain().focus().toggleItalic().run()}
       >
-        <TbItalic className="text-primary size-6" />
+        <TbItalic className="text-primary size-6 max-sm:size-5" />
       </Button>
       <Button
         variant="ghost"
-        className={cn("p-1.5 hover:bg-gray-200", {
+        className={cn("p-1.5 max-sm:p-0.5 hover:bg-gray-200", {
           "bg-gray-200": isActive("underline")
         })}
         onClick={() => editor.chain().focus().toggleUnderline().run()}
       >
-        <Image src={assets.icons.underline} alt="redo" width={24} height={24} />
+        <Image
+          src={assets.icons.underline}
+          alt="redo"
+          width={24}
+          height={24}
+          className="max-sm:w-5 max-sm:h-5"
+        />
       </Button>
       <Button
         variant="ghost"
-        className={cn("p-1.5 hover:bg-gray-200", {
+        className={cn("p-1.5 max-sm:p-0.5 hover:bg-gray-200", {
           "bg-gray-200": isActive("strike")
         })}
         onClick={() => editor.chain().focus().toggleStrike().run()}
@@ -119,6 +137,7 @@ export default function Toolbar({ editor }: { editor: Editor | null }) {
           alt="redo"
           width={24}
           height={24}
+          className="max-sm:w-5 max-sm:h-5"
         />
       </Button>
 
@@ -126,7 +145,7 @@ export default function Toolbar({ editor }: { editor: Editor | null }) {
 
       <Button
         variant="ghost"
-        className={cn("p-1.5 hover:bg-gray-200", {
+        className={cn("p-1.5 max-sm:p-0.5 hover:bg-gray-200", {
           "bg-gray-200": isActive("bulletList")
         })}
         onClick={() => editor.chain().focus().toggleBulletList().run()}
@@ -136,12 +155,13 @@ export default function Toolbar({ editor }: { editor: Editor | null }) {
           alt="redo"
           width={24}
           height={24}
+          className="max-sm:w-5 max-sm:h-5"
         />
       </Button>
 
       <Button
         variant="ghost"
-        className={cn("p-1.5 hover:bg-gray-200", {
+        className={cn("p-1.5 max-sm:p-0.5 hover:bg-gray-200", {
           "bg-gray-200": isActive("orderedList")
         })}
         onClick={() => editor.chain().focus().toggleOrderedList().run()}
@@ -151,37 +171,56 @@ export default function Toolbar({ editor }: { editor: Editor | null }) {
           alt="redo"
           width={24}
           height={24}
+          className="max-sm:w-5 max-sm:h-5"
         />
       </Button>
 
       <Button
         variant="ghost"
-        className={cn("p-1.5 hover:bg-gray-200", {
+        className={cn("p-1.5 max-sm:p-0.5 hover:bg-gray-200", {
           "bg-gray-200": isActive("textAlign", { textAlign: "left" })
         })}
         onClick={() => editor.chain().focus().toggleTextAlign("left").run()}
       >
-        <Image src={assets.icons.alignLeft} alt="redo" width={24} height={24} />
+        <Image
+          src={assets.icons.alignLeft}
+          alt="redo"
+          width={24}
+          height={24}
+          className="max-sm:w-5 max-sm:h-5"
+        />
       </Button>
 
       <Separator orientation="vertical" className="mx-1.5" />
 
       <Button
         variant="ghost"
-        className={cn("p-1.5 hover:bg-gray-200", {
+        className={cn("p-1.5 max-sm:p-0.5 hover:bg-gray-200", {
           "bg-gray-200": isActive("link")
         })}
         onClick={isActive("link") ? removeLink : insertLink}
       >
-        <Image src={assets.icons.link} alt="redo" width={24} height={24} />
+        <Image
+          src={assets.icons.link}
+          alt="redo"
+          width={24}
+          height={24}
+          className="max-sm:w-5 max-sm:h-5"
+        />
       </Button>
 
       <Button
         variant="ghost"
-        className="p-1.5 hover:bg-gray-200"
+        className="p-1.5 max-sm:p-0.5 hover:bg-gray-200"
         onClick={() => editor.chain().focus().toggleBold().run()}
       >
-        <Image src={assets.icons.emojiDoc} alt="redo" width={24} height={24} />
+        <Image
+          src={assets.icons.emojiDoc}
+          alt="redo"
+          width={24}
+          height={24}
+          className="max-sm:w-5 max-sm:h-5"
+        />
       </Button>
     </div>
   );

@@ -10,10 +10,10 @@ export default function AuthNavbar() {
   const router = useRouter();
 
   return (
-    <div className="px-12 py-5 flex gap-5 justify-between items-center border-b border-gray-300">
+    <div className="px-12 py-5 flex gap-5 justify-between items-center border-b border-gray-300 max-sm:px-4">
       <Logo />
       <div className="flex items-center justify-between gap-4">
-        <p>
+        <p className="max-sm:hidden">
           {router.pathname.includes("/auth/register")
             ? "Already have account?"
             : "Don't have account?"}

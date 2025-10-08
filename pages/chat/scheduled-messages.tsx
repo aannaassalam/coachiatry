@@ -10,7 +10,7 @@ function ScheduledMessages() {
       <div className="mb-4 flex items-center justify-between">
         <div className="flex gap-2 items-center ">
           <Link
-            href="/transcripts"
+            href="/chat"
             className="text-sm font-lato font-normal text-gray-600 "
           >
             Chat
