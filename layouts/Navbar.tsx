@@ -22,7 +22,7 @@ export default function Navbar({
   const { data } = useSession();
 
   return (
-    <div className="px-12 py-5 flex items-center justify-end gap-6 max-lg:px-7 max-sm:py-4 max-sm:pl-4 max-sm:gap-8">
+    <div className="px-12 py-5 flex items-center justify-end gap-6 max-lg:px-7 max-sm:py-4 max-sm:pb-2 max-sm:pl-4 max-sm:gap-8">
       <div className="lg:hidden mr-auto">
         <Logo />
       </div>
