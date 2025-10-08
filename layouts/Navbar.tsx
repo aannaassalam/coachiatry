@@ -1,16 +1,16 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger
 } from "@/components/ui/popover";
+import { SmartAvatar } from "@/components/ui/smart-avatar";
 import assets from "@/json/assets";
 import Logo from "@/ui/Logo/Logo";
 import { Menu, Search } from "lucide-react";
+import { getInitials } from "@/lib/functions/_helpers.lib";
 import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
-import React from "react";
 
 export default function Navbar({
   navOpen,
@@ -44,10 +44,13 @@ export default function Navbar({
         </div>
       </div>
       <div className="flex items-center gap-3">
-        <Avatar>
-          <AvatarImage src={assets.avatar} alt="AH" />
-          <AvatarFallback>AH</AvatarFallback>
-        </Avatar>
+        <SmartAvatar
+          src={data?.user?.photo}
+          name={data?.user?.fullName}
+          key={data?.user?.updatedAt}
+          className="size-8"
+          textSize="text-sm"
+        />
         <Popover>
           <PopoverTrigger>
             <div className="cursor-pointer text-left">

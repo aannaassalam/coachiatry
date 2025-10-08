@@ -3,10 +3,14 @@ import axiosInstance from "../axiosInstance";
 import { endpoints } from "../endpoints";
 import { PaginatedResponse } from "@/typescript/interface/common.interface";
 
-export const getAllDocuments = async (): Promise<
-  PaginatedResponse<Document[]>
-> => {
-  const res = await axiosInstance.get(endpoints.document.getAll);
+export const getAllDocuments = async ({
+  sort
+}: {
+  sort: string;
+}): Promise<PaginatedResponse<Document[]>> => {
+  const res = await axiosInstance.get(endpoints.document.getAll, {
+    params: { sort }
+  });
   return res.data;
 };
 

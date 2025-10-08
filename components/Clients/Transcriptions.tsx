@@ -1,20 +1,18 @@
+import { Search } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Separator } from "@/components/ui/separator";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger
 } from "@/components/ui/tooltip";
 import assets from "@/json/assets";
-import AppLayout from "@/layouts/AppLayout";
 import { cn } from "@/lib/utils";
 import { FileText, Trash2 } from "lucide-react";
 import Link from "next/link";
 import React, { useState } from "react";
-
-function Transcripts() {
+function Transcriptions() {
   const [transcriptions] = useState([
     {
       name: "Any mechanical keyboard enthusiasts in design?",
@@ -60,23 +58,17 @@ function Transcripts() {
         : [...prev, id]
     );
   };
-  console.log(selected);
   return (
-    <AppLayout>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl leading-7 tracking-[-3%] font-semibold text-gray-900 mb-2 max-sm:text-xl max-sm:mb-0">
-          Transcriptions
-        </h1>
-        <div className="flex gap-3">
-          {/* <Button variant="outline" size="sm" className="gap-1.5 font-semibold">
-            <ListFilter />
-            Filter
-          </Button> */}
-          <Button>Upload Transcript or Record</Button>
-        </div>
+    <div className="px-2 my-2">
+      <div className="bg-white flex items-center pl-2.5 border-1 border-gray-200 rounded-lg w-[250px]">
+        <Search className="text-gray-500 size-4.5 mr-2" />
+        <input
+          type="text"
+          className="py-2.5 pl-1 pr-2 text-gray-900 placeholder:text-gray-500 font-lato text-sm outline-none "
+          placeholder="Search List"
+        />
       </div>
-      <Separator />
-      <p className="font-lato font-semibold text-base mt-3">Meetings</p>
+      <p className="font-lato font-semibold text-sm mt-4 ml-3">Meetings</p>
       <div className="flex flex-col gap-3 mt-4">
         {transcriptions.map((data, id) => {
           const isSelected = selected.includes(id);
@@ -101,9 +93,7 @@ function Transcripts() {
                 />
                 <Avatar className="size-8">
                   <AvatarImage src={assets.avatar} alt="AH" />
-                  <AvatarFallback className="bg-orange-100 flex items-center justify-center font-semibold text-orange-600">
-                    AH
-                  </AvatarFallback>
+                  <AvatarFallback>AH</AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col">
                   <span className="text-sm font-medium font-lato text-gray-900">
@@ -147,8 +137,8 @@ function Transcripts() {
           );
         })}
       </div>
-    </AppLayout>
+    </div>
   );
 }
 
-export default Transcripts;
+export default Transcriptions;

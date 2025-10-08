@@ -42,7 +42,9 @@ const TranscriptHeader = ({
         <div className="flex gap-2.5 items-center">
           <Avatar className="size-6">
             <AvatarImage src={assets.avatar} alt="AH" />
-            <AvatarFallback>AH</AvatarFallback>
+            <AvatarFallback className="bg-orange-100 flex items-center justify-center font-semibold text-orange-600">
+              AH
+            </AvatarFallback>
           </Avatar>
           <span className="text-sm text-gray-900 font-lato font-medium">
             John Nick
@@ -221,7 +223,9 @@ const TranscriptionsSection = () => {
         <div key={id} className="flex gap-2.5 mb-4 items-start">
           <Avatar className="size-8">
             <AvatarImage src={transcription.avatar} alt="AH" />
-            <AvatarFallback>AH</AvatarFallback>
+            <AvatarFallback className="bg-orange-100 flex items-center justify-center font-semibold text-orange-600">
+              AH
+            </AvatarFallback>
           </Avatar>
           <div>
             <div className="flex gap-2 items-center">

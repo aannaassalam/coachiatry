@@ -5,6 +5,7 @@ export default {
   ai: "/assets/svg/ai.svg",
   avatar: "/assets/images/avatar.png",
   avatar2: "/assets/images/avatar2.png",
+  profileAvatar: "/assets/images/profileAvatar.png",
   taskCircle: "/assets/images/taskCircle.png",
 
   icons: {
@@ -45,6 +46,11 @@ export default {
     shortSummary: "/assets/svg/short-summary.svg",
     detailSummary: "/assets/svg/detail-summary.svg",
     generateTask: "/assets/svg/generate-task.svg",
-    aiStar: "/assets/svg/ai-star.svg"
+    aiStar: "/assets/svg/ai-star.svg",
+    call: "/assets/svg/call.svg",
+    envelope: "/assets/svg/envelope.svg",
+    map: "/assets/svg/map.svg",
+    dateCalendar: "/assets/svg/dateCalendar.svg",
+    user: "/assets/svg/user.svg"
   }
 };

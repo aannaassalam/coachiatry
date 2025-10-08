@@ -41,7 +41,8 @@ export const endpoints = {
   },
   user: {
     getProfile: "/user/me",
-    updateProfile: "/user/me"
+    updateProfile: "/user/me",
+    updateProfilePicture: "/user/me/update-profile-picture"
   },
   chat: {
     getConversations: "/chat",

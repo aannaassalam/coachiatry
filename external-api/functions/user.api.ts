@@ -18,3 +18,13 @@ export const updateProfile = async (body: {
   const res = await axiosInstance.patch(endpoints.user.updateProfile, body);
   return res;
 };
+
+export const updateProfilePicture = async (file: File) => {
+  const formData = new FormData();
+  formData.append("profilePicture", file);
+  const res = await axiosInstance.patch(
+    endpoints.user.updateProfilePicture,
+    formData
+  );
+  return res;
+};

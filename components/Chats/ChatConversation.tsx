@@ -2,7 +2,6 @@
 
 import { getConversation } from "@/external-api/functions/chat.api";
 import { getMessages } from "@/external-api/functions/message.api";
-import assets from "@/json/assets";
 import { useSocket } from "@/lib/socketContext";
 import { queryClient } from "@/pages/_app";
 import { ChatConversation as Conversation } from "@/typescript/interface/chat.interface";
@@ -21,8 +20,8 @@ import moment from "moment";
 import { useSession } from "next-auth/react";
 import { parseAsString, useQueryState } from "nuqs";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Button } from "../ui/button";
+import { SmartAvatar } from "../ui/smart-avatar";
 import ChatInput from "./ChatInput";
 import ChatMessage from "./ChatMessage";
 import { cn } from "@/lib/utils";
@@ -405,13 +404,12 @@ export default function ChatConversation() {
               className="text-gray-600 size-5 md:hidden cursor-pointer"
               onClick={() => setSelectedChat("")}
             />
-
-            <Avatar className="size-10">
-              <AvatarImage src={assets.avatar ?? undefined} alt="AH" />
-              <AvatarFallback className="bg-orange-100 flex items-center justify-center font-semibold text-orange-600">
-                AH
-              </AvatarFallback>
-            </Avatar>
+            <SmartAvatar
+              src={data?.user?.photo}
+              name={data?.user?.fullName}
+              key={data?.user?.updatedAt}
+              className="size-10"
+            />
             <div>
               <p className="font-semibold font-lato text-base">
                 {friend?.user.fullName}

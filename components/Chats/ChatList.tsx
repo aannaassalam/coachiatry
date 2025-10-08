@@ -1,4 +1,3 @@
-import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 // import assets from "@/json/assets";
 import { getAllConversations } from "@/external-api/functions/chat.api";
 import { cn } from "@/lib/utils";
@@ -6,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import moment from "moment";
 import { useSession } from "next-auth/react";
 import { parseAsString, useQueryState } from "nuqs";
+import { SmartAvatar } from "../ui/smart-avatar";
 
 moment.updateLocale("en", {
   relativeTime: {
@@ -98,16 +98,12 @@ export default function ChatList() {
                 className="flex cursor-pointer items-start justify-between gap-2 py-2.5 px-3 rounded-[8px] hover:bg-gray-100 transition"
                 onClick={() => setSelectedChat(_chat._id!)}
               >
-                {/* <div className="flex-1 inline-flex items-start space-x-3"> */}
-                <Avatar className="size-10">
-                  <AvatarImage
-                    src={"https://randomuser.me/api/portraits/women/44.jpg"}
-                    alt="AH"
-                  />
-                  <AvatarFallback className=" bg-orange-100 flex items-center justify-center font-semibold text-orange-600">
-                    {chatUser?.user.fullName[0]}
-                  </AvatarFallback>
-                </Avatar>
+                <SmartAvatar
+                  src={chatUser?.user?.photo}
+                  name={chatUser?.user?.fullName}
+                  key={chatUser?.user?.updatedAt}
+                  className="size-10"
+                />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center">
                     <span className="font-medium  text-sm text-gray-900">

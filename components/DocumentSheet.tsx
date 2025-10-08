@@ -5,7 +5,6 @@ import {
   editDocument,
   getDocument
 } from "@/external-api/functions/document.api";
-import assets from "@/json/assets";
 import { cn } from "@/lib/utils";
 import Toolbar from "@/ui/MarkdownEditor/Toolbar";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -21,7 +20,6 @@ import { useEffect, useState } from "react";
 import { BsCalendar2 } from "react-icons/bs";
 import { GoPencil } from "react-icons/go";
 import { IoIosShareAlt } from "react-icons/io";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import {
@@ -32,6 +30,7 @@ import {
   SheetHeader,
   SheetTitle
 } from "./ui/sheet";
+import { SmartAvatar } from "./ui/smart-avatar";
 
 export default function DocumentSheet({
   open,
@@ -110,7 +109,10 @@ export default function DocumentSheet({
 
   const { mutate, isPending } = useMutation({
     mutationFn: createDocument,
-    onSuccess: () => onOpenChange(false),
+    onSuccess: () => {
+      onOpenChange(false);
+      editor?.commands.setContent("");
+    },
     meta: {
       invalidateQueries: ["documents"]
     }
@@ -118,7 +120,10 @@ export default function DocumentSheet({
 
   const { mutate: edit, isPending: isDocUpdating } = useMutation({
     mutationFn: editDocument,
-    onSuccess: () => setIsEditing(false),
+    onSuccess: () => {
+      setIsEditing(false);
+      editor?.commands.setContent("");
+    },
     meta: {
       invalidateQueries: ["documents"]
     }
@@ -159,165 +164,207 @@ export default function DocumentSheet({
 
   if (!editor) return null;
 
-  if (isLoading) return "Loading...";
-
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="lg:max-w-2xl gap-0 max-lg:!max-w-full max-lg:!w-full">
         <SheetHeader className="border-b p-6 flex-row items-center justify-between">
           <SheetTitle className="font-archivo font-medium text-xl text-gray-900">
-            Doctor’s Recommendation
+            {isEditing && documentId
+              ? "Edit Document"
+              : isEditing
+                ? "Add Document"
+                : "Document"}
           </SheetTitle>
           <SheetClose className="cursor-pointer">
             <X />
           </SheetClose>
         </SheetHeader>
         <div className="flex-1 p-6 inline-flex flex-col">
-          <div className="flex justify-between items-start mb-7">
-            <div>
-              {documentId ? (
-                <div className="flex items-center gap-2">
-                  <Avatar className="size-5">
-                    <AvatarImage src={assets.avatar} alt="AH" />
-                    <AvatarFallback>AH</AvatarFallback>
-                  </Avatar>
-                  <span className="font-medium text-sm text-gray-700 leading-5">
-                    {data?.user.fullName}
-                  </span>
+          {isLoading ? (
+            <div className="animate-pulse">
+              <div className="flex justify-between items-start mb-7">
+                <div className="w-full">
+                  <div className="flex items-center gap-2">
+                    <div className="size-5 rounded-full bg-gray-200" />
+                    <span className="h-5 w-20 rounded-sm bg-gray-200" />
+                  </div>
+                  <h2
+                    className={cn("h-10 w-4/6 bg-gray-200 rounded-sm mt-2")}
+                  />
+                  <div className="flex items-center gap-5 mt-4">
+                    <div className="h-6 w-15 rounded-full bg-gray-200" />
+                    <p className="h-6 w-50 rounded-sm bg-gray-200" />
+                  </div>
                 </div>
-              ) : null}
-              <div>
-                <h2
-                  className={cn(
-                    "font-medium text-2xl leading-7 tracking-[-3%] text-gray-900 mt-2",
-                    {
-                      "border border-red-400": errorState.field === "title"
-                    }
-                  )}
-                  suppressContentEditableWarning
-                  contentEditable={
-                    isEditing || isPending || isDocUpdating
-                      ? "plaintext-only"
-                      : "false"
-                  }
-                  onBlur={(e) => {
-                    setDocumentData((prev) => ({
-                      ...prev,
-                      title:
-                        (e.target as HTMLElement).innerText.replaceAll(
-                          "\n",
-                          ""
-                        ) ?? ""
-                    }));
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault(); // stop new line
-                      (e.target as HTMLElement).blur();
-                    }
-                  }}
-                >
-                  {documentData.title}
-                </h2>
-                {errorState.field === "title" && (
-                  <span className="text-sm text-red-400 mt-2">
-                    {errorState.message}
-                  </span>
-                )}
               </div>
-              <div className="flex items-center gap-5 mt-4">
-                <Badge
-                  className={cn(
-                    "rounded-full py-0.5 px-2 flex items-center gap-1.5 font-archivo font-medium text-xs leading-4.5",
-                    "bg-amber-200/40",
-                    "text-amber-600/80"
-                  )}
-                >
-                  <div
-                    className={cn("size-1.5 rounded-full", "bg-amber-600/80")}
-                  ></div>
-                  Health
-                </Badge>
-                {!!documentId && (
-                  <p className="flex items-center gap-4">
-                    <span className="text-gray-700 text-sm leading-5">
-                      Last Update:
-                    </span>
-                    <span className="font-medium text-sm leading-5 text-gray-900 flex items-center gap-2">
-                      <BsCalendar2 />
-                      {moment(data?.updatedAt).format("MMM DD, YYYY")}
-                    </span>
-                  </p>
-                )}
-              </div>
+              <div className="h-5 w-4/5 bg-gray-200 rounded-sm mb-1.5" />
+              <div className="h-5 w-2/3 bg-gray-200 rounded-sm mb-1.5" />
+              <div className="h-5 w-2/5 bg-gray-200 rounded-sm mb-1.5" />
+              <div className="h-5 w-5/6 bg-gray-200 rounded-sm mb-1.5" />
+              <div className="h-5 w-1/3 bg-gray-200 rounded-sm mb-1.5" />
+              <div className="h-5 w-7/12 bg-gray-200 rounded-sm mb-1.5" />
+              <div className="h-5 w-11/12 bg-gray-200 rounded-sm mb-1.5" />
+              <div className="h-5 w-1/2 bg-gray-200 rounded-sm mb-1.5" />
+              <div className="h-5 w-2/5 bg-gray-200 rounded-sm" />
             </div>
-            {!isEditing && (
-              <Button
-                variant="outline"
-                className="border-primary text-primary py-1.5 px-2.5"
-                onClick={() => setIsEditing(true)}
-              >
-                <GoPencil className="text-primary" />
-                Edit
-              </Button>
-            )}
-          </div>
-          {!isEditing || isPending || isDocUpdating ? (
-            <div
-              dangerouslySetInnerHTML={{ __html: documentData.content }}
-              className="flex-1"
-            />
           ) : (
-            <EditorContent
-              editor={editor}
-              className={cn("flex-1 inline-flex [&_.tiptap]:flex-1 rounded-sm")}
-            />
-          )}
-          {errorState.field === "content" && (
-            <span className="text-sm text-red-400 mt-2">
-              {errorState.message}
-            </span>
+            <>
+              <div className="flex justify-between items-start mb-7">
+                <div>
+                  {documentId ? (
+                    <div className="flex items-center gap-2">
+                      <SmartAvatar
+                        src={data?.user?.photo}
+                        name={data?.user?.fullName}
+                        key={data?.user?.updatedAt}
+                        className="size-5"
+                      />
+                      <span className="font-medium text-sm text-gray-700 leading-5">
+                        {data?.user.fullName}
+                      </span>
+                    </div>
+                  ) : null}
+                  <div>
+                    <h2
+                      className={cn(
+                        "font-medium text-2xl leading-7 tracking-[-3%] text-gray-900 mt-2",
+                        {
+                          "border border-red-400": errorState.field === "title"
+                        }
+                      )}
+                      suppressContentEditableWarning
+                      contentEditable={
+                        isEditing || isPending || isDocUpdating
+                          ? "plaintext-only"
+                          : "false"
+                      }
+                      onBlur={(e) => {
+                        setDocumentData((prev) => ({
+                          ...prev,
+                          title:
+                            (e.target as HTMLElement).innerText.replaceAll(
+                              "\n",
+                              ""
+                            ) ?? ""
+                        }));
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault(); // stop new line
+                          (e.target as HTMLElement).blur();
+                        }
+                      }}
+                    >
+                      {documentData.title}
+                    </h2>
+                    {errorState.field === "title" && (
+                      <span className="text-sm text-red-400 mt-2">
+                        {errorState.message}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-5 mt-4">
+                    <Badge
+                      className={cn(
+                        "rounded-full py-0.5 px-2 flex items-center gap-1.5 font-archivo font-medium text-xs leading-4.5",
+                        "bg-amber-200/40",
+                        "text-amber-600/80"
+                      )}
+                    >
+                      <div
+                        className={cn(
+                          "size-1.5 rounded-full",
+                          "bg-amber-600/80"
+                        )}
+                      ></div>
+                      Health
+                    </Badge>
+                    {!!documentId && (
+                      <p className="flex items-center gap-4">
+                        <span className="text-gray-700 text-sm leading-5">
+                          Last Update:
+                        </span>
+                        <span className="font-medium text-sm leading-5 text-gray-900 flex items-center gap-2">
+                          <BsCalendar2 />
+                          {moment(data?.updatedAt).format("MMM DD, YYYY")}
+                        </span>
+                      </p>
+                    )}
+                  </div>
+                </div>
+                {!isEditing && (
+                  <Button
+                    variant="outline"
+                    className="border-primary text-primary py-1.5 px-2.5"
+                    onClick={() => setIsEditing(true)}
+                  >
+                    <GoPencil className="text-primary" />
+                    Edit
+                  </Button>
+                )}
+              </div>
+              {!isEditing || isPending || isDocUpdating ? (
+                <div
+                  dangerouslySetInnerHTML={{ __html: documentData.content }}
+                  className="flex-1"
+                />
+              ) : (
+                <EditorContent
+                  editor={editor}
+                  className={cn(
+                    "flex-1 inline-flex [&_.tiptap]:flex-1 rounded-sm"
+                  )}
+                />
+              )}
+              {errorState.field === "content" && (
+                <span className="text-sm text-red-400 mt-2">
+                  {errorState.message}
+                </span>
+              )}
+            </>
           )}
         </div>
-        <SheetFooter className="pt-4 px-4.5 pb-5 border-t">
-          {isEditing && <Toolbar editor={editor} />}
-          <div className="flex gap-3">
-            <Button
-              variant="outline"
-              onClick={() => {
-                if (isEditing && documentId) {
-                  setIsEditing(false);
-                  return;
-                }
-                onOpenChange(false);
-              }}
-            >
-              Cancel
-            </Button>
-            {!isEditing && (
+        {!isLoading && (
+          <SheetFooter className="pt-4 px-4.5 pb-5 border-t">
+            {isEditing && <Toolbar editor={editor} />}
+            <div className="flex gap-3">
               <Button
                 variant="outline"
-                className="border-primary ml-auto py-2 px-2.5 text-primary"
+                onClick={() => {
+                  if (isEditing && documentId) {
+                    setIsEditing(false);
+                    return;
+                  }
+                  onOpenChange(false);
+                }}
               >
-                <IoIosShareAlt className="size-5" />
+                Cancel
               </Button>
-            )}
-            {isEditing ? (
-              <Button
-                className="gap-2 ml-auto"
-                onClick={onSubmit}
-                isLoading={isPending || isDocUpdating}
-              >
-                Save Changes
-              </Button>
-            ) : (
-              <Button className="gap-2">
-                <Download />
-                Download
-              </Button>
-            )}
-          </div>
-        </SheetFooter>
+              {!isEditing && (
+                <Button
+                  variant="outline"
+                  className="border-primary ml-auto py-2 px-2.5 text-primary"
+                >
+                  <IoIosShareAlt className="size-5" />
+                </Button>
+              )}
+              {isEditing ? (
+                <Button
+                  className="gap-2 ml-auto"
+                  onClick={onSubmit}
+                  isLoading={isPending || isDocUpdating}
+                >
+                  Save Changes
+                </Button>
+              ) : (
+                <Button className="gap-2">
+                  <Download />
+                  Download
+                </Button>
+              )}
+            </div>
+          </SheetFooter>
+        )}
       </SheetContent>
     </Sheet>
   );
