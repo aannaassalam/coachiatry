@@ -31,6 +31,7 @@ import {
   SheetTitle
 } from "./ui/sheet";
 import { SmartAvatar } from "./ui/smart-avatar";
+import { generateMarkdownPDF } from "@/lib/functions/documentPdf";
 
 export default function DocumentSheet({
   open,
@@ -42,6 +43,7 @@ export default function DocumentSheet({
   documentId: string;
 }) {
   const [isEditing, setIsEditing] = useState(!documentId);
+  const [downloading, setDownloading] = useState(false);
   const [errorState, setErrorState] = useState({
     field: "",
     message: ""
@@ -164,6 +166,15 @@ export default function DocumentSheet({
 
   if (!editor) return null;
 
+  async function handleDownload() {
+    setDownloading(true);
+    await generateMarkdownPDF(
+      documentData.content,
+      documentData.title,
+      "Technology"
+    );
+    setDownloading(false);
+  }
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="lg:max-w-2xl gap-0 max-lg:!max-w-full max-lg:!w-full">
@@ -179,7 +190,7 @@ export default function DocumentSheet({
             <X />
           </SheetClose>
         </SheetHeader>
-        <div className="flex-1 p-6 inline-flex flex-col">
+        <div className="flex-1 p-6 inline-flex flex-col overflow-auto scrollbar-hide">
           {isLoading ? (
             <div className="animate-pulse">
               <div className="flex justify-between items-start mb-7">
@@ -357,7 +368,11 @@ export default function DocumentSheet({
                   Save Changes
                 </Button>
               ) : (
-                <Button className="gap-2">
+                <Button
+                  className="gap-2"
+                  onClick={handleDownload}
+                  isLoading={downloading}
+                >
                   <Download />
                   Download
                 </Button>

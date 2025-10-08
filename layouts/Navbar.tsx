@@ -62,7 +62,7 @@ export default function Navbar({
               </p>
             </div>
           </PopoverTrigger>
-          <PopoverContent>
+          <PopoverContent className="p-2 w-max">
             <Button onClick={() => signOut({ callbackUrl: "/auth/login" })}>
               Logout
             </Button>
