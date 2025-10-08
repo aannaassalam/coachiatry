@@ -60,7 +60,7 @@ function Transcriptions() {
   };
   return (
     <div className="px-2 my-2">
-      <div className="bg-white flex items-center pl-2.5 border-1 border-gray-200 rounded-lg w-[250px]">
+      <div className="bg-white flex items-center pl-2.5 border-1 border-gray-200 rounded-lg w-[250px] max-sm:w-full">
         <Search className="text-gray-500 size-4.5 mr-2" />
         <input
           type="text"
