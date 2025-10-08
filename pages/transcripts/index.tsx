@@ -10,7 +10,7 @@ import {
 import assets from "@/json/assets";
 import AppLayout from "@/layouts/AppLayout";
 import { cn } from "@/lib/utils";
-import { FileText, ListFilter, Trash2 } from "lucide-react";
+import { FileText, Trash2 } from "lucide-react";
 import Link from "next/link";
 import React, { useState } from "react";
 
@@ -64,14 +64,14 @@ function Transcripts() {
   return (
     <AppLayout>
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl leading-7 tracking-[-3%] font-semibold text-gray-900 mb-2">
+        <h1 className="text-2xl leading-7 tracking-[-3%] font-semibold text-gray-900 mb-2 max-sm:text-xl max-sm:mb-0">
           Transcriptions
         </h1>
         <div className="flex gap-3">
-          <Button variant="outline" size="sm" className="gap-1.5 font-semibold">
+          {/* <Button variant="outline" size="sm" className="gap-1.5 font-semibold">
             <ListFilter />
             Filter
-          </Button>
+          </Button> */}
           <Button>Upload Transcript or Record</Button>
         </div>
       </div>

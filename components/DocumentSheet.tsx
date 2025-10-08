@@ -163,7 +163,7 @@ export default function DocumentSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="lg:max-w-2xl gap-0">
+      <SheetContent className="lg:max-w-2xl gap-0 max-lg:!max-w-full max-lg:!w-full">
         <SheetHeader className="border-b p-6 flex-row items-center justify-between">
           <SheetTitle className="font-archivo font-medium text-xl text-gray-900">
             Doctor’s Recommendation

@@ -103,7 +103,7 @@ function FilterBox() {
 
   return (
     <div className={`${archivo.variable}`}>
-      <div className="p-4">
+      <div className="p-4 max-sm:p-2">
         <div className="w-full flex justify-between items-center">
           <p className="tracking-[-2%] text-sm font-medium font-archivo text-gray-500">
             Select Filters
@@ -120,9 +120,12 @@ function FilterBox() {
         </div>
 
         {values.length > 0 && (
-          <div className="p-4 mt-2 bg-gray-100 rounded-[8px] flex flex-col gap-2">
+          <div className="p-4 mt-2 bg-gray-100 rounded-[8px] flex flex-col gap-2 max-sm:p-2 max-sm:max-h-[400px] max-sm:overflow-auto">
             {values.map((filter, index) => (
-              <div key={index} className="flex w-full items-center gap-3">
+              <div
+                key={index}
+                className="flex w-full items-center gap-3 max-sm:flex-col"
+              >
                 <Combobox
                   value={filter.selectedKey}
                   options={filterKeys.filter(
@@ -145,7 +148,7 @@ function FilterBox() {
                     };
                     setValues(next);
                   }}
-                  className="flex-1 max-w-[200px]"
+                  className="flex-1 max-w-[200px] max-sm:max-w-full max-sm:w-full"
                 />
 
                 {filter.selectedKey && (
@@ -162,7 +165,7 @@ function FilterBox() {
                       setValues(next);
                     }}
                     isLoading={isCategoryLoading || isStatusLoading}
-                    className="flex-1 max-w-[200px]"
+                    className="flex-1 max-w-[200px] max-sm:max-w-full max-sm:w-full"
                     value={filter.selectedOperator}
                   />
                 )}
@@ -181,7 +184,7 @@ function FilterBox() {
                     }}
                     isLoading={isCategoryLoading || isStatusLoading}
                     value={filter.selectedValue}
-                    className="flex-1 max-w-[200px]"
+                    className="flex-1 max-w-[200px] max-sm:max-w-full max-sm:w-full"
                   />
                 )}
 

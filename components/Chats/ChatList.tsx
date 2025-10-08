@@ -41,49 +41,49 @@ export default function ChatList() {
   });
 
   return (
-    <div className="w-xs mr-auto bg-white pt-4 rounded-lg flex flex-col">
+    <div className="w-xs mr-auto bg-white pt-4 rounded-lg flex flex-col max-md:w-full">
       {/* Header / Content Above */}
       <h2 className="text-sm font-semibold mb-3 text-gray-800 pl-3">
         All messages
       </h2>
 
       {/* Scrollable List */}
-      <ul className="space-y-2 overflow-y-auto pr-2 pb-6 max-h-[calc(100vh-200px)]">
+      <ul className="space-y-2 overflow-y-auto pr-2 pb-6 max-h-[calc(100vh-200px)] max-md:w-full">
         {isLoading ? (
           <div className="space-y-2">
             <div className="flex items-center gap-2 px-3 py-2.5 rounded-sm animate-pulse">
               <div className="size-10 bg-gray-200 rounded-full" />
-              <div className="space-y-1">
-                <div className="h-5 w-15 bg-gray-200 rounded-sm" />
-                <div className="h-4 w-30 bg-gray-200 rounded-sm" />
+              <div className="space-y-1 max-md:w-full">
+                <div className="h-5 w-15 bg-gray-200 rounded-sm max-md:w-1/2" />
+                <div className="h-4 w-30 bg-gray-200 rounded-sm max-md:w-full" />
               </div>
             </div>
             <div className="flex items-center gap-2 px-3 py-2.5 rounded-sm animate-pulse">
               <div className="size-10 bg-gray-200 rounded-full" />
-              <div className="space-y-1">
-                <div className="h-5 w-15 bg-gray-200 rounded-sm" />
-                <div className="h-4 w-30 bg-gray-200 rounded-sm" />
+              <div className="space-y-1 max-md:w-full">
+                <div className="h-5 w-15 bg-gray-200 rounded-sm max-md:w-1/2" />
+                <div className="h-4 w-30 bg-gray-200 rounded-sm max-md:w-full" />
               </div>
             </div>
             <div className="flex items-center gap-2 px-3 py-2.5 rounded-sm animate-pulse">
               <div className="size-10 bg-gray-200 rounded-full" />
-              <div className="space-y-1">
-                <div className="h-5 w-15 bg-gray-200 rounded-sm" />
-                <div className="h-4 w-30 bg-gray-200 rounded-sm" />
+              <div className="space-y-1 max-md:w-full">
+                <div className="h-5 w-15 bg-gray-200 rounded-sm max-md:w-1/2" />
+                <div className="h-4 w-30 bg-gray-200 rounded-sm max-md:w-full" />
               </div>
             </div>
             <div className="flex items-center gap-2 px-3 py-2.5 rounded-sm animate-pulse">
               <div className="size-10 bg-gray-200 rounded-full" />
-              <div className="space-y-1">
-                <div className="h-5 w-15 bg-gray-200 rounded-sm" />
-                <div className="h-4 w-30 bg-gray-200 rounded-sm" />
+              <div className="space-y-1 max-md:w-full">
+                <div className="h-5 w-15 bg-gray-200 rounded-sm max-md:w-1/2" />
+                <div className="h-4 w-30 bg-gray-200 rounded-sm max-md:w-full" />
               </div>
             </div>
             <div className="flex items-center gap-2 px-3 py-2.5 rounded-sm animate-pulse">
               <div className="size-10 bg-gray-200 rounded-full" />
-              <div className="space-y-1">
-                <div className="h-5 w-15 bg-gray-200 rounded-sm" />
-                <div className="h-4 w-30 bg-gray-200 rounded-sm" />
+              <div className="space-y-1 max-md:w-full">
+                <div className="h-5 w-15 bg-gray-200 rounded-sm max-md:w-1/2" />
+                <div className="h-4 w-30 bg-gray-200 rounded-sm max-md:w-full" />
               </div>
             </div>
           </div>

@@ -17,9 +17,9 @@ function Chat() {
   return (
     <SocketProvider>
       <AppLayout isPaddingBottom={false}>
-        <div className="flex justify-between items-center mb-2">
+        <div className="flex justify-between items-center mb-2 max-sm:gap-2">
           <div className="flex items-center justify-between gap-5 ">
-            <h1 className="font-semibold text-gray-900 text-2xl leading-7 tracking-[-3%]">
+            <h1 className="font-semibold text-gray-900 text-2xl leading-7 tracking-[-3%] max-sm:text-xl">
               {tab === "chats"
                 ? "Chats"
                 : tab === "scheduled" && "Scheduled Messages"}
@@ -46,7 +46,7 @@ function Chat() {
         </div>
         <Separator />
         {tab === "chats" ? (
-          <div className="w-full grid grid-cols-[0.3fr_auto] flex-1 min-h-0">
+          <div className="w-full grid grid-cols-[0.3fr_auto] flex-1 min-h-0 max-md:grid-cols-1 max-md:relative">
             <ChatList />
             {room && <ChatConversation />}
           </div>

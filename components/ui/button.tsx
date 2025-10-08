@@ -42,11 +42,13 @@ function Button({
   asChild = false,
   isLoading = false,
   children,
+  spacebetween,
   ...props
 }: React.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean;
     isLoading?: boolean;
+    spacebetween?: boolean;
   }) {
   const Comp = asChild ? Slot : "button";
 
@@ -57,7 +59,12 @@ function Button({
       disabled={isLoading || props.disabled}
       {...props}
     >
-      <span className="inline-flex items-center gap-2 w-full justify-center">
+      <span
+        className={cn(
+          "inline-flex items-center gap-2 w-full justify-center",
+          spacebetween && "justify-between"
+        )}
+      >
         {isLoading && (
           <div className="w-4 h-4 border-2 border-inherit border-t-transparent rounded-full animate-spin"></div>
         )}

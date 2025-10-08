@@ -279,7 +279,7 @@ export default function AddTaskSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="lg:max-w-2xl gap-0 max-sm:w-full">
+      <SheetContent className="lg:max-w-2xl gap-0 max-lg:!max-w-full max-lg:!w-full">
         <SheetHeader className="border-b p-6 max-sm:p-4 flex-row items-center justify-between">
           <SheetTitle className="font-archivo font-semibold text-xl text-gray-900">
             {editing ? "Edit Task" : "Add New Task"}

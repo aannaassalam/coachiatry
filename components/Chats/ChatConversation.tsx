@@ -25,6 +25,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Button } from "../ui/button";
 import ChatInput from "./ChatInput";
 import ChatMessage from "./ChatMessage";
+import { cn } from "@/lib/utils";
+import { BsChevronLeft } from "react-icons/bs";
 
 export default function ChatConversation() {
   const topRef = useRef<HTMLDivElement>(null);
@@ -34,7 +36,10 @@ export default function ChatConversation() {
   const prevMessageCount = useRef(0);
   const socket = useSocket();
   const { data } = useSession();
-  const [room] = useQueryState("room", parseAsString.withDefault(""));
+  const [room, setSelectedChat] = useQueryState(
+    "room",
+    parseAsString.withDefault("")
+  );
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
   const [isAtBottom, setIsAtBottom] = useState(true);
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
@@ -378,9 +383,14 @@ export default function ChatConversation() {
   };
 
   return (
-    <div className="flex flex-col h-full min-h-0 border-r border-l border-gray-200 relative">
+    <div
+      className={cn(
+        "flex flex-col h-full min-h-0 border-r border-l border-gray-200 relative max-md:absolute max-md:w-full ",
+        room ? "max-md:left-0" : "max-md:left-[110%]"
+      )}
+    >
       {/* Header */}
-      <div className="flex justify-between items-center p-4 border-b bg-white">
+      <div className="flex justify-between items-center p-4 border-b max-md:p-3 bg-white">
         {isConversationLoading ? (
           <div className="flex items-start gap-3">
             <div className="size-10 bg-gray-200 rounded-full animate-pulse"></div>
@@ -390,7 +400,12 @@ export default function ChatConversation() {
             </div>
           </div>
         ) : (
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 max-md:gap-3">
+            <BsChevronLeft
+              className="text-gray-600 size-5 md:hidden cursor-pointer"
+              onClick={() => setSelectedChat("")}
+            />
+
             <Avatar className="size-10">
               <AvatarImage src={assets.avatar ?? undefined} alt="AH" />
               <AvatarFallback className="bg-orange-100 flex items-center justify-center font-semibold text-orange-600">

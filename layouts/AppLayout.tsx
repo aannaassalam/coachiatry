@@ -13,7 +13,12 @@ export default function AppLayout({
 }) {
   const [navopen, setNavOpen] = useState(false);
   return (
-    <div className="h-screen bg-background flex overflow-hidden max-lg:h-auto max-lg:min-h-screen">
+    <div
+      className={cn(
+        "h-screen bg-background flex overflow-hidden max-lg:h-auto max-lg:min-h-screen",
+        !isPaddingBottom && "max-lg:h-screen"
+      )}
+    >
       <Sidebar navOpen={navopen} setNavOpen={setNavOpen} />
       <div className="flex-1 inline-flex flex-col gap-1.5 min-h-0">
         <Navbar navOpen={navopen} setNavOpen={setNavOpen} />

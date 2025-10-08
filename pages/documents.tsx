@@ -64,14 +64,16 @@ const DocumentsTable = ({
   setSelectedDocument: (doc: Document) => void;
 }) => {
   return (
-    <div className="mt-5">
+    <div className="mt-5 max-md:w-[95vw] max-md:overflow-auto scrollbar-hide max-[480px]:!w-[93vw]">
       <Table>
         <TableHeader className="bg-gray-100">
           <TableRow className="border-none">
             <TableHead className="rounded-l-md">
               <Checkbox className="bg-white" />
             </TableHead>
-            <TableHead className="text-xs text-gray-500">Name</TableHead>
+            <TableHead className="text-xs text-gray-500 max-md:min-w-[100px] max-md:max-w-[250px]">
+              Name
+            </TableHead>
             <TableHead className="text-xs text-gray-500">Tags</TableHead>
             <TableHead className="text-xs text-gray-500">Date</TableHead>
             <TableHead className="text-xs text-gray-500 rounded-r-md">
@@ -83,7 +85,7 @@ const DocumentsTable = ({
           {documents.length > 0 ? (
             documents.map((document, index) => (
               <TableRow key={index}>
-                <TableCell className="py-4.5">
+                <TableCell className="py-3.5">
                   <Checkbox className="bg-white" />
                 </TableCell>
                 <TableCell
@@ -92,7 +94,7 @@ const DocumentsTable = ({
                 >
                   {document.title}
                 </TableCell>
-                <TableCell className="py-4.5">
+                <TableCell className="py-3.5">
                   <Badge
                     className={cn(
                       "rounded-full py-0.5 px-2 flex items-center gap-1.5 font-archivo font-medium text-xs leading-4.5",
@@ -109,10 +111,10 @@ const DocumentsTable = ({
                     {document.tag}
                   </Badge>
                 </TableCell>
-                <TableCell className="py-4.5 text-sm text-gray-600">
+                <TableCell className="py-3.5 text-sm text-gray-600">
                   {moment(document.createdAt).format("DD-MM-YYYY")}
                 </TableCell>
-                <TableCell className="py-4.5">
+                <TableCell className="py-3.5">
                   <Button
                     variant="ghost"
                     size="sm"
@@ -169,8 +171,8 @@ export default function Documents() {
         </div>
         <Tabs value={tab} onValueChange={(value) => setTab(value)}>
           <div>
-            <div className="flex items-center justify-between gap-5 pb-2">
-              <TabsList className="h-auto">
+            <div className="flex items-center justify-between gap-5 pb-2 max-sm:flex-col-reverse max-sm:w-full">
+              <TabsList className="h-auto max-sm:w-full">
                 <TabsTrigger
                   value="all"
                   className="py-1.5 px-6 text-sm leading-5"
@@ -196,7 +198,7 @@ export default function Documents() {
                   Archived
                 </TabsTrigger>
               </TabsList>
-              <div>
+              <div className="max-sm:w-full flex items-center justify-end gap-2">
                 <Button variant="ghost">
                   <Image
                     src={assets.icons.sort}

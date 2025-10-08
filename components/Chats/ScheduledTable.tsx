@@ -64,11 +64,13 @@ function ScheduledTable() {
   ]);
 
   return (
-    <div className="mt-5">
-      <Table>
+    <div className="mt-5 max-md:w-[95vw] max-md:overflow-auto scrollbar-hide max-[480px]:!w-[93vw]">
+      <Table className="">
         <TableHeader className="bg-gray-100 ">
           <TableRow className="border-none rounded-sm">
-            <TableHead className="text-xs text-gray-500">Messages</TableHead>
+            <TableHead className="text-xs text-gray-500 max-md:min-w-[300px]">
+              Messages
+            </TableHead>
             <TableHead className="text-xs text-gray-500">Date</TableHead>
             <TableHead className="text-xs text-gray-500">Time</TableHead>
             <TableHead className="text-xs text-gray-500">Repeat</TableHead>

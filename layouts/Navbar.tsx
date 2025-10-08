@@ -22,7 +22,7 @@ export default function Navbar({
   const { data } = useSession();
 
   return (
-    <div className="px-12 py-5 flex items-center justify-end gap-6 max-lg:px-7 max-sm:py-4 max-sm:gap-8">
+    <div className="px-12 py-5 flex items-center justify-end gap-6 max-lg:px-7 max-sm:py-4 max-sm:pl-4 max-sm:gap-8">
       <div className="lg:hidden mr-auto">
         <Logo />
       </div>
@@ -67,7 +67,7 @@ export default function Navbar({
         </Popover>
       </div>
       <Menu
-        className="lg:hidden cursor-pointer"
+        className="lg:hidden cursor-pointer shrink-0"
         onClick={() => setNavOpen(!navOpen)}
       />
     </div>

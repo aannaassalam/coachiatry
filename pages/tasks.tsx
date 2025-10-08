@@ -72,7 +72,7 @@ function Tasks() {
     <AppLayout>
       {/* header */}
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl leading-7 tracking-[-3%] font-semibold text-gray-900 mb-2">
+        <h1 className="text-2xl leading-7 tracking-[-3%] font-semibold text-gray-900 mb-2 max-sm:mb-0">
           Tasks
         </h1>
         <div className="flex gap-3">
@@ -113,7 +113,7 @@ function Tasks() {
               </TabsTrigger>
             </TabsList>
             {tab === "week" && (
-              <div className="ml-3 flex items-center gap-2">
+              <div className="ml-3 flex items-center gap-2 max-sm:hidden">
                 <Button variant="ghost" size="sm" onClick={goPrevWeek}>
                   <BsChevronLeft className="text-gray-600 size-3.5" />
                 </Button>
@@ -166,21 +166,46 @@ function Tasks() {
                     Filter
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-[720px] p-0" collisionPadding={20}>
+                <PopoverContent
+                  className="w-[720px] p-0 max-md:w-[90vw] max-sm:w-[95vw] max-sm:right-2 max-sm:relative"
+                  collisionPadding={20}
+                >
                   <FilterBox />
                 </PopoverContent>
               </Popover>
             </div>
           </div>
+          {tab === "week" && (
+            <div className="flex items-center gap-2 sm:hidden mb-6 mt-2">
+              <Button variant="ghost" size="sm" onClick={goPrevWeek}>
+                <BsChevronLeft className="text-gray-600 size-3.5" />
+              </Button>
+              <Button variant="ghost" size="sm" onClick={goNextWeek}>
+                <BsChevronRight className="text-gray-600 size-3.5" />
+              </Button>
+              <p className="font-lato tracking-[-0.05px] text-gray-600">
+                {moment(dates.start).format("MMMM")}
+              </p>
+              <p className="text-sm ml-4 font-lato tracking-[-0.05px] text-gray-600">
+                {moment(dates.start).format("L")} -{" "}
+                {moment(dates.end).format("L")}
+              </p>
+            </div>
+          )}
+
           <Separator />
           <TabsContent value="list">
             <ListView />
           </TabsContent>
-          <TabsContent value="week" className="w-full ">
+          <TabsContent
+            value="week"
+            className="w-full weekContainer max-lg:!max-w-[93vw]"
+          >
             <WeekView />
           </TabsContent>
         </div>
       </Tabs>
+
       <AddTaskSheet open={isOpen} onOpenChange={setIsOpen} />
     </AppLayout>
   );
