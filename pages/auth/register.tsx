@@ -60,7 +60,10 @@ export default function Register() {
 
   return (
     <AuthLayout className="flex items-center justify-center">
-      <Card className="w-full max-w-lg py-9" key="register-card">
+      <Card
+        className="w-full max-w-lg py-9 max-sm:max-w-[95%]"
+        key="register-card"
+      >
         <CardHeader className="text-center">
           <h1 className="font-semibold text-[32px] leading-10 tracking-[-3%] text-primary-text">
             Create your account

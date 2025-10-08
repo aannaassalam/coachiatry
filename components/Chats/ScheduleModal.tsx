@@ -178,7 +178,7 @@ export default function ScheduleMessageModal({
                 </FormItem>
               )}
             />
-            <div className="grid grid-cols-3 gap-4 my-5">
+            <div className="grid grid-cols-3 gap-4 my-5 max-sm:grid-cols-1">
               <FormField
                 control={form.control}
                 name="date"
@@ -193,6 +193,7 @@ export default function ScheduleMessageModal({
                           <Button
                             type="button"
                             variant="outline"
+                            spacebetween
                             className={cn(
                               "w-full justify-between text-left font-normal",
                               !field.value && "text-muted-foreground"
@@ -275,7 +276,7 @@ export default function ScheduleMessageModal({
           </div>
         </form>
       </Form>
-      <div className="flex items-center gap-2 px-4 pb-2 mt-2">
+      <div className="flex items-center gap-2 px-4 pb-2 mt-2 max-sm:m-0 max-sm:pb-0">
         <Image
           src={assets.icons.alertTriangle}
           width={18}
@@ -289,7 +290,7 @@ export default function ScheduleMessageModal({
       </div>
       <Separator />
       {/* Footer */}
-      <DialogFooter className="pb-4 px-4 flex items-center !justify-between">
+      <DialogFooter className="pb-4 px-4 flex items-center !justify-between max-sm:flex-row">
         <DialogClose asChild>
           <Button variant="outline">Cancel</Button>
         </DialogClose>

@@ -83,7 +83,7 @@ export default function Settings() {
   return (
     <AppLayout>
       <div className="space-y-5">
-        <h1 className="font-semibold text-gray-900 text-2xl leading-7 tracking-[-3%]">
+        <h1 className="font-semibold text-gray-900 text-2xl leading-7 tracking-[-3%] max-sm:mb-4">
           Settings
         </h1>
         <Separator />
@@ -102,7 +102,7 @@ export default function Settings() {
               </Button>
             </div>
             <Form {...form}>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4 max-md:flex-col">
                 <div className="relative size-20 mr-2 group">
                   <SmartAvatar
                     src={data?.user?.photo}
@@ -166,7 +166,7 @@ export default function Settings() {
                   control={form.control}
                   name="fullName"
                   render={({ field }) => (
-                    <FormItem className="space-y-0.5 flex-1">
+                    <FormItem className="space-y-0.5 flex-1 max-md:w-full">
                       <FormLabel>Name</FormLabel>
                       <FormControl>
                         <Input
@@ -183,7 +183,7 @@ export default function Settings() {
                   control={form.control}
                   name="email"
                   render={({ field }) => (
-                    <FormItem className="space-y-0.5 flex-1">
+                    <FormItem className="space-y-0.5 flex-1 max-md:w-full">
                       <FormLabel>Email</FormLabel>
                       <FormControl>
                         <Input
@@ -197,7 +197,7 @@ export default function Settings() {
                     </FormItem>
                   )}
                 />
-                <FormItem className="space-y-0.5 flex-1">
+                <FormItem className="space-y-0.5 flex-1 max-md:w-full">
                   <FormLabel>Password</FormLabel>
                   <FormControl>
                     <div className="relative">
@@ -225,11 +225,11 @@ export default function Settings() {
             </Form>
           </div>
           <div className="border rounded-2xl">
-            <div className="flex items-center justify-between p-5 pb-0">
+            <div className="flex items-center justify-between p-5 pb-0 max-sm:flex-col max-sm:items-start max-sm:gap-2">
               <h2 className="font-lato font-semibold gap-5 text-lg tracking-[-2%] mb-2.5">
                 Watchers
               </h2>
-              <div className="flex items-center gap-2 5">
+              <div className="flex items-center gap-2 max-sm:self-end max-sm:w-full max-sm:grid max-sm:grid-cols-2">
                 <Button
                   variant="secondary"
                   size="sm"

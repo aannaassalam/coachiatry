@@ -334,7 +334,7 @@ function TasksTable({
                               }}
                             />
                           </PopoverTrigger>
-                          <PopoverContent className="w-[245px] p-0 relative left-[111px]">
+                          <PopoverContent className="w-[245px] p-0 relative left-[111px] max-sm:left-[50px]">
                             <StatusBox
                               taskId={task._id}
                               selectedStatus={task.status._id}

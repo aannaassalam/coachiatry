@@ -3,12 +3,19 @@ import sideLinks from "@/config/sidelinks";
 import assets from "@/json/assets";
 import { cn } from "@/lib/utils";
 import Logo from "@/ui/Logo/Logo";
+import { X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React from "react";
 
-export default function Sidebar() {
+export default function Sidebar({
+  navOpen,
+  setNavOpen
+}: {
+  navOpen: boolean;
+  setNavOpen: React.Dispatch<React.SetStateAction<boolean>>;
+}) {
   const router = useRouter();
   const pathname = router.pathname;
   const isActive = (href: string) => {
@@ -18,8 +25,19 @@ export default function Sidebar() {
     return pathname.startsWith(href);
   };
   return (
-    <div className="w-[312px] shrink-0 min-h-screen p-4 space-y-4">
-      <Logo />
+    <div
+      className={cn(
+        "w-[312px] shrink-0 min-h-screen p-4 space-y-4 max-lg:fixed max-lg:z-[1000] max-lg:bg-background max-lg:-left-100 transition-all duration-300",
+        navOpen && " max-lg:left-0"
+      )}
+    >
+      <div className="flex items-center justify-between">
+        <Logo />
+        <X
+          className="lg:hidden text-primary cursor-pointer size-5"
+          onClick={() => setNavOpen(false)}
+        />
+      </div>
       {sideLinks.map((links, index) => {
         return (
           <React.Fragment key={index}>

@@ -227,7 +227,7 @@ function WeekView() {
   });
 
   return (
-    <div className="flex max-w-[74.5vw] gap-4 py-4 overflow-x-auto h-full scrollbar-hide items-start">
+    <div className="flex  gap-4 py-4 overflow-x-auto h-full scrollbar-hide items-start max-sm:flex-col">
       {days.map((day, index) => {
         const taskForDay = data?.filter(
           (_task) =>
@@ -236,7 +236,7 @@ function WeekView() {
         );
         return (
           <div
-            className="p-3 bg-gray-100 rounded-[12px] flex flex-col gap-2.5 w-[312px] flex-shrink-0"
+            className="p-3 bg-gray-100 rounded-[12px] flex flex-col gap-2.5 w-[312px] flex-shrink-0 max-sm:w-full"
             key={index}
           >
             <div
