@@ -16,10 +16,13 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { CommandLoading } from "cmdk";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, Plus } from "lucide-react";
 import React, { useState } from "react";
 import PriorityFlag from "../Tasks/PriorityFlag";
 import { Badge } from "./badge";
+import { Dialog } from "./dialog";
+import AddCategoryModal from "../Tasks/AddCategoryModal";
+import AddStatusModal from "../Tasks/AddStatusModal";
 
 type ComboboxOption = {
   label: string | React.ReactNode;
@@ -40,6 +43,8 @@ interface ComboboxProps {
   isLoading?: boolean;
   isBadge?: boolean;
   isFlag?: boolean;
+  isCategory?: boolean;
+  isStatus?: boolean;
 }
 
 interface ReactElementWithChildren extends React.ReactElement {
@@ -96,10 +101,16 @@ export function Combobox({
   disabled,
   isLoading,
   isBadge,
-  isFlag
+  isFlag,
+  isCategory,
+  isStatus
 }: ComboboxProps) {
   const [open, setOpen] = useState(false);
   const selected = options.find((opt) => opt.value === value);
+  const [addModal, setAddModal] = useState({
+    category: false,
+    status: false
+  });
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -221,8 +232,42 @@ export function Combobox({
               </CommandGroup>
             </CommandList>
           </div>
+          {isCategory && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className=" bg-gray-100 hover:bg-gray-50 text-gray-500 group m-2"
+              onClick={() => setAddModal({ ...addModal, category: true })}
+            >
+              <Plus className="text-gray-500 group-hover:text-black" />
+              Add Category
+            </Button>
+          )}
+          {isStatus && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className=" bg-gray-100 hover:bg-gray-50 text-gray-500 group m-2"
+              onClick={() => setAddModal({ ...addModal, status: true })}
+            >
+              <Plus className="text-gray-500 group-hover:text-black" />
+              Add Status
+            </Button>
+          )}
         </Command>
       </PopoverContent>
+      <Dialog
+        open={addModal.category}
+        onOpenChange={() => setAddModal({ ...addModal, category: false })}
+      >
+        <AddCategoryModal />
+      </Dialog>
+      <Dialog
+        open={addModal.status}
+        onOpenChange={() => setAddModal({ ...addModal, status: false })}
+      >
+        <AddStatusModal />
+      </Dialog>
     </Popover>
   );
 }

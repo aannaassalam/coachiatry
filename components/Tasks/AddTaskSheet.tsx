@@ -365,6 +365,7 @@ export default function AddTaskSheet({
                           <Combobox
                             value={field.value}
                             onChange={field.onChange}
+                            isCategory
                             options={
                               categories?.map((cat) => {
                                 const category = dropDownOptions.category.find(
@@ -446,6 +447,7 @@ export default function AddTaskSheet({
                           <Combobox
                             value={field.value}
                             onChange={field.onChange}
+                            isStatus
                             options={
                               statuses?.map((status) => ({
                                 label: status.title,
