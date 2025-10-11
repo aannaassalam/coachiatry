@@ -7,3 +7,8 @@ export const getAllStatuses = async (): Promise<Status[]> => {
   const res = await axiosInstance.get(endpoints.status.getAll);
   return res.data;
 };
+
+export const addStatus = async (body: { title: string }) => {
+  const res = await axiosInstance.post(endpoints.status.add, body);
+  return res;
+};

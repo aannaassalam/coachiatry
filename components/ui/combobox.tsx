@@ -106,6 +106,7 @@ export function Combobox({
   isStatus
 }: ComboboxProps) {
   const [open, setOpen] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
   const selected = options.find((opt) => opt.value === value);
   const [addModal, setAddModal] = useState({
     category: false,
@@ -174,7 +175,7 @@ export function Combobox({
           <div>
             <CommandList>
               <CommandEmpty>No option found</CommandEmpty>
-              {isLoading && (
+              {(isLoading || isAdding) && (
                 <CommandLoading className="p-2 px-3 text-sm text-center bg-gray-50">
                   Loading...
                 </CommandLoading>
@@ -260,13 +261,13 @@ export function Combobox({
         open={addModal.category}
         onOpenChange={() => setAddModal({ ...addModal, category: false })}
       >
-        <AddCategoryModal />
+        <AddCategoryModal onChange={onChange} setIsAdding={setIsAdding} />
       </Dialog>
       <Dialog
         open={addModal.status}
         onOpenChange={() => setAddModal({ ...addModal, status: false })}
       >
-        <AddStatusModal />
+        <AddStatusModal onChange={onChange} setIsAdding={setIsAdding} />
       </Dialog>
     </Popover>
   );

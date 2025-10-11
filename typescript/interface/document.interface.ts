@@ -6,6 +6,7 @@ export interface Document {
   user: User;
   tag?: string;
   content: string;
+  documentUrl: string;
   active: boolean;
   createdAt: string;
   updatedAt: string;

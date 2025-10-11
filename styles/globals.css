@@ -24,6 +24,31 @@
   --breakpoint-xl: 1280px;
   --breakpoint-2xl: 1536px;
   --breakpoint-3xl: 1792px;
+
+  @keyframes spin-slow {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes dash {
+    0% {
+      stroke-dashoffset: 0;
+    }
+    50% {
+      stroke-dashoffset: 75;
+    }
+    100% {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  /* register as named animations */
+  --animate-spin-slow: spin-slow 1s linear infinite;
+  --animate-dash: dash 1.4s ease-in-out infinite;
 }
 
 /*

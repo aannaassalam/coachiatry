@@ -7,6 +7,7 @@ import {
 } from "@/external-api/functions/document.api";
 import { cn } from "@/lib/utils";
 import Toolbar from "@/ui/MarkdownEditor/Toolbar";
+import { DialogTrigger } from "@radix-ui/react-dialog";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
@@ -20,8 +21,10 @@ import { useEffect, useState } from "react";
 import { BsCalendar2 } from "react-icons/bs";
 import { GoPencil } from "react-icons/go";
 import { IoIosShareAlt } from "react-icons/io";
+import { toast } from "sonner";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
+import { Dialog, DialogContent, DialogTitle } from "./ui/dialog";
 import {
   Sheet,
   SheetClose,
@@ -31,7 +34,6 @@ import {
   SheetTitle
 } from "./ui/sheet";
 import { SmartAvatar } from "./ui/smart-avatar";
-import { generateMarkdownPDF } from "@/lib/functions/documentPdf";
 
 export default function DocumentSheet({
   open,
@@ -114,6 +116,10 @@ export default function DocumentSheet({
     onSuccess: () => {
       onOpenChange(false);
       editor?.commands.setContent("");
+      setDocumentData({
+        title: "Untitled Document",
+        content: ""
+      });
     },
     meta: {
       invalidateQueries: ["documents"]
@@ -166,13 +172,15 @@ export default function DocumentSheet({
 
   if (!editor) return null;
 
-  async function handleDownload() {
+  function handleDownload() {
     setDownloading(true);
-    await generateMarkdownPDF(
-      documentData.content,
-      documentData.title,
-      "Technology"
-    );
+    if (data?.documentUrl) {
+      const link = document.createElement("a");
+      link.href = data?.documentUrl; // e.g. "https://my-bucket.s3.amazonaws.com/reports/file.pdf"
+      link.download = `${data.title}.pdf`; // optional custom filename
+      link.target = "_blank";
+      link.click();
+    }
     setDownloading(false);
   }
   return (
@@ -348,16 +356,43 @@ export default function DocumentSheet({
                   }
                   onOpenChange(false);
                 }}
+                disabled={isPending || isDocUpdating}
               >
                 Cancel
               </Button>
               {!isEditing && (
-                <Button
-                  variant="outline"
-                  className="border-primary ml-auto py-2 px-2.5 text-primary"
-                >
-                  <IoIosShareAlt className="size-5" />
-                </Button>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="border-primary ml-auto py-2 px-2.5 text-primary"
+                    >
+                      <IoIosShareAlt className="size-5" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogTitle>Share Document</DialogTitle>
+                    <div className="p-2 bg-white border rounded-sm flex items-center gap-2 w-full">
+                      <p
+                        className="w-100 truncate text-sm text-gray-700"
+                        title={data?.documentUrl}
+                      >
+                        {data?.documentUrl}
+                      </p>
+                      <Button
+                        onClick={async () => {
+                          await navigator.clipboard.writeText(
+                            data?.documentUrl || ""
+                          );
+                          toast.success("Link copied to clipboard!");
+                        }}
+                        size="sm"
+                      >
+                        Copy
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               )}
               {isEditing ? (
                 <Button

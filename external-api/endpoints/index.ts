@@ -24,10 +24,12 @@ export const endpoints = {
     delete: (documentId: string) => `/documents/${documentId}`
   },
   category: {
-    getAll: "/categories"
+    getAll: "/categories",
+    add: "/categories"
   },
   status: {
-    getAll: "/statuses"
+    getAll: "/statuses",
+    add: "/statuses"
   },
   task: {
     getAll: "/task",

@@ -84,8 +84,8 @@ export default function AddTaskSheet({
   predefinedDueDate?: string | null;
 }) {
   const [
-    { data: categories, isLoading: isCategoryLoading },
-    { data: statuses, isLoading: isStatusLoading }
+    { data: categories, isLoading: isCategoryLoading, isFetching },
+    { data: statuses, isLoading: isStatusLoading, isFetching: isStatusFetching }
   ] = useQueries({
     queries: [
       {
@@ -380,7 +380,7 @@ export default function AddTaskSheet({
                                 };
                               }) || []
                             }
-                            isLoading={isCategoryLoading}
+                            isLoading={isCategoryLoading || isFetching}
                             placeholder="Select category"
                             isBadge={true}
                           />
@@ -454,7 +454,7 @@ export default function AddTaskSheet({
                                 value: status._id
                               })) || []
                             }
-                            isLoading={isStatusLoading}
+                            isLoading={isStatusLoading || isStatusFetching}
                             placeholder="Select status"
                           />
                         </FormControl>
