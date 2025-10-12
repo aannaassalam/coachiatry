@@ -74,7 +74,8 @@ export default function AddTaskSheet({
   selectedTask,
   editing,
   predefinedStatus,
-  predefinedDueDate
+  predefinedDueDate,
+  disabledAll
 }: {
   open: boolean;
   onOpenChange: (toggle: boolean) => void;
@@ -82,6 +83,7 @@ export default function AddTaskSheet({
   editing?: boolean;
   predefinedStatus?: string | null;
   predefinedDueDate?: string | null;
+  disabledAll?: boolean;
 }) {
   const [
     { data: categories, isLoading: isCategoryLoading, isFetching },
@@ -160,7 +162,7 @@ export default function AddTaskSheet({
       remindBefore: "",
       subtasks: []
     },
-    disabled: isPending || isEditPending
+    disabled: isPending || isEditPending || disabledAll
   });
 
   useEffect(() => {
@@ -259,7 +261,7 @@ export default function AddTaskSheet({
       <SheetContent className="lg:max-w-2xl gap-0 max-lg:!max-w-full max-lg:!w-full">
         <SheetHeader className="border-b p-6 max-sm:p-4 flex-row items-center justify-between">
           <SheetTitle className="font-archivo font-semibold text-xl text-gray-900">
-            {editing ? "Edit Task" : "Add New Task"}
+            {disabledAll ? "View Task" : editing ? "Edit Task" : "Add New Task"}
           </SheetTitle>
           <SheetClose className="cursor-pointer">
             <X />
@@ -307,7 +309,9 @@ export default function AddTaskSheet({
                     </FormItem>
                   )}
                 />
-                <SubtaskList />
+                <SubtaskList
+                  disabled={disabledAll || isPending || isEditPending}
+                />
                 <div className="grid grid-cols-2 max-sm:grid-cols-1 max-sm:gap-2 space-y-2 gap-3 pt-4 mt-4 border-t border-gray-100 items-start">
                   <FormField
                     control={form.control}
@@ -324,6 +328,7 @@ export default function AddTaskSheet({
                             options={dropDownOptions.priority}
                             placeholder="Select priority"
                             isFlag={true}
+                            disabled={disabledAll || isPending || isEditPending}
                           />
                         </FormControl>
                         <FormMessage />
@@ -357,6 +362,7 @@ export default function AddTaskSheet({
                             isLoading={isCategoryLoading || isFetching}
                             placeholder="Select category"
                             isBadge={true}
+                            disabled={disabledAll || isPending || isEditPending}
                           />
                         </FormControl>
                         <FormMessage />
@@ -380,6 +386,9 @@ export default function AddTaskSheet({
                                   "w-full justify-between text-left font-normal [&>span]:justify-between",
                                   !field.value && "text-muted-foreground"
                                 )}
+                                disabled={
+                                  disabledAll || isPending || isEditPending
+                                }
                               >
                                 {field.value ? (
                                   moment(field.value).format(
@@ -430,6 +439,7 @@ export default function AddTaskSheet({
                             }
                             isLoading={isStatusLoading || isStatusFetching}
                             placeholder="Select status"
+                            disabled={disabledAll || isPending || isEditPending}
                           />
                         </FormControl>
                         <FormMessage />
@@ -454,6 +464,9 @@ export default function AddTaskSheet({
                                   options={dropDownOptions.hours}
                                   placeholder="Select"
                                   className="rounded-tr-none rounded-br-none "
+                                  disabled={
+                                    disabledAll || isPending || isEditPending
+                                  }
                                 />
                                 <span className="text-xs border-1 shadow-xs border-gray-200 border-l-0 px-2 h-full bg-gray-200 rounded-tr-sm rounded-br-sm flex justify-center items-center">
                                   Hours
@@ -477,6 +490,9 @@ export default function AddTaskSheet({
                                   options={dropDownOptions.minutes}
                                   placeholder="Select"
                                   className="rounded-tr-none rounded-br-none "
+                                  disabled={
+                                    disabledAll || isPending || isEditPending
+                                  }
                                 />
                                 <span className="text-xs border-1 shadow-xs border-gray-200 border-l-0 px-2 h-full bg-gray-200 rounded-tr-sm rounded-br-sm flex justify-center items-center">
                                   Mins
@@ -504,6 +520,9 @@ export default function AddTaskSheet({
                               onChange={field.onChange}
                               options={dropDownOptions.frequency}
                               placeholder="Select frequency"
+                              disabled={
+                                disabledAll || isPending || isEditPending
+                              }
                             />
                           </FormControl>
                           <FormMessage />
@@ -527,6 +546,9 @@ export default function AddTaskSheet({
                               options={dropDownOptions.minutes}
                               placeholder="Select"
                               className="rounded-tr-none rounded-br-none "
+                              disabled={
+                                disabledAll || isPending || isEditPending
+                              }
                             />
                             <span className="text-xs border-1 shadow-xs border-gray-200 border-l-0 px-2 h-full bg-gray-200 rounded-tr-sm rounded-br-sm flex justify-center items-center">
                               Mins
@@ -544,28 +566,32 @@ export default function AddTaskSheet({
                     <FaBell />
                     Send reminder via chat
                   </div>
-                  <Switch />
+                  <Switch
+                    disabled={disabledAll || isPending || isEditPending}
+                  />
                 </label>
               </div>
             </form>
           </Form>
         </div>
-        <SheetFooter className="pt-4 px-4.5 pb-5 border-t max-sm:p-4">
-          <div className="flex gap-3">
-            <SheetClose className="cursor-pointer" asChild>
-              <Button variant="outline" disabled={isEditPending || isPending}>
-                Cancel
+        {!disabledAll && (
+          <SheetFooter className="pt-4 px-4.5 pb-5 border-t max-sm:p-4">
+            <div className="flex gap-3">
+              <SheetClose className="cursor-pointer" asChild>
+                <Button variant="outline" disabled={isEditPending || isPending}>
+                  Cancel
+                </Button>
+              </SheetClose>
+              <Button
+                className="gap-2 ml-auto"
+                onClick={form.handleSubmit(onSubmit)}
+                isLoading={isPending || isEditPending}
+              >
+                {editing ? "Update" : "Add Task"}
               </Button>
-            </SheetClose>
-            <Button
-              className="gap-2 ml-auto"
-              onClick={form.handleSubmit(onSubmit)}
-              isLoading={isPending || isEditPending}
-            >
-              {editing ? "Update" : "Add Task"}
-            </Button>
-          </div>
-        </SheetFooter>
+            </div>
+          </SheetFooter>
+        )}
       </SheetContent>
     </Sheet>
   );

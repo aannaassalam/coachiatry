@@ -1,4 +1,14 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -13,17 +23,20 @@ import { Separator } from "@/components/ui/separator";
 import { SmartAvatar } from "@/components/ui/smart-avatar";
 import { updatePassword } from "@/external-api/functions/auth.api";
 import {
+  getMyProfile,
+  revokeViewAccess,
   updateProfile,
   updateProfilePicture
 } from "@/external-api/functions/user.api";
-import assets from "@/json/assets";
 import AppLayout from "@/layouts/AppLayout";
+import { getInitials } from "@/lib/functions/_helpers.lib";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Camera, Link2, Plus } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import * as yup from "yup";
 
 const schema = yup.object().shape({
@@ -35,6 +48,11 @@ export default function Settings() {
   const { data, update } = useSession();
 
   const [password, setPassword] = useState<string>("");
+
+  const { data: profile, isLoading } = useQuery({
+    queryKey: ["settings-profile"],
+    queryFn: getMyProfile
+  });
 
   const { mutate, isPending } = useMutation({
     mutationFn: updateProfile,
@@ -51,6 +69,13 @@ export default function Settings() {
       mutationFn: updatePassword,
       onSuccess: () => setPassword("")
     });
+
+  const { mutate: revokeMutate, isPending: isRevoking } = useMutation({
+    mutationFn: revokeViewAccess,
+    meta: {
+      invalidateQueries: ["settings-profile"]
+    }
+  });
 
   const form = useForm<yup.InferType<typeof schema>>({
     resolver: yupResolver(schema),
@@ -78,6 +103,13 @@ export default function Settings() {
     if (password && password.trim()) {
       mutatePassword({ password });
     }
+  };
+
+  const handleCopyShareLink = async () => {
+    await navigator.clipboard.writeText(
+      `${process.env.NEXTAUTH_URL}/share/user/${data?.user?.shareId}` || ""
+    );
+    toast.success("Link copied to clipboard!");
   };
 
   return (
@@ -234,6 +266,7 @@ export default function Settings() {
                   variant="secondary"
                   size="sm"
                   className="gap-1.5 font-semibold"
+                  onClick={handleCopyShareLink}
                 >
                   <Link2 />
                   Copy Link
@@ -248,48 +281,99 @@ export default function Settings() {
                 </Button>
               </div>
             </div>
-            <div className="flex items-center gap-3 not-last:border-b py-5 px-6">
-              <Avatar className="size-13">
-                <AvatarImage src={assets.avatar} alt="AH" />
-                <AvatarFallback className="bg-orange-100 flex items-center justify-center font-semibold text-orange-600">
-                  AH
-                </AvatarFallback>
-              </Avatar>
+            {isLoading ? (
               <div>
-                <p className="font-medium text-gray-800 leading-[150%]">Mom</p>
-                <p className="text-gray-700 leading-[150%]">
-                  riya.mom@gmail.com
+                <div className="flex items-center gap-3 py-5 px-6">
+                  <div className="size-13 bg-gray-200 animate-pulse rounded-full" />
+                  <div className="space-y-1">
+                    <div className="h-6 w-20 bg-gray-200 animate-pulse rounded-sm" />
+                    <div className="h-6 w-60 bg-gray-200 animate-pulse rounded-sm" />
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 py-5 px-6">
+                  <div className="size-13 bg-gray-200 animate-pulse rounded-full" />
+                  <div className="space-y-1">
+                    <div className="h-6 w-20 bg-gray-200 animate-pulse rounded-sm" />
+                    <div className="h-6 w-60 bg-gray-200 animate-pulse rounded-sm" />
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 py-5 px-6">
+                  <div className="size-13 bg-gray-200 animate-pulse rounded-full" />
+                  <div className="space-y-1">
+                    <div className="h-6 w-20 bg-gray-200 animate-pulse rounded-sm" />
+                    <div className="h-6 w-60 bg-gray-200 animate-pulse rounded-sm" />
+                  </div>
+                </div>
+              </div>
+            ) : Boolean(profile?.sharedViewers.length) ? (
+              profile?.sharedViewers.map((_viewer) => {
+                return (
+                  <div
+                    className="flex items-center gap-3 not-last:border-b py-5 px-6"
+                    key={_viewer._id}
+                  >
+                    <SmartAvatar
+                      src={_viewer.photo}
+                      name={getInitials(_viewer.fullName)}
+                      textSize="text-lg"
+                      className="size-13"
+                    />
+                    <div>
+                      <p className="font-medium text-gray-800 leading-[150%]">
+                        {_viewer.fullName}
+                      </p>
+                      <p className="text-gray-700 leading-[150%]">
+                        {_viewer.email}
+                      </p>
+                    </div>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="font-semibold ml-auto bg-white"
+                        >
+                          Revoke
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent className="sm:max-w-md">
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Do you want to revoke this user access to your
+                            tasks?
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel
+                            type="button"
+                            disabled={isRevoking}
+                          >
+                            Close
+                          </AlertDialogCancel>
+                          <AlertDialogAction
+                            className="bg-red-500 text-white hover:bg-red-600 hover:text-white"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              revokeMutate(_viewer._id);
+                            }}
+                            disabled={isRevoking}
+                          >
+                            Revoke
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="h-40 flex items-center justify-center">
+                <p className="text-gray-400 italic text-sm">
+                  You haven’t added any watchers
                 </p>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                className="font-semibold ml-auto bg-white"
-              >
-                Revoke
-              </Button>
-            </div>
-            <div className="flex items-center gap-3 not-last:border-b py-5 px-6">
-              <Avatar className="size-13">
-                <AvatarImage src={assets.avatar} alt="AH" />
-                <AvatarFallback className="bg-orange-100 flex items-center justify-center font-semibold text-orange-600">
-                  AH
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <p className="font-medium text-gray-800 leading-[150%]">Mom</p>
-                <p className="text-gray-700 leading-[150%]">
-                  riya.mom@gmail.com
-                </p>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                className="font-semibold ml-auto bg-white"
-              >
-                Revoke
-              </Button>
-            </div>
+            )}
           </div>
         </div>
       </div>

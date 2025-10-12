@@ -44,6 +44,7 @@ export function SmartAvatar({
           <AvatarImage
             src={src}
             alt={name ?? "Avatar"}
+            key={name}
             onLoad={() => setLoaded(true)}
             onError={() => setError(true)}
             className="object-cover w-full h-full"

@@ -7,7 +7,7 @@ import Image from "next/image";
 import { useFieldArray, useFormContext } from "react-hook-form";
 import { Button } from "../ui/button";
 
-export default function SubtaskList() {
+export default function SubtaskList({ disabled }: { disabled?: boolean }) {
   const {
     control,
     formState: { errors }
@@ -37,6 +37,7 @@ export default function SubtaskList() {
               <Input
                 {...control.register(`subtasks.${index}.title` as const)} // register each subtask
                 placeholder={`Subtask ${index + 1}`}
+                disabled={disabled}
               />
               <Button
                 type="button"
@@ -44,6 +45,8 @@ export default function SubtaskList() {
                 size="icon"
                 onClick={() => remove(index)}
                 className="text-gray-500 hover:text-gray-700"
+                center
+                disabled={disabled}
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -63,6 +66,7 @@ export default function SubtaskList() {
         size="sm"
         onClick={() => append({ title: "", completed: false })}
         className="text-gray-500 text-[12px]"
+        disabled={disabled}
       >
         <Image src={assets.icons.plus} alt="add" width={14} height={14} />
         Add Subtask

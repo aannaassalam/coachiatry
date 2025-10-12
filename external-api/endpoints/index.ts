@@ -40,12 +40,16 @@ export const endpoints = {
     delete: (taskId: string) => `/task/${taskId}`,
     moveToStatus: (taskId: string) => `/task/move-to-status/${taskId}`,
     markSubtaskAsComplete: (taskId: string, subtaskId: string) =>
-      `/task/completed/${taskId}/${subtaskId}`
+      `/task/completed/${taskId}/${subtaskId}`,
+    shared: (shareId: string) => `/task/shared/${shareId}`
   },
   user: {
     getProfile: "/user/me",
     updateProfile: "/user/me",
-    updateProfilePicture: "/user/me/update-profile-picture"
+    updateProfilePicture: "/user/me/update-profile-picture",
+    shared: (shareId: string) => `/user/share/${shareId}`,
+    getAllWatching: "/user/get-all-watching",
+    revokeAccess: (viewerId: string) => `/user/share/${viewerId}`
   },
   chat: {
     getConversations: "/chat",

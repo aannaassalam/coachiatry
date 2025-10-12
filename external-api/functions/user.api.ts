@@ -28,3 +28,29 @@ export const updateProfilePicture = async (file: File) => {
   );
   return res;
 };
+
+export const shareViewAccessToWatchers = async (shareId: string) => {
+  const res = await axiosInstance.get(endpoints.user.shared(shareId));
+  return res.data;
+};
+
+export const revokeViewAccess = async (viewerId: string) => {
+  const res = await axiosInstance.delete(endpoints.user.revokeAccess(viewerId));
+  return res;
+};
+
+export const getAllWatching = async (): Promise<
+  Pick<User, "_id" | "photo" | "fullName" | "shareId">[]
+> => {
+  const res = await axiosInstance.get(endpoints.user.getAllWatching);
+  return res.data;
+};
+
+export const getMyProfile = async (): Promise<User> => {
+  const res = await axiosInstance.get(endpoints.user.getProfile, {
+    params: {
+      populate: "sharedViewers"
+    }
+  });
+  return res.data;
+};

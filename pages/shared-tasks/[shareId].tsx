@@ -1,14 +1,7 @@
-import AddTaskSheet from "@/components/Tasks/AddTaskSheet";
 import FilterBox from "@/components/Tasks/FilterBox";
-import ListView from "@/components/Tasks/ListView";
-import WeekView from "@/components/Tasks/WeekView";
+import SharedListView from "@/components/Tasks/Shared/SharedListView";
+import SharedWeekView from "@/components/Tasks/Shared/SharedWeekView";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogTrigger
-} from "@/components/ui/dialog";
 import {
   Popover,
   PopoverContent,
@@ -20,12 +13,8 @@ import AppLayout from "@/layouts/AppLayout";
 import { Filter } from "@/typescript/interface/common.interface";
 import { ListFilter } from "lucide-react";
 import moment from "moment";
-import { useSession } from "next-auth/react";
 import { parseAsJson, parseAsString, useQueryState } from "nuqs";
-import { useState } from "react";
 import { BsChevronLeft, BsChevronRight } from "react-icons/bs";
-import { IoIosShareAlt } from "react-icons/io";
-import { toast } from "sonner";
 
 moment.updateLocale("en", {
   week: {
@@ -40,8 +29,7 @@ function sanitizeFilters(values: Filter[]): Filter[] {
   );
 }
 
-function Tasks() {
-  const { data } = useSession();
+function SharedTasks() {
   const [tab, setTab] = useQueryState("tab", parseAsString.withDefault("list"));
   const [values] = useQueryState<Filter[]>(
     "filters",
@@ -61,7 +49,6 @@ function Tasks() {
     })
   );
 
-  const [isOpen, setIsOpen] = useState(false);
   const validatedFilters = sanitizeFilters(values);
 
   const goPrevWeek = () => {
@@ -84,44 +71,6 @@ function Tasks() {
         <h1 className="text-2xl leading-7 tracking-[-3%] font-semibold text-gray-900 mb-2 max-sm:mb-0">
           Tasks
         </h1>
-        <div className="flex gap-3">
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button
-                variant="secondary"
-                size="sm"
-                className="gap-1.5 font-semibold"
-              >
-                <IoIosShareAlt />
-                Share
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogTitle>Share Access</DialogTitle>
-              <div className="p-2 bg-white border rounded-sm flex items-center gap-2 w-full">
-                <p
-                  className="w-100 truncate text-sm text-gray-700"
-                  title={`${process.env.NEXTAUTH_URL}/share/user/${data?.user?.shareId}`}
-                >
-                  {`${process.env.NEXTAUTH_URL}/share/user/${data?.user?.shareId}`}
-                </p>
-                <Button
-                  onClick={async () => {
-                    await navigator.clipboard.writeText(
-                      `${process.env.NEXTAUTH_URL}/share/user/${data?.user?.shareId}` ||
-                        ""
-                    );
-                    toast.success("Link copied to clipboard!");
-                  }}
-                  size="sm"
-                >
-                  Copy
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-          <Button onClick={() => setIsOpen(true)}>New Task</Button>
-        </div>
       </div>
       <Tabs
         value={tab}
@@ -231,20 +180,18 @@ function Tasks() {
 
           <Separator />
           <TabsContent value="list">
-            <ListView />
+            <SharedListView />
           </TabsContent>
           <TabsContent
             value="week"
             className="w-full weekContainer max-lg:!max-w-[93vw]"
           >
-            <WeekView />
+            <SharedWeekView />
           </TabsContent>
         </div>
       </Tabs>
-
-      <AddTaskSheet open={isOpen} onOpenChange={setIsOpen} />
     </AppLayout>
   );
 }
 
-export default Tasks;
+export default SharedTasks;

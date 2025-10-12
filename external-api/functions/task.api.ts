@@ -152,3 +152,30 @@ export const deleteTask = async (task_id: string) => {
   const res = await axiosInstance.delete(endpoints.task.delete(task_id));
   return res;
 };
+
+export const getAllSharedTasks = async ({
+  shareId,
+  sort,
+  filter = [],
+  startDate,
+  endDate
+}: {
+  shareId: string;
+  sort?: string;
+  filter?: Filter[];
+  startDate?: string;
+  endDate?: string;
+}): Promise<Task[]> => {
+  const filterQuery = buildFilterQuery(filter);
+
+  const res = await axiosInstance.get(endpoints.task.shared(shareId), {
+    params: {
+      populate: "category,status,user",
+      sort,
+      ...filterQuery,
+      dueDate:
+        startDate && endDate ? { gte: startDate, lte: endDate } : undefined
+    }
+  });
+  return res.data;
+};
