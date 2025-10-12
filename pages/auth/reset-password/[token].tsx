@@ -11,8 +11,12 @@ import {
   FormMessage
 } from "@/components/ui/form";
 import { PasswordInput } from "@/components/ui/password-input";
+import { resetPassword } from "@/external-api/functions/auth.api";
 import AuthLayout from "@/layouts/AuthLayout";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { useMutation } from "@tanstack/react-query";
+import { useParams } from "next/navigation";
+import { useRouter } from "next/router";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
 
@@ -25,16 +29,25 @@ const schema = yup.object().shape({
 });
 
 export default function ResetPassword() {
+  const router = useRouter();
+  const { token } = useParams();
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: resetPassword,
+    onSuccess: () => router.push("/auth/login")
+  });
+
   const form = useForm<yup.InferType<typeof schema>>({
     resolver: yupResolver(schema),
     defaultValues: {
       password: "",
       confirmPassword: ""
-    }
+    },
+    disabled: isPending
   });
 
   const onSubmit = (data: yup.InferType<typeof schema>) => {
-    console.log(data);
+    mutate({ token: token?.toString() ?? "", password: data.password });
   };
 
   return (
@@ -79,7 +92,12 @@ export default function ResetPassword() {
                   )}
                 />
               </div>
-              <Button type="submit" className="w-full">
+              <Button
+                type="submit"
+                className="w-full"
+                center
+                isLoading={isPending}
+              >
                 Reset password
               </Button>
             </form>

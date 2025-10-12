@@ -102,7 +102,6 @@ export const getAllTasks = async ({
   const res = await axiosInstance.get(endpoints.task.getAll, {
     params: {
       populate: "category,status,user",
-      limit: 500,
       sort,
       ...filterQuery,
       dueDate:

@@ -18,11 +18,10 @@ import { cn } from "@/lib/utils";
 import { CommandLoading } from "cmdk";
 import { Check, ChevronsUpDown, Plus } from "lucide-react";
 import React, { useState } from "react";
-import PriorityFlag from "../Tasks/PriorityFlag";
-import { Badge } from "./badge";
-import { Dialog } from "./dialog";
 import AddCategoryModal from "../Tasks/AddCategoryModal";
 import AddStatusModal from "../Tasks/AddStatusModal";
+import PriorityFlag from "../Tasks/PriorityFlag";
+import { Badge } from "./badge";
 
 type ComboboxOption = {
   label: string | React.ReactNode;
@@ -132,14 +131,15 @@ export function Combobox({
               selected.label
             ) : (
               <Badge
-                className={cn(
-                  "rounded-full py-0.5 px-2 flex items-center gap-1.5 font-archivo font-medium text-xs leading-4.5",
-                  selected.bgColor,
-                  selected.textColor
-                )}
+                className="rounded-full py-0.5 px-2 flex items-center gap-1.5 font-archivo font-medium text-xs leading-4.5"
+                style={{
+                  backgroundColor: selected.bgColor,
+                  color: selected.textColor
+                }}
               >
                 <div
-                  className={cn("size-1.5 rounded-full", selected.dotColor)}
+                  className="size-1.5 rounded-full"
+                  style={{ backgroundColor: selected.dotColor }}
                 />
                 {selected.label}
               </Badge>
@@ -200,17 +200,15 @@ export function Combobox({
                       />
                       {isBadge ? (
                         <Badge
-                          className={cn(
-                            "rounded-full py-0.5 px-2 flex items-center gap-1.5 font-archivo font-medium text-xs leading-4.5",
-                            opt.bgColor,
-                            opt.textColor
-                          )}
+                          className="rounded-full py-0.5 px-2 flex items-center gap-1.5 font-archivo font-medium text-xs leading-4.5"
+                          style={{
+                            backgroundColor: opt.bgColor,
+                            color: opt.textColor
+                          }}
                         >
                           <div
-                            className={cn(
-                              "size-1.5 rounded-full",
-                              opt.dotColor
-                            )}
+                            className="size-1.5 rounded-full"
+                            style={{ backgroundColor: opt.dotColor }}
                           />
                           {opt.label}
                         </Badge>
@@ -257,18 +255,18 @@ export function Combobox({
           )}
         </Command>
       </PopoverContent>
-      <Dialog
-        open={addModal.category}
-        onOpenChange={() => setAddModal({ ...addModal, category: false })}
-      >
-        <AddCategoryModal onChange={onChange} setIsAdding={setIsAdding} />
-      </Dialog>
-      <Dialog
-        open={addModal.status}
-        onOpenChange={() => setAddModal({ ...addModal, status: false })}
-      >
-        <AddStatusModal onChange={onChange} setIsAdding={setIsAdding} />
-      </Dialog>
+      <AddCategoryModal
+        onChange={onChange}
+        setIsAdding={setIsAdding}
+        isOpen={addModal.category}
+        onClose={() => setAddModal({ ...addModal, category: false })}
+      />
+      <AddStatusModal
+        onChange={onChange}
+        setIsAdding={setIsAdding}
+        isOpen={addModal.status}
+        onClose={() => setAddModal({ ...addModal, status: false })}
+      />
     </Popover>
   );
 }

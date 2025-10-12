@@ -11,13 +11,6 @@ import Image from "next/image";
 import { useMemo, useState } from "react";
 import { Input } from "../ui/input";
 
-const statuses = [
-  { label: "Todo", color: "border-gray-400", dot: "border-2 border-dotted" },
-  { label: "Struggling", color: "bg-orange-500" },
-  { label: "Overdue", color: "bg-red-500" },
-  { label: "Completed", color: "bg-green-500" }
-];
-
 function StatusBox({
   taskId,
   selectedStatus
@@ -29,20 +22,7 @@ function StatusBox({
 
   const { data = [] } = useQuery({
     queryKey: ["status"],
-    queryFn: getAllStatuses,
-    select: (data) => {
-      const reformedData = data
-        .map((_item) => {
-          const foundItem = statuses.find(
-            (_status) => _status.label === _item.title
-          );
-          return foundItem
-            ? { ..._item, ...foundItem, label: undefined }
-            : null;
-        })
-        .filter(Boolean);
-      return reformedData;
-    }
+    queryFn: getAllStatuses
   });
 
   // Filtered list based on search
@@ -144,27 +124,16 @@ function StatusBox({
                       )}
                     >
                       <div className="flex items-center gap-2">
-                        {status?.dot ? (
-                          <div
-                            className={cn(
-                              "h-2.5 w-2.5 rounded-full",
-                              status.dot,
-                              status.color
-                            )}
-                          />
+                        {status?.title === "Todo" ? (
+                          <div className="h-3 w-3 rounded-full border-gray-300 border-2 border-dotted" />
                         ) : (
                           <div
-                            className={cn(
-                              "h-3.5 w-3.5 rounded-full flex justify-center items-center",
-                              status?.color
-                            )}
+                            className="h-3.5 w-3.5 rounded-full flex justify-center items-center"
+                            style={{
+                              backgroundColor: status?.color?.text
+                            }}
                           >
-                            <div
-                              className={cn(
-                                "h-3 w-3 rounded-full border-1 border-white",
-                                status?.color
-                              )}
-                            />
+                            <div className="h-3 w-3 rounded-full border-1 border-white bg-transparent" />
                           </div>
                         )}
                         <span className="text-sm text-gray-900">
@@ -194,17 +163,12 @@ function StatusBox({
                   >
                     <div className="flex items-center gap-2">
                       <div
-                        className={cn(
-                          "h-3.5 w-3.5 rounded-full flex justify-center items-center",
-                          completedStatus?.color
-                        )}
+                        className="h-3.5 w-3.5 rounded-full flex justify-center items-center"
+                        style={{
+                          backgroundColor: completedStatus?.color?.text
+                        }}
                       >
-                        <div
-                          className={cn(
-                            "h-3 w-3 rounded-full border-1 border-white",
-                            completedStatus?.color
-                          )}
-                        />
+                        <div className="h-3 w-3 rounded-full border-1 border-white bg-transparent" />
                       </div>
                       <span className="text-sm text-gray-900">
                         {completedStatus?.title}

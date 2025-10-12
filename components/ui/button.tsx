@@ -43,12 +43,14 @@ function Button({
   isLoading = false,
   children,
   spacebetween,
+  center,
   ...props
 }: React.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean;
     isLoading?: boolean;
     spacebetween?: boolean;
+    center?: boolean;
   }) {
   const Comp = asChild ? Slot : "button";
 
@@ -61,8 +63,9 @@ function Button({
     >
       <span
         className={cn(
-          "inline-flex items-center gap-2 w-full justify-center",
-          spacebetween && "justify-between"
+          "inline-flex items-center gap-2 w-full",
+          spacebetween && "justify-between",
+          center && "justify-center"
         )}
       >
         {isLoading && (

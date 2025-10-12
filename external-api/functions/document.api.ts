@@ -4,12 +4,16 @@ import { endpoints } from "../endpoints";
 import { PaginatedResponse } from "@/typescript/interface/common.interface";
 
 export const getAllDocuments = async ({
-  sort
+  sort,
+  tab,
+  limit
 }: {
   sort: string;
+  tab: string;
+  limit?: number;
 }): Promise<PaginatedResponse<Document[]>> => {
   const res = await axiosInstance.get(endpoints.document.getAll, {
-    params: { sort }
+    params: { sort, tab, select: "-shareId", populate: "tag", limit }
   });
   return res.data;
 };
@@ -17,7 +21,7 @@ export const getAllDocuments = async ({
 export const getDocument = async (documentId: string): Promise<Document> => {
   const res = await axiosInstance.get(endpoints.document.getOne(documentId), {
     params: {
-      populate: "user"
+      populate: "user,tag"
     }
   });
   return res.data;
@@ -26,6 +30,7 @@ export const getDocument = async (documentId: string): Promise<Document> => {
 export const createDocument = async (body: {
   title: string;
   content: string;
+  tag: string;
 }) => {
   const res = await axiosInstance.post(endpoints.document.add, body);
   return res;
@@ -34,6 +39,7 @@ export const createDocument = async (body: {
 export const editDocument = async (body: {
   title: string;
   content: string;
+  tag: string;
   documentId: string;
 }) => {
   const { documentId, ...data } = body;
@@ -47,4 +53,11 @@ export const editDocument = async (body: {
 export const deleteDocument = async (documentId: string) => {
   const res = await axiosInstance.delete(endpoints.document.delete(documentId));
   return res;
+};
+
+export const accessSharedDocument = async (
+  shareId: string
+): Promise<Document> => {
+  const res = await axiosInstance.get(endpoints.document.shared(shareId));
+  return res.data;
 };

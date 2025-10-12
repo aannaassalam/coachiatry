@@ -188,7 +188,7 @@ export default function TextMessage({
       <div
         className={cn(
           "max-w-xs relative px-[14px] py-[7px] rounded-lg rounded-tr-none text-sm ",
-          isUser ? "bg-primary text-white/80" : "bg-gray-100 text-primary",
+          isUser ? "bg-primary text-white" : "bg-gray-100 text-primary",
           !isUser && !showAvatar && "ml-[2.75rem]"
         )}
       >

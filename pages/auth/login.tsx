@@ -20,8 +20,10 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { signIn } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import * as yup from "yup";
 
 const schema = yup.object().shape({
@@ -34,6 +36,7 @@ const schema = yup.object().shape({
 });
 
 export default function Login() {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<yup.InferType<typeof schema>>({
@@ -48,7 +51,12 @@ export default function Login() {
 
   const onSubmit = async (data: yup.InferType<typeof schema>) => {
     setIsLoading(true);
-    await signIn("credentials", { ...data, callbackUrl: "/" });
+    const result = await signIn("credentials", { ...data, redirect: false });
+    if (result?.error) {
+      toast.error(result?.error);
+    } else {
+      router.push("/");
+    }
     setIsLoading(false);
   };
 
@@ -128,7 +136,12 @@ export default function Login() {
                   );
                 }}
               />
-              <Button type="submit" className="w-full" isLoading={isLoading}>
+              <Button
+                type="submit"
+                className="w-full"
+                isLoading={isLoading}
+                center
+              >
                 Login
               </Button>
             </form>
@@ -140,7 +153,7 @@ export default function Login() {
             </p>
             <Separator className="flex-1" />
           </div>
-          <Button variant="outline" className="w-full mt-4">
+          <Button variant="outline" className="w-full mt-4" center>
             <Image
               src={assets.google_logo}
               alt="Google"

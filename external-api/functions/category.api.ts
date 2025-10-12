@@ -8,7 +8,13 @@ export const getAllCategories = async (): Promise<Category[]> => {
   return res.data;
 };
 
-export const addCategory = async (body: { title: string }) => {
+export const addCategory = async (body: {
+  title: string;
+  color: {
+    bg: string;
+    text: string;
+  };
+}) => {
   const res = await axiosInstance.post(endpoints.category.add, body);
   return res;
 };

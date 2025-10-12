@@ -11,8 +11,11 @@ import {
   FormMessage
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { forgotPassword } from "@/external-api/functions/auth.api";
 import AuthLayout from "@/layouts/AuthLayout";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { useMutation } from "@tanstack/react-query";
+import { useRouter } from "next/router";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
 
@@ -21,15 +24,25 @@ const schema = yup.object().shape({
 });
 
 export default function ForgotPassword() {
+  const router = useRouter();
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: forgotPassword,
+    onSuccess: () => {
+      router.push("/auth/login");
+    }
+  });
+
   const form = useForm<yup.InferType<typeof schema>>({
     resolver: yupResolver(schema),
     defaultValues: {
       email: ""
-    }
+    },
+    disabled: isPending
   });
 
   const onSubmit = (data: yup.InferType<typeof schema>) => {
-    console.log(data);
+    mutate(data.email);
   };
 
   return (
@@ -66,7 +79,12 @@ export default function ForgotPassword() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full">
+              <Button
+                type="submit"
+                className="w-full"
+                center
+                isLoading={isPending}
+              >
                 Submit
               </Button>
             </form>

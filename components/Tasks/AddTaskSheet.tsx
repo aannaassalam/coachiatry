@@ -229,29 +229,6 @@ export default function AddTaskSheet({
   }, [selectedTask, form, editing]);
 
   const dropDownOptions = {
-    category: [
-      {
-        label: "Health",
-        value: "health",
-        bgColor: "bg-green-100",
-        textColor: "text-green-600/90",
-        dotColor: "bg-green-600/90"
-      },
-      {
-        label: "Fitness",
-        value: "fitness",
-        bgColor: "bg-amber-200/40",
-        textColor: "text-amber-600/80",
-        dotColor: "bg-amber-600/80"
-      },
-      {
-        label: "Goal",
-        value: "goal",
-        bgColor: "bg-red-100/80",
-        textColor: "text-red-600/80",
-        dotColor: "bg-red-600/80"
-      }
-    ],
     priority: [
       { label: "High", value: "high" },
       { label: "Medium", value: "medium" },
@@ -368,15 +345,12 @@ export default function AddTaskSheet({
                             isCategory
                             options={
                               categories?.map((cat) => {
-                                const category = dropDownOptions.category.find(
-                                  (c) => c.label === cat.title
-                                );
                                 return {
                                   label: cat.title,
                                   value: cat._id,
-                                  bgColor: category?.bgColor,
-                                  textColor: category?.textColor,
-                                  dotColor: category?.dotColor
+                                  bgColor: cat?.color.bg,
+                                  textColor: cat?.color.text,
+                                  dotColor: cat?.color.text
                                 };
                               }) || []
                             }

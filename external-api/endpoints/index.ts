@@ -21,7 +21,8 @@ export const endpoints = {
     add: "/documents",
     getOne: (documentId: string) => `/documents/${documentId}`,
     edit: (documentId: string) => `/documents/${documentId}`,
-    delete: (documentId: string) => `/documents/${documentId}`
+    delete: (documentId: string) => `/documents/${documentId}`,
+    shared: (shareId: string) => `/documents/share/${shareId}`
   },
   category: {
     getAll: "/categories",

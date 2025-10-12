@@ -35,24 +35,6 @@ import AddTaskSheet from "./AddTaskSheet";
 import PriorityFlag from "./PriorityFlag";
 import StatusBox from "./StatusBox";
 
-const CategoryTagColorMap: Record<string, Record<string, string>> = {
-  Health: {
-    bg: "bg-amber-200/40",
-    text: "text-amber-600/80",
-    dotColor: "bg-amber-600/80"
-  },
-  Fitness: {
-    bg: "bg-green-100",
-    text: "text-green-600/90",
-    dotColor: "bg-green-600/90"
-  },
-  Goal: {
-    text: "text-red-600/80",
-    bg: "bg-red-100/80",
-    dotColor: "bg-red-600/80"
-  }
-};
-
 export const SubTasksTable = ({
   subTasks,
   taskId
@@ -92,13 +74,11 @@ export const SubTasksTable = ({
   });
 
   const handleToggle = (id: string) => {
-    // 🔥 Instant local update (no wait)
     setLocalCompleted((prev) => ({
       ...prev,
       [id]: !prev[id]
     }));
 
-    // 🧠 Run mutation silently in background
     mutate({ task_id: taskId, subtask_id: id });
   };
 
@@ -121,7 +101,11 @@ export const SubTasksTable = ({
             checked={localCompleted[subTask._id]}
             className="bg-white mb-[-6px] cursor-pointer transition-all duration-150"
           />
-          <span className="ml-3 text-sm font-lato text-gray-600 font-medium">
+          <span
+            className={cn("ml-3 text-sm font-lato text-gray-600 font-medium", {
+              "line-through": localCompleted[subTask._id]
+            })}
+          >
             {subTask.title}
           </span>
         </label>
@@ -275,13 +259,7 @@ function TasksTable({
                 ))
               : tasks.map((task) => (
                   <React.Fragment key={task._id}>
-                    <TableRow
-                      className="!h-[44px] hover:bg-gray-50 !border-b-1 !border-gray-100 cursor-pointer"
-                      // onClick={() => {
-                      //   setSelectedTask(task);
-                      //   setIsOpen(true);
-                      // }}
-                    >
+                    <TableRow className="!h-[44px] hover:bg-gray-50 !border-b-1 !border-gray-100 cursor-pointer">
                       <TableCell
                         className={cn(
                           "font-medium text-sm leading-5 flex items-center font-lato tracking-[-0.05px] relative",
@@ -320,12 +298,17 @@ function TasksTable({
                         )}
                         <Popover>
                           <PopoverTrigger asChild>
-                            <Image
-                              src={assets.icons.taskCircle}
-                              alt="task"
-                              width={24}
-                              height={24}
-                              className="inline mr-3 cursor-pointer"
+                            <div
+                              className={cn("size-4 rounded-full mr-3", {
+                                "border-2 border-gray-300 border-dotted":
+                                  task.status.title === "Todo"
+                              })}
+                              style={{
+                                backgroundColor:
+                                  task.status.title === "Todo"
+                                    ? "white"
+                                    : task.status.color.text
+                              }}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setStatusBoxIndex(
@@ -341,7 +324,15 @@ function TasksTable({
                             />
                           </PopoverContent>
                         </Popover>
-                        {task.title}
+                        <p
+                          className="flex-1"
+                          onClick={() => {
+                            setSelectedTask(task);
+                            setIsOpen(true);
+                          }}
+                        >
+                          {task.title}
+                        </p>
                       </TableCell>
                       <TableCell className="tracking-[-0.05px]">
                         <div className="flex items-center gap-2">
@@ -361,18 +352,18 @@ function TasksTable({
                       </TableCell>
                       <TableCell className="tracking-[-0.05px]">
                         <Badge
-                          className={cn(
-                            "rounded-full py-0.5 px-2 flex items-center gap-1.5 font-archivo font-medium text-xs leading-4.5",
-                            CategoryTagColorMap[task.category?.title].bg,
-                            CategoryTagColorMap[task.category?.title].text
-                          )}
+                          className="rounded-full py-0.5 px-2 flex items-center gap-1.5 font-archivo font-medium text-xs leading-4.5"
+                          style={{
+                            backgroundColor: task.category.color.bg,
+                            color: task.category.color.text
+                          }}
                           key={task.category?.title}
                         >
                           <div
-                            className={cn(
-                              "size-1.5 rounded-full",
-                              CategoryTagColorMap[task.category?.title].dotColor
-                            )}
+                            className="size-1.5 rounded-full"
+                            style={{
+                              backgroundColor: task.category.color.text
+                            }}
                           ></div>
                           {task.category?.title}
                         </Badge>

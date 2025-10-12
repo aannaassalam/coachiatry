@@ -1,14 +1,16 @@
 "use client";
 
+import { getAllCategories } from "@/external-api/functions/category.api";
 import {
   createDocument,
   editDocument,
   getDocument
 } from "@/external-api/functions/document.api";
+import { generateMarkdownPDF } from "@/lib/functions/documentPdf";
 import { cn } from "@/lib/utils";
 import Toolbar from "@/ui/MarkdownEditor/Toolbar";
 import { DialogTrigger } from "@radix-ui/react-dialog";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQueries } from "@tanstack/react-query";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
 import TextAlign from "@tiptap/extension-text-align";
@@ -17,6 +19,7 @@ import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { Download, X } from "lucide-react";
 import moment from "moment";
+import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { BsCalendar2 } from "react-icons/bs";
 import { GoPencil } from "react-icons/go";
@@ -24,6 +27,7 @@ import { IoIosShareAlt } from "react-icons/io";
 import { toast } from "sonner";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
+import { Combobox } from "./ui/combobox";
 import { Dialog, DialogContent, DialogTitle } from "./ui/dialog";
 import {
   Sheet,
@@ -52,13 +56,26 @@ export default function DocumentSheet({
   });
   const [documentData, setDocumentData] = useState({
     title: "Untitled document",
-    content: ""
+    content: "",
+    tag: ""
   });
+  const { data: session } = useSession();
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["documents", documentId],
-    queryFn: () => getDocument(documentId),
-    enabled: !!documentId
+  const [
+    { data, isLoading },
+    { data: categories, isLoading: isCategoriesLoading, isFetching }
+  ] = useQueries({
+    queries: [
+      {
+        queryKey: ["documents", documentId],
+        queryFn: () => getDocument(documentId),
+        enabled: !!documentId
+      },
+      {
+        queryKey: ["categories"],
+        queryFn: getAllCategories
+      }
+    ]
   });
 
   useEffect(() => {
@@ -69,12 +86,14 @@ export default function DocumentSheet({
     if (data && documentId) {
       setDocumentData({
         title: data.title,
-        content: data.content
+        content: data.content,
+        tag: data?.tag?._id ?? ""
       });
     } else {
       setDocumentData({
         title: "Untitled Document",
-        content: ""
+        content: "",
+        tag: ""
       });
     }
   }, [data, documentId]);
@@ -118,7 +137,8 @@ export default function DocumentSheet({
       editor?.commands.setContent("");
       setDocumentData({
         title: "Untitled Document",
-        content: ""
+        content: "",
+        tag: ""
       });
     },
     meta: {
@@ -160,29 +180,32 @@ export default function DocumentSheet({
       edit({
         documentId,
         title: documentData.title,
-        content: documentData.content
+        content: documentData.content,
+        tag: documentData.tag
       });
       return;
     }
     mutate({
       title: documentData.title,
-      content: documentData.content
+      content: documentData.content,
+      tag: documentData.tag
     });
   };
 
   if (!editor) return null;
 
-  function handleDownload() {
+  async function handleDownload() {
     setDownloading(true);
-    if (data?.documentUrl) {
-      const link = document.createElement("a");
-      link.href = data?.documentUrl; // e.g. "https://my-bucket.s3.amazonaws.com/reports/file.pdf"
-      link.download = `${data.title}.pdf`; // optional custom filename
-      link.target = "_blank";
-      link.click();
+    if (data) {
+      await generateMarkdownPDF(
+        data.content,
+        data.title,
+        data?.tag?.title ?? ""
+      );
     }
     setDownloading(false);
   }
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="lg:max-w-2xl gap-0 max-lg:!max-w-full max-lg:!w-full">
@@ -283,21 +306,47 @@ export default function DocumentSheet({
                     )}
                   </div>
                   <div className="flex items-center gap-5 mt-4">
-                    <Badge
-                      className={cn(
-                        "rounded-full py-0.5 px-2 flex items-center gap-1.5 font-archivo font-medium text-xs leading-4.5",
-                        "bg-amber-200/40",
-                        "text-amber-600/80"
-                      )}
-                    >
-                      <div
-                        className={cn(
-                          "size-1.5 rounded-full",
-                          "bg-amber-600/80"
-                        )}
-                      ></div>
-                      Health
-                    </Badge>
+                    {isEditing ? (
+                      <Combobox
+                        value={documentData.tag}
+                        onChange={(val) =>
+                          setDocumentData((prev) => ({
+                            ...prev,
+                            tag: val.toString()
+                          }))
+                        }
+                        isCategory
+                        options={
+                          categories?.map((cat) => {
+                            return {
+                              label: cat.title,
+                              value: cat._id,
+                              bgColor: cat?.color?.bg,
+                              textColor: cat?.color?.text,
+                              dotColor: cat?.color?.text
+                            };
+                          }) || []
+                        }
+                        isLoading={isCategoriesLoading || isFetching}
+                        placeholder="Select category"
+                        isBadge={true}
+                        className="w-50"
+                      />
+                    ) : (
+                      <Badge
+                        className="rounded-full py-0.5 px-2 flex items-center gap-1.5 font-archivo font-medium text-xs leading-4.5"
+                        style={{
+                          backgroundColor: data?.tag?.color?.bg,
+                          color: data?.tag?.color?.text
+                        }}
+                      >
+                        <div
+                          className="size-1.5 rounded-full"
+                          style={{ backgroundColor: data?.tag?.color?.text }}
+                        ></div>
+                        {data?.tag?.title}
+                      </Badge>
+                    )}
                     {!!documentId && (
                       <p className="flex items-center gap-4">
                         <span className="text-gray-700 text-sm leading-5">
@@ -311,16 +360,17 @@ export default function DocumentSheet({
                     )}
                   </div>
                 </div>
-                {!isEditing && (
-                  <Button
-                    variant="outline"
-                    className="border-primary text-primary py-1.5 px-2.5"
-                    onClick={() => setIsEditing(true)}
-                  >
-                    <GoPencil className="text-primary" />
-                    Edit
-                  </Button>
-                )}
+                {!isEditing &&
+                  !data?.sharedWith.includes(session?.user?._id ?? "") && (
+                    <Button
+                      variant="outline"
+                      className="border-primary text-primary py-1.5 px-2.5"
+                      onClick={() => setIsEditing(true)}
+                    >
+                      <GoPencil className="text-primary" />
+                      Edit
+                    </Button>
+                  )}
               </div>
               {!isEditing || isPending || isDocUpdating ? (
                 <div
@@ -346,7 +396,7 @@ export default function DocumentSheet({
         {!isLoading && (
           <SheetFooter className="pt-4 px-4.5 pb-5 border-t">
             {isEditing && <Toolbar editor={editor} />}
-            <div className="flex gap-3">
+            <div className="flex gap-3 justify-between">
               <Button
                 variant="outline"
                 onClick={() => {
@@ -360,40 +410,42 @@ export default function DocumentSheet({
               >
                 Cancel
               </Button>
-              {!isEditing && (
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="border-primary ml-auto py-2 px-2.5 text-primary"
-                    >
-                      <IoIosShareAlt className="size-5" />
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogTitle>Share Document</DialogTitle>
-                    <div className="p-2 bg-white border rounded-sm flex items-center gap-2 w-full">
-                      <p
-                        className="w-100 truncate text-sm text-gray-700"
-                        title={data?.documentUrl}
-                      >
-                        {data?.documentUrl}
-                      </p>
+              {!isEditing &&
+                !data?.sharedWith.includes(session?.user?._id ?? "") && (
+                  <Dialog>
+                    <DialogTrigger asChild>
                       <Button
-                        onClick={async () => {
-                          await navigator.clipboard.writeText(
-                            data?.documentUrl || ""
-                          );
-                          toast.success("Link copied to clipboard!");
-                        }}
-                        size="sm"
+                        variant="outline"
+                        className="border-primary ml-auto py-2 px-2.5 text-primary"
                       >
-                        Copy
+                        <IoIosShareAlt className="size-5" />
                       </Button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              )}
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogTitle>Share Document</DialogTitle>
+                      <div className="p-2 bg-white border rounded-sm flex items-center gap-2 w-full">
+                        <p
+                          className="w-100 truncate text-sm text-gray-700"
+                          title={`${process.env.NEXTAUTH_URL}/share/${data?.shareId}`}
+                        >
+                          {`${process.env.NEXTAUTH_URL}/share/${data?.shareId}`}
+                        </p>
+                        <Button
+                          onClick={async () => {
+                            await navigator.clipboard.writeText(
+                              `${process.env.NEXTAUTH_URL}/share/${data?.shareId}` ||
+                                ""
+                            );
+                            toast.success("Link copied to clipboard!");
+                          }}
+                          size="sm"
+                        >
+                          Copy
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                )}
               {isEditing ? (
                 <Button
                   className="gap-2 ml-auto"

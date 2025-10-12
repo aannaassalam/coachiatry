@@ -14,7 +14,6 @@ export interface ChatConversation {
     }
   ];
   lastMessage: {
-    message?: string;
     sender?: User;
     content?: string;
     type?: "text" | "image" | "video" | "file" | "system";

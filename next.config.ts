@@ -26,6 +26,7 @@ const nextConfig: NextConfig = {
   },
   env: {
     NEXT_APP_BASE_URL: process.env.NEXT_APP_BASE_URL,
+    NEXTAUTH_URL: process.env.NEXTAUTH_URL,
     NEXT_APP_ENCRYPTION_KEY: process.env.NEXT_APP_ENCRYPTION_KEY,
     NEXT_APP_TOKEN_NAME: process.env.NEXT_APP_TOKEN_NAME,
     NEXT_APP_CLIENT_ID: process.env.NEXT_APP_CLIENT_ID,

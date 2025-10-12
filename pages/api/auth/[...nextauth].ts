@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { login, LoginBody } from "@/external-api/functions/auth.api";
 import { fetchProfile } from "@/external-api/functions/user.api";
 import { User } from "@/typescript/interface/user.interface";
@@ -13,20 +15,38 @@ export default NextAuth({
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        const res = await login(credentials as LoginBody);
-        if (!res.data) return null;
+        try {
+          const res = await login(credentials as LoginBody);
 
-        // must return a plain object
-        const user: User & { token: string } = {
-          ...res.data.user,
-          token: res.data.token
-        };
+          if (!res || !res.data) {
+            throw new Error("Invalid email or password");
+          }
 
-        // MUST have id at minimum
-        if (!user._id) return null;
-        user.id = user._id; // normalize if API only provides _id
+          const user: User & { token: string } = {
+            ...res.data.user,
+            token: res.data.token
+          };
 
-        return user;
+          if (!user._id) {
+            throw new Error("Invalid user data returned from server");
+          }
+
+          user.id = user._id; // normalize id
+
+          return user;
+        } catch (error: any) {
+          // You can be specific here:
+          if (error.response?.status === 401) {
+            throw new Error("Invalid email or password");
+          } else if (error.response?.status === 403) {
+            throw new Error("Your account is not verified");
+          } else if (error.response?.status === 500) {
+            throw new Error("Server error. Please try again later");
+          }
+
+          // Default fallback
+          throw new Error(error.message || "Login failed");
+        }
       }
     })
   ],

@@ -26,6 +26,21 @@ export const login = async (
   return res;
 };
 
+export const forgotPassword = async (email: string) => {
+  const res = await axiosInstance.post(endpoints.auth.forgotPassword, {
+    email
+  });
+  return res;
+};
+
+export const resetPassword = async (body: {
+  token: string;
+  password: string;
+}) => {
+  const res = await axiosInstance.post(endpoints.auth.resetPassword, body);
+  return res;
+};
+
 export const updatePassword = async (body: { password: string }) => {
   const res = await axiosInstance.patch(endpoints.auth.updatePassword, body);
   return res;

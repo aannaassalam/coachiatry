@@ -5,7 +5,6 @@ import assets from "@/json/assets";
 import { sanitizeFilters } from "@/lib/functions/_helpers.lib";
 import { cn } from "@/lib/utils";
 import { Filter } from "@/typescript/interface/common.interface";
-import { Status } from "@/typescript/interface/status.interface";
 import { Task } from "@/typescript/interface/task.interface";
 import { useQueries } from "@tanstack/react-query";
 import Image from "next/image";
@@ -46,35 +45,6 @@ function ListView() {
 
   const validatedFilters = sanitizeFilters(values);
 
-  const statusList = [
-    {
-      title: "Todo",
-      titleColor: "text-primary",
-      bgColor: "bg-gray-200",
-      accentColor: "bg-primary",
-      priority: -9999
-    },
-    {
-      title: "Struggling",
-      titleColor: "text-orange-600/80",
-      bgColor: "bg-orange-200/60",
-      accentColor: "bg-orange-600/80"
-    },
-    {
-      title: "Overdue",
-      titleColor: "text-red-600/80",
-      bgColor: "bg-red-100/80",
-      accentColor: "bg-red-600/80"
-    },
-    {
-      title: "Completed",
-      titleColor: "text-green-600/90",
-      bgColor: "bg-green-100",
-      accentColor: "bg-green-600/90",
-      priority: 9999
-    }
-  ];
-
   const [
     { data: tasks = [], isLoading },
     { data: status = [], isLoading: isStatusLoading }
@@ -91,18 +61,7 @@ function ListView() {
       },
       {
         queryKey: ["status"],
-        queryFn: getAllStatuses,
-        select: (data: Status[]) => {
-          const reformedData = data
-            .map((_item) => {
-              const foundItem = statusList.find(
-                (_status) => _status.title === _item.title
-              );
-              return foundItem ? { ..._item, ...foundItem } : null;
-            })
-            .filter(Boolean);
-          return reformedData;
-        }
+        queryFn: getAllStatuses
       }
     ]
   });
@@ -169,20 +128,19 @@ function ListView() {
                   />
                 </CollapsibleTrigger>
                 <div
-                  className={cn(
-                    "p-1 pl-3 rounded-sm inline-flex items-center gap-2.5",
-                    _status?.bgColor
-                  )}
+                  className="p-1 pl-3 rounded-sm inline-flex items-center gap-2.5"
+                  style={{ backgroundColor: _status?.color?.bg }}
                 >
                   <h5
-                    className={cn(
-                      "text-sm font-medium leading-5",
-                      _status?.titleColor
-                    )}
+                    className="text-sm font-medium leading-5"
+                    style={{ color: _status?.color?.text }}
                   >
                     {_status?.title}
                   </h5>
-                  <Badge variant="counter" className={_status?.accentColor}>
+                  <Badge
+                    variant="counter"
+                    style={{ backgroundColor: _status?.color?.text }}
+                  >
                     {
                       tasks?.filter((task) => task.status._id === _status?._id)
                         .length

@@ -8,7 +8,13 @@ export const getAllStatuses = async (): Promise<Status[]> => {
   return res.data;
 };
 
-export const addStatus = async (body: { title: string }) => {
+export const addStatus = async (body: {
+  title: string;
+  color: {
+    bg: string;
+    text: string;
+  };
+}) => {
   const res = await axiosInstance.post(endpoints.status.add, body);
   return res;
 };
