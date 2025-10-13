@@ -54,3 +54,17 @@ export const getMyProfile = async (): Promise<User> => {
   });
   return res.data;
 };
+
+export const getUserSuggestions = async (
+  search: string
+): Promise<Pick<User, "_id" | "fullName" | "email" | "photo">[]> => {
+  const res = await axiosInstance.get(endpoints.user.suggestUsers, {
+    params: { search }
+  });
+  return res.data;
+};
+
+export const addWatchers = async (userIds: string[]) => {
+  const res = await axiosInstance.post(endpoints.user.addWatchers, { userIds });
+  return res;
+};

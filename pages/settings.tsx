@@ -1,3 +1,4 @@
+import MultiSelectUsers from "@/components/MultiSelectUsers";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,6 +12,13 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogTitle,
+  DialogTrigger
+} from "@/components/ui/dialog";
+import {
   Form,
   FormControl,
   FormField,
@@ -23,6 +31,7 @@ import { Separator } from "@/components/ui/separator";
 import { SmartAvatar } from "@/components/ui/smart-avatar";
 import { updatePassword } from "@/external-api/functions/auth.api";
 import {
+  addWatchers,
   getMyProfile,
   revokeViewAccess,
   updateProfile,
@@ -48,6 +57,8 @@ export default function Settings() {
   const { data, update } = useSession();
 
   const [password, setPassword] = useState<string>("");
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  const [watchersDialog, setWatchersDialog] = useState(false);
 
   const { data: profile, isLoading } = useQuery({
     queryKey: ["settings-profile"],
@@ -72,6 +83,16 @@ export default function Settings() {
 
   const { mutate: revokeMutate, isPending: isRevoking } = useMutation({
     mutationFn: revokeViewAccess,
+    meta: {
+      invalidateQueries: ["settings-profile"]
+    }
+  });
+
+  const { mutate: watchersMutate, isPending: isAdding } = useMutation({
+    mutationFn: addWatchers,
+    onSuccess: () => {
+      setWatchersDialog(false);
+    },
     meta: {
       invalidateQueries: ["settings-profile"]
     }
@@ -271,14 +292,55 @@ export default function Settings() {
                   <Link2 />
                   Copy Link
                 </Button>
-                <Button
-                  variant="default"
-                  size="sm"
-                  className="gap-1.5 font-semibold"
+                <Dialog
+                  open={watchersDialog}
+                  onOpenChange={(toggle) => setWatchersDialog(toggle)}
                 >
-                  <Plus />
-                  Add Person
-                </Button>
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="default"
+                      size="sm"
+                      className="gap-1.5 font-semibold"
+                      onClick={() => setWatchersDialog(true)}
+                    >
+                      <Plus />
+                      Add Person
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogTitle>Add Watchers</DialogTitle>
+                    <div className="p-2.5">
+                      <MultiSelectUsers
+                        selectedUsers={selectedUsers}
+                        onChange={setSelectedUsers}
+                        existingUsers={
+                          profile?.sharedViewers.map((_u) => _u._id) ?? []
+                        }
+                        disabled={isAdding}
+                      />
+                    </div>
+                    <DialogFooter>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        disabled={isAdding}
+                        onClick={() => setWatchersDialog(false)}
+                      >
+                        Close
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          watchersMutate(selectedUsers);
+                        }}
+                        size="sm"
+                        isLoading={isAdding}
+                        disabled={selectedUsers.length === 0}
+                      >
+                        Add
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               </div>
             </div>
             {isLoading ? (

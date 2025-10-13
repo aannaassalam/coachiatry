@@ -47,8 +47,10 @@ export const endpoints = {
     getProfile: "/user/me",
     updateProfile: "/user/me",
     updateProfilePicture: "/user/me/update-profile-picture",
-    shared: (shareId: string) => `/user/share/${shareId}`,
     getAllWatching: "/user/get-all-watching",
+    suggestUsers: "/user/suggestions",
+    addWatchers: "/user/add-watchers",
+    shared: (shareId: string) => `/user/share/${shareId}`,
     revokeAccess: (viewerId: string) => `/user/share/${viewerId}`
   },
   chat: {

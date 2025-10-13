@@ -2,6 +2,7 @@ import { Document } from "@/typescript/interface/document.interface";
 import axiosInstance from "../axiosInstance";
 import { endpoints } from "../endpoints";
 import { PaginatedResponse } from "@/typescript/interface/common.interface";
+import { User } from "@/typescript/interface/user.interface";
 
 export const getAllDocuments = async ({
   sort,
@@ -18,7 +19,13 @@ export const getAllDocuments = async ({
   return res.data;
 };
 
-export const getDocument = async (documentId: string): Promise<Document> => {
+type DetailDocument = Omit<Document, "user"> & {
+  user: User;
+};
+
+export const getDocument = async (
+  documentId: string
+): Promise<DetailDocument> => {
   const res = await axiosInstance.get(endpoints.document.getOne(documentId), {
     params: {
       populate: "user,tag"

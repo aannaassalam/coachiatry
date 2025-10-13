@@ -4,7 +4,7 @@ import { User } from "./user.interface";
 export interface Document {
   _id: string;
   title: string;
-  user: User;
+  user: string;
   tag?: Category;
   content: string;
   shareId: string;

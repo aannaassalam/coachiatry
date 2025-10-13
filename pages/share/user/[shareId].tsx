@@ -16,7 +16,7 @@ export default function Index() {
 
   useEffect(() => {
     if (data) {
-      router.replace(`/tasks/${data.shareId}`);
+      router.replace(`/shared-tasks/${data.shareId}`);
     }
   }, [data, router]);
 

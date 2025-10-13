@@ -30,6 +30,7 @@ import { Document } from "@/typescript/interface/document.interface";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Ellipsis, Trash } from "lucide-react";
 import moment from "moment";
+import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import { parseAsArrayOf, parseAsString, useQueryState } from "nuqs";
 import { useState } from "react";
@@ -43,6 +44,8 @@ export const DocumentsTable = ({
   setSelectedDocument: (doc: Document) => void;
   isLoading: boolean;
 }) => {
+  const { data } = useSession();
+
   const { mutate, isPending } = useMutation({
     mutationFn: deleteDocument,
     meta: {
@@ -101,47 +104,53 @@ export const DocumentsTable = ({
               </TableRow>
             </>
           ) : documents.length > 0 ? (
-            documents.map((document) => (
-              <TableRow key={document._id}>
-                <TableCell
-                  className="font-medium text-sm leading-5 cursor-pointer pl-4"
-                  onClick={() => setSelectedDocument(document)}
-                >
-                  {document.title}
-                </TableCell>
-                <TableCell className="py-3.5">
-                  <Badge
-                    className="rounded-full py-0.5 px-2 flex items-center gap-1.5 font-archivo font-medium text-xs leading-4.5"
-                    style={{
-                      backgroundColor: document?.tag?.color.bg,
-                      color: document?.tag?.color.text
-                    }}
+            documents.map((document) => {
+              const isMine = data?.user?._id === document.user;
+              return (
+                <TableRow key={document._id}>
+                  <TableCell
+                    className="font-medium text-sm leading-5 cursor-pointer pl-4"
+                    onClick={() => setSelectedDocument(document)}
                   >
-                    <div
-                      className="size-1.5 rounded-full"
+                    {document.title}
+                  </TableCell>
+                  <TableCell className="py-3.5">
+                    <Badge
+                      className="rounded-full py-0.5 px-2 flex items-center gap-1.5 font-archivo font-medium text-xs leading-4.5"
                       style={{
-                        backgroundColor: document?.tag?.color.text
+                        backgroundColor: document?.tag?.color.bg,
+                        color: document?.tag?.color.text
                       }}
-                    ></div>
-                    {document.tag?.title}
-                  </Badge>
-                </TableCell>
-                <TableCell className="py-3.5 text-sm text-gray-600">
-                  {moment(document.createdAt).format("DD-MM-YYYY")}
-                </TableCell>
-                <TableCell className="py-4.5">
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="hover:bg-secondary"
+                    >
+                      <div
+                        className="size-1.5 rounded-full"
+                        style={{
+                          backgroundColor: document?.tag?.color.text
+                        }}
+                      ></div>
+                      {document.tag?.title}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="py-3.5 text-sm text-gray-600">
+                    {moment(document.createdAt).format("DD-MM-YYYY")}
+                  </TableCell>
+                  <TableCell className="py-4.5">
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="hover:bg-secondary"
+                          disabled={!isMine}
+                        >
+                          <Ellipsis className="text-gray-500" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent
+                        className="p-1 w-30"
+                        collisionPadding={20}
                       >
-                        <Ellipsis className="text-gray-500" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="p-1 w-30" collisionPadding={20}>
-                      {/* <Button
+                        {/* <Button
                         variant="ghost"
                         size="sm"
                         className="cursor-pointer flex items-center gap-2 w-full [&>span]:justify-start"
@@ -152,24 +161,25 @@ export const DocumentsTable = ({
                         <Pencil />
                         Edit
                       </Button> */}
-                      <DeleteDialog
-                        onDelete={() => mutate(document._id)}
-                        isLoading={isPending}
-                      >
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="cursor-pointer flex items-center gap-2 w-full text-red-500 hover:text-red-500 hover:bg-red-50 [&>span]:justify-start"
+                        <DeleteDialog
+                          onDelete={() => mutate(document._id)}
+                          isLoading={isPending}
                         >
-                          <Trash />
-                          Delete
-                        </Button>
-                      </DeleteDialog>
-                    </PopoverContent>
-                  </Popover>
-                </TableCell>
-              </TableRow>
-            ))
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="cursor-pointer flex items-center gap-2 w-full text-red-500 hover:text-red-500 hover:bg-red-50 [&>span]:justify-start"
+                          >
+                            <Trash />
+                            Delete
+                          </Button>
+                        </DeleteDialog>
+                      </PopoverContent>
+                    </Popover>
+                  </TableCell>
+                </TableRow>
+              );
+            })
           ) : (
             <EmptyTable message="No documents found" colSpan={5} />
           )}

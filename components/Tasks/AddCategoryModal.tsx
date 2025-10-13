@@ -3,7 +3,7 @@ import { useMutation } from "@tanstack/react-query";
 import { Archivo, Lato } from "next/font/google";
 import React, { useEffect, useState } from "react";
 import { Button } from "../ui/button";
-import { Dialog, DialogClose, DialogContent } from "../ui/dialog";
+import { Dialog, DialogContent } from "../ui/dialog";
 import { Input } from "../ui/input";
 const archivo = Archivo({ subsets: ["latin"], variable: "--font-archivo" });
 const lato = Lato({
@@ -48,6 +48,7 @@ function AddCategoryModal({
       setTitle("");
       setSelectedColor(predefinedColors[0]);
       onChange(data.data._id);
+      onClose();
     },
     meta: {
       invalidateQueries: ["categories"]
@@ -98,18 +99,17 @@ function AddCategoryModal({
               ))}
             </div>
           </div>
-          <DialogClose className="self-end">
-            <Button
-              onClick={() => {
-                if (title.trim()) {
-                  mutate({ title, color: selectedColor });
-                }
-              }}
-              isLoading={isPending}
-            >
-              Add
-            </Button>
-          </DialogClose>
+          <Button
+            onClick={() => {
+              if (title.trim()) {
+                mutate({ title, color: selectedColor });
+              }
+            }}
+            isLoading={isPending}
+            disabled={!title.trim()}
+          >
+            Add
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

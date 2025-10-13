@@ -18,6 +18,26 @@ export default function SubtaskList({ disabled }: { disabled?: boolean }) {
     control
   });
 
+  const handleKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+    index: number
+  ) => {
+    if (e.key === "Enter") {
+      e.preventDefault(); // prevent form submit
+      // only add a new subtask when pressing Enter in the last one
+      if (index === fields.length - 1 && !disabled) {
+        append({ title: "", completed: false });
+        // focus new input after adding
+        setTimeout(() => {
+          const inputs = document.querySelectorAll<HTMLInputElement>(
+            'input[name^="subtasks"]'
+          );
+          inputs[inputs.length - 1]?.focus();
+        }, 50);
+      }
+    }
+  };
+
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
@@ -38,6 +58,7 @@ export default function SubtaskList({ disabled }: { disabled?: boolean }) {
                 {...control.register(`subtasks.${index}.title` as const)} // register each subtask
                 placeholder={`Subtask ${index + 1}`}
                 disabled={disabled}
+                onKeyDown={(e) => handleKeyDown(e, index)}
               />
               <Button
                 type="button"

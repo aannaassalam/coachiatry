@@ -220,23 +220,25 @@ export default function Home() {
                 </div>
               </div>
             ) : (
-              status?.map((_status) => {
-                return (
-                  <TaskBox
-                    title={_status.title}
-                    tasks={
-                      slicedTasks?.filter(
-                        (_task) => _task.status._id === _status._id
-                      ) ?? []
-                    }
-                    isHighlighted={_status.title === "Todo"}
-                    titleColor={_status.color.text}
-                    bgColor={_status.color.bg}
-                    accentColor={_status.color.text}
-                    key={_status._id}
-                  />
-                );
-              })
+              status
+                ?.sort((a, b) => (a?.priority ?? 0) - (b?.priority ?? 0))
+                ?.map((_status) => {
+                  return (
+                    <TaskBox
+                      title={_status.title}
+                      tasks={
+                        slicedTasks?.filter(
+                          (_task) => _task.status._id === _status._id
+                        ) ?? []
+                      }
+                      isHighlighted={_status.title === "Todo"}
+                      titleColor={_status.color.text}
+                      bgColor={_status.color.bg}
+                      accentColor={_status.color.text}
+                      key={_status._id}
+                    />
+                  );
+                })
             )}
           </div>
         </div>
