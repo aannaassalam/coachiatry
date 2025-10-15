@@ -8,6 +8,7 @@ export default {
   profileAvatar: "/assets/images/profileAvatar.png",
   taskCircle: "/assets/images/taskCircle.png",
   coachAiBackground: "/assets/images/coachAiBackground.png",
+  aiIcon: "/assets/images/ai-icon.png",
 
   icons: {
     dashboard: "/assets/svg/dashboard.svg",

@@ -6,6 +6,7 @@ import {
   editDocument,
   getDocument
 } from "@/external-api/functions/document.api";
+import assets from "@/json/assets";
 import { generateMarkdownPDF } from "@/lib/functions/documentPdf";
 import { cn } from "@/lib/utils";
 import Toolbar from "@/ui/MarkdownEditor/Toolbar";
@@ -20,15 +21,18 @@ import StarterKit from "@tiptap/starter-kit";
 import { Download, X } from "lucide-react";
 import moment from "moment";
 import { useSession } from "next-auth/react";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { BsCalendar2 } from "react-icons/bs";
 import { GoPencil } from "react-icons/go";
 import { IoIosShareAlt } from "react-icons/io";
 import { toast } from "sonner";
+import CoachAI from "./CoachAI";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Combobox } from "./ui/combobox";
 import { Dialog, DialogContent, DialogTitle } from "./ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import {
   Sheet,
   SheetClose,
@@ -412,39 +416,62 @@ export default function DocumentSheet({
               </Button>
               {!isEditing &&
                 !data?.sharedWith.includes(session?.user?._id ?? "") && (
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="border-primary ml-auto py-2 px-2.5 text-primary"
-                      >
-                        <IoIosShareAlt className="size-5" />
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogTitle>Share Document</DialogTitle>
-                      <div className="p-2 bg-white border rounded-sm flex items-center gap-2 w-full">
-                        <p
-                          className="w-100 truncate text-sm text-gray-700"
-                          title={`${process.env.NEXTAUTH_URL}/share/${data?.shareId}`}
-                        >
-                          {`${process.env.NEXTAUTH_URL}/share/${data?.shareId}`}
-                        </p>
+                  <>
+                    <Dialog>
+                      <DialogTrigger asChild>
                         <Button
-                          onClick={async () => {
-                            await navigator.clipboard.writeText(
-                              `${process.env.NEXTAUTH_URL}/share/${data?.shareId}` ||
-                                ""
-                            );
-                            toast.success("Link copied to clipboard!");
-                          }}
-                          size="sm"
+                          variant="outline"
+                          className="border-primary ml-auto py-2 px-2.5 text-primary"
                         >
-                          Copy
+                          <IoIosShareAlt className="size-5" />
                         </Button>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogTitle>Share Document</DialogTitle>
+                        <div className="p-2 bg-white border rounded-sm flex items-center gap-2 w-full">
+                          <p
+                            className="w-100 truncate text-sm text-gray-700"
+                            title={`${process.env.NEXTAUTH_URL}/share/${data?.shareId}`}
+                          >
+                            {`${process.env.NEXTAUTH_URL}/share/${data?.shareId}`}
+                          </p>
+                          <Button
+                            onClick={async () => {
+                              await navigator.clipboard.writeText(
+                                `${process.env.NEXTAUTH_URL}/share/${data?.shareId}` ||
+                                  ""
+                              );
+                              toast.success("Link copied to clipboard!");
+                            }}
+                            size="sm"
+                          >
+                            Copy
+                          </Button>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                    <Popover modal>
+                      <PopoverTrigger>
+                        <button className="py-[9px] px-2.5 flex items-center gap-2 font-lato font-semibold text-xs text-white cursor-pointer bg-gradient-to-br from-0% from-[#0E1634] via-48% via-[#475278] to-98% to-[#121A39] rounded-md">
+                          <Image
+                            src={assets.aiIcon}
+                            alt="AI Icon"
+                            width={36}
+                            height={36}
+                            className="size-6"
+                          />
+                          Coach AI
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent
+                        className="border-none shadow-none bg-transparent"
+                        side="top"
+                        align="end"
+                      >
+                        <CoachAI page="document" id={documentId} />
+                      </PopoverContent>
+                    </Popover>
+                  </>
                 )}
               {isEditing ? (
                 <Button

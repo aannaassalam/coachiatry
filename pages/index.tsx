@@ -1,4 +1,3 @@
-import CoachAi from "@/components/CoachAi";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { getAllConversations } from "@/external-api/functions/chat.api";
@@ -146,12 +145,12 @@ export default function Home() {
       },
       {
         queryKey: ["conversations"],
-        queryFn: () => getAllConversations({ limit: 4, sort: "updatedAt" })
+        queryFn: () => getAllConversations({ limit: 4, sort: "-updatedAt" })
       },
       {
         queryKey: ["documents"],
         queryFn: () =>
-          getAllDocuments({ sort: "updatedAt", tab: "all", limit: 4 })
+          getAllDocuments({ sort: "-updatedAt", tab: "all", limit: 4 })
       }
     ]
   });
@@ -336,7 +335,7 @@ export default function Home() {
           </div>
           <div className="space-y-2">
             {isAllLoading ? (
-              <div className="space-y-2">
+              <>
                 <div className="flex items-center gap-3 px-3 py-2.5 animate-pulse border border-gray-100 rounded-md">
                   <div className="size-10 bg-gray-200 rounded-md" />
                   <div className="space-y-1 max-md:w-full">
@@ -365,10 +364,14 @@ export default function Home() {
                     <div className="h-5 w-40 bg-gray-200 rounded-sm max-md:w-full" />
                   </div>
                 </div>
-              </div>
+              </>
             ) : (
               documents?.data?.map((doc) => (
-                <Link href={`/documents?document=${doc._id}`} key={doc._id}>
+                <Link
+                  href={`/documents?document=${doc._id}`}
+                  key={doc._id}
+                  className="block"
+                >
                   <div className="flex items-start gap-3 p-2.5 cursor-pointer border border-gray-100 hover:bg-gray-100 rounded-md">
                     <div className="p-2 bg-gray-100 rounded-md">
                       <Image
@@ -407,7 +410,6 @@ export default function Home() {
           </div>
         </div>
       </div>
-      <CoachAi />
     </AppLayout>
   );
 }

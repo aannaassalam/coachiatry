@@ -59,5 +59,8 @@ export const endpoints = {
   },
   messages: {
     getMessages: (room: string) => `/message/${room}`
+  },
+  ai: {
+    chatWithAi: "/ai"
   }
 };
