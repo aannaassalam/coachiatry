@@ -7,6 +7,7 @@ export default {
   avatar2: "/assets/images/avatar2.png",
   profileAvatar: "/assets/images/profileAvatar.png",
   taskCircle: "/assets/images/taskCircle.png",
+  coachAiBackground: "/assets/images/coachAiBackground.png",
 
   icons: {
     dashboard: "/assets/svg/dashboard.svg",
