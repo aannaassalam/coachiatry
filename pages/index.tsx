@@ -1,3 +1,4 @@
+import CoachAi from "@/components/CoachAi";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { getAllConversations } from "@/external-api/functions/chat.api";
@@ -406,6 +407,7 @@ export default function Home() {
           </div>
         </div>
       </div>
+      <CoachAi />
     </AppLayout>
   );
 }
