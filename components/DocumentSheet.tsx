@@ -41,7 +41,7 @@ import {
   SheetTitle
 } from "./ui/sheet";
 import { SmartAvatar } from "./ui/smart-avatar";
-import CoachAI from "./CoachAI";
+import CoachAI from "./CoachAIPopover";
 
 export default function DocumentSheet({
   open,

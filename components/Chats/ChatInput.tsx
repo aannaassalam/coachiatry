@@ -17,7 +17,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import EmojiPicker from "./EmojiPicker";
 import ScheduleMessageModal from "./ScheduleModal";
-import CoachAI from "../CoachAI";
+import CoachAI from "../CoachAIPopover";
 
 const InputButtons = ({
   handleSubmit,

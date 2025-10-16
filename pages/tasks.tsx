@@ -1,4 +1,4 @@
-import CoachAI from "@/components/CoachAI";
+import CoachAI from "@/components/CoachAIPopover";
 import AddTaskSheet from "@/components/Tasks/AddTaskSheet";
 import FilterBox from "@/components/Tasks/FilterBox";
 import ListView from "@/components/Tasks/ListView";
