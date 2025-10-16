@@ -179,3 +179,14 @@ export const getAllSharedTasks = async ({
   });
   return res.data;
 };
+
+export const importBulkTasks = async ({
+  tasks
+}: {
+  tasks: Pick<TaskBody, "title" | "description" | "category" | "priority">[];
+}) => {
+  const res = await axiosInstance.post(endpoints.task.importBulkTasks, {
+    tasks
+  });
+  return res.data;
+};

@@ -35,6 +35,7 @@ export const endpoints = {
   task: {
     getAll: "/task",
     post: "/task",
+    importBulkTasks: "/task/import-bulk-tasks",
     getOne: (taskId: string) => `/task/${taskId}`,
     edit: (taskId: string) => `/task/${taskId}`,
     delete: (taskId: string) => `/task/${taskId}`,

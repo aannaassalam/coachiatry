@@ -1,3 +1,4 @@
+import CoachAI from "@/components/CoachAI";
 import AddTaskSheet from "@/components/Tasks/AddTaskSheet";
 import FilterBox from "@/components/Tasks/FilterBox";
 import ListView from "@/components/Tasks/ListView";
@@ -16,11 +17,13 @@ import {
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import assets from "@/json/assets";
 import AppLayout from "@/layouts/AppLayout";
 import { Filter } from "@/typescript/interface/common.interface";
 import { ListFilter } from "lucide-react";
 import moment from "moment";
 import { useSession } from "next-auth/react";
+import Image from "next/image";
 import { parseAsJson, parseAsString, useQueryState } from "nuqs";
 import { useState } from "react";
 import { BsChevronLeft, BsChevronRight } from "react-icons/bs";
@@ -85,6 +88,28 @@ function Tasks() {
           Tasks
         </h1>
         <div className="flex gap-3">
+          <Popover modal>
+            <PopoverTrigger asChild>
+              <button className="py-[9px] px-2.5 flex items-center gap-2 font-lato font-semibold text-xs text-white cursor-pointer bg-gradient-to-br from-0% from-[#0E1634] via-48% via-[#475278] to-98% to-[#121A39] rounded-md">
+                <Image
+                  src={assets.aiIcon}
+                  alt="AI Icon"
+                  width={36}
+                  height={36}
+                  className="size-6"
+                />
+                Coach AI
+              </button>
+            </PopoverTrigger>
+            <PopoverContent
+              className="border-none shadow-none bg-transparent"
+              side="bottom"
+              align="center"
+              collisionPadding={180}
+            >
+              <CoachAI page="task" size="large" />
+            </PopoverContent>
+          </Popover>
           <Dialog>
             <DialogTrigger asChild>
               <Button

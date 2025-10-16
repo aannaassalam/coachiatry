@@ -17,6 +17,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import EmojiPicker from "./EmojiPicker";
 import ScheduleMessageModal from "./ScheduleModal";
+import CoachAI from "../CoachAI";
 
 const InputButtons = ({
   handleSubmit,
@@ -27,6 +28,8 @@ const InputButtons = ({
   setModalOpen: Dispatch<SetStateAction<boolean>>;
   insertEmoji: (emoji: string) => void;
 }) => {
+  const [room] = useQueryState("room", parseAsString.withDefault(""));
+
   return (
     <div className="flex items-stretch self-end">
       <Tooltip>
@@ -90,8 +93,8 @@ const InputButtons = ({
         </TooltipTrigger>
         <TooltipContent>Attachment</TooltipContent>
       </Tooltip>
-      <Tooltip>
-        <TooltipTrigger asChild>
+      <Popover modal>
+        <PopoverTrigger asChild>
           <Button
             variant="ghost"
             size="sm"
@@ -99,14 +102,21 @@ const InputButtons = ({
           >
             <Image
               src={assets.icons.coachAi}
-              width={13}
-              height={13}
+              width={15}
+              height={15}
               alt="coachAi"
             />
           </Button>
-        </TooltipTrigger>
-        <TooltipContent>Coach AI</TooltipContent>
-      </Tooltip>
+        </PopoverTrigger>
+        <PopoverContent
+          className="border-none shadow-none bg-transparent"
+          side="bottom"
+          align="center"
+          collisionPadding={180}
+        >
+          <CoachAI page="chat" size="small" id={room} />
+        </PopoverContent>
+      </Popover>
       <Tooltip>
         <TooltipTrigger asChild>
           <Button

@@ -27,7 +27,7 @@ export default function Navbar({
         <Logo />
       </div>
 
-      <div className="border rounded-xl overflow-hidden flex max-sm:hidden">
+      {/* <div className="border rounded-xl overflow-hidden flex max-sm:hidden">
         <div className="bg-white flex items-center pl-2.5">
           <Search className="text-gray-500 size-4.5" />
           <input
@@ -42,7 +42,7 @@ export default function Navbar({
             Coach AI
           </p>
         </div>
-      </div>
+      </div> */}
       <div className="flex items-center gap-3">
         <SmartAvatar
           src={data?.user?.photo}

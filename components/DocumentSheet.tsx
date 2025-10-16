@@ -379,7 +379,7 @@ export default function DocumentSheet({
               {!isEditing || isPending || isDocUpdating ? (
                 <div
                   dangerouslySetInnerHTML={{ __html: documentData.content }}
-                  className="flex-1"
+                  className="flex-1 leading-7 [&_hr]:my-2"
                 />
               ) : (
                 <EditorContent
@@ -451,7 +451,7 @@ export default function DocumentSheet({
                       </DialogContent>
                     </Dialog>
                     <Popover modal>
-                      <PopoverTrigger>
+                      <PopoverTrigger asChild>
                         <button className="py-[9px] px-2.5 flex items-center gap-2 font-lato font-semibold text-xs text-white cursor-pointer bg-gradient-to-br from-0% from-[#0E1634] via-48% via-[#475278] to-98% to-[#121A39] rounded-md">
                           <Image
                             src={assets.aiIcon}
