@@ -424,7 +424,7 @@ export default function CoachAI({
           </div>
         </div>
         {chats.map((_chat, index) => {
-          return _chat.role === "system" ? (
+          return _chat?.role === "system" ? (
             <SystemMessages
               chat={_chat}
               key={index}
