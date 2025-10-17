@@ -265,7 +265,7 @@ const SystemMessages = ({
       <RiDvdAiFill className="size-6 text-black mt-0.5" />
       <div className="flex-1">
         <div
-          className="text-gray-700 text-sm font-medium font-lato inline-block"
+          className="text-gray-700 text-sm font-medium font-lato inline-block [&_ul]:py-2 [&_ul]:px-5 [&_ol]:py-2 [&_ol]:px-5 [&_ol]:list-decimal [&_ol]:space-y-2 [&_a]:text-blue-500 [&_a]:underline "
           dangerouslySetInnerHTML={{
             __html:
               chat.data || "Couldn't understand that, can you please try again!"
@@ -277,11 +277,9 @@ const SystemMessages = ({
 };
 
 export default function CoachAI({
-  page,
   id,
   size = "small"
 }: {
-  page: string;
   id?: string;
   size?: "large" | "small";
 }) {
@@ -358,7 +356,7 @@ export default function CoachAI({
 
   const handleSend = () => {
     if (value.trim()) {
-      mutate({ query: value, page, id });
+      mutate({ query: value, id });
     }
   };
 
@@ -398,23 +396,21 @@ export default function CoachAI({
                 <div className="flex flex-col gap-2">
                   <button
                     className="flex items-center gap-2 px-3 py-2 rounded-md border border-gray-300 hover:bg-gray-100 transition text-gray-700 text-sm font-medium"
-                    onClick={() => mutate({ page, action: "create_tasks", id })}
+                    onClick={() => mutate({ action: "create_tasks", id })}
                   >
                     <LuFileText className="size-5 text-[#777878]" /> Generate a
                     Task
                   </button>
                   <button
                     className="flex items-center gap-2 px-3 py-2 rounded-md border border-gray-300 hover:bg-gray-100 transition text-gray-700 text-sm font-medium"
-                    onClick={() =>
-                      mutate({ page, action: "create_document", id })
-                    }
+                    onClick={() => mutate({ action: "create_document", id })}
                   >
                     <HiLightningBolt className="size-5 text-[#777878]" /> Create
                     a doc
                   </button>
                   <button
                     className="flex items-center gap-2 px-3 py-2 rounded-md border border-gray-300 hover:bg-gray-100 transition text-gray-700 text-sm font-medium"
-                    onClick={() => mutate({ page, action: "summarize", id })}
+                    onClick={() => mutate({ action: "summarize", id })}
                   >
                     <FaFire className="size-5 text-[#777878]" /> Summarize
                   </button>

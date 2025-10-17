@@ -11,6 +11,7 @@ import { Menu, Search } from "lucide-react";
 import { getInitials } from "@/lib/functions/_helpers.lib";
 import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
+import CoachAI from "@/components/CoachAIPopover";
 
 export default function Navbar({
   navOpen,
@@ -27,7 +28,7 @@ export default function Navbar({
         <Logo />
       </div>
 
-      {/* <div className="border rounded-xl overflow-hidden flex max-sm:hidden">
+      <div className="border rounded-xl overflow-hidden flex max-sm:hidden">
         <div className="bg-white flex items-center pl-2.5">
           <Search className="text-gray-500 size-4.5" />
           <input
@@ -36,13 +37,25 @@ export default function Navbar({
             placeholder="Search"
           />
         </div>
-        <div className="px-2.5 flex items-center gap-2 shrink-0">
-          <Image src={assets.ai} alt="AI" width={24} height={24} />
-          <p className="text-gray-900 font-semibold text-sm leading-4.5 max-md:hidden">
-            Coach AI
-          </p>
-        </div>
-      </div> */}
+        <Popover modal>
+          <PopoverTrigger asChild>
+            <div className="px-2.5 flex items-center gap-2 shrink-0">
+              <Image src={assets.ai} alt="AI" width={24} height={24} />
+              <p className="text-gray-900 font-semibold text-sm leading-4.5 max-md:hidden">
+                Coach AI
+              </p>
+            </div>
+          </PopoverTrigger>
+          <PopoverContent
+            className="border-none shadow-none bg-transparent"
+            side="bottom"
+            align="center"
+            collisionPadding={180}
+          >
+            <CoachAI size="large" />
+          </PopoverContent>
+        </Popover>
+      </div>
       <div className="flex items-center gap-3">
         <SmartAvatar
           src={data?.user?.photo}

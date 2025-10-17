@@ -468,7 +468,7 @@ export default function DocumentSheet({
                         side="top"
                         align="end"
                       >
-                        <CoachAI page="document" id={documentId} />
+                        <CoachAI id={documentId} />
                       </PopoverContent>
                     </Popover>
                   </>
