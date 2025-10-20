@@ -26,6 +26,7 @@ import ChatInput from "./ChatInput";
 import ChatMessage from "./ChatMessage";
 import { cn } from "@/lib/utils";
 import { BsChevronLeft } from "react-icons/bs";
+import ChatUploadWithPreview from "./ChatUpload";
 
 export default function ChatConversation() {
   const topRef = useRef<HTMLDivElement>(null);
@@ -421,7 +422,12 @@ export default function ChatConversation() {
       }
     );
   };
+  const [chatDragShow, setChatDragShow] = useState(false);
+  const [files, setFiles] = useState<File[]>([]);
 
+  const handleUpload = (newFiles: File[]) => {
+    setFiles(newFiles); // keep centralized file state
+  };
   return (
     <div
       className={cn(
@@ -474,13 +480,15 @@ export default function ChatConversation() {
       {/* Messages */}
       <div
         ref={containerRef}
-        className="flex-1 min-h-0 overflow-y-auto px-4 py-2 bg-gray-50"
+        className="flex-1 min-h-0 overflow-y-auto px-4 py-0 bg-gray-50 "
         onScroll={() => {
           if (!containerRef.current) return;
           const { scrollTop, scrollHeight, clientHeight } =
             containerRef.current;
           setIsAtBottom(scrollHeight - scrollTop - clientHeight < 50);
         }}
+        onDragOver={() => setChatDragShow(true)}
+        onDragEnd={() => setChatDragShow(false)}
       >
         <div className="flex flex-col">
           <div ref={topRef} />
@@ -574,6 +582,14 @@ export default function ChatConversation() {
 
           <div ref={bottomRef} />
         </div>
+        {chatDragShow && (
+          <ChatUploadWithPreview
+            files={files} // pass files from parent
+            handleUpload={handleUpload}
+            setFiles={setFiles} // allow child to modify
+            setChatDragShow={setChatDragShow}
+          />
+        )}
       </div>
 
       <AnimatePresence>
@@ -617,6 +633,9 @@ export default function ChatConversation() {
         onSend={handleSend}
         replyingTo={replyingTo}
         setReplyingTo={setReplyingTo}
+        files={files} // current files state
+        setFiles={setFiles} // allow child to modify
+        setChatDragShow={setChatDragShow}
       />
     </div>
   );
