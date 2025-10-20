@@ -75,7 +75,7 @@ function Documents() {
   };
 
   return (
-    <div className="mt-1">
+    <div className="mt-1 max-md:w-[95vw] max-md:overflow-auto scrollbar-hide max-[480px]:!w-[93vw]">
       <Table>
         <TableHeader className="bg-gray-100">
           <TableRow className="border-none">
