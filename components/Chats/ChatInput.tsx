@@ -22,14 +22,29 @@ import CoachAI from "../CoachAIPopover";
 const InputButtons = ({
   handleSubmit,
   setModalOpen,
-  insertEmoji
+  insertEmoji,
+  files,
+  setFiles,
+  setChatDragShow
 }: {
   handleSubmit: () => void;
   setModalOpen: Dispatch<SetStateAction<boolean>>;
   insertEmoji: (emoji: string) => void;
+  files: File[];
+  setFiles: React.Dispatch<React.SetStateAction<File[]>>;
+  setChatDragShow: (show: boolean) => void;
 }) => {
   const [room] = useQueryState("room", parseAsString.withDefault(""));
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = Array.from(e.target.files || []);
+    if (selectedFiles.length > 0) {
+      const updated = [...files, ...selectedFiles];
+      setFiles(updated);
+      setChatDragShow(true); // show upload preview
+    }
+  };
   return (
     <div className="flex items-stretch self-end">
       <Tooltip>
@@ -87,8 +102,17 @@ const InputButtons = ({
             variant="ghost"
             size="sm"
             className="hover:bg-secondary p-2 aspect-square"
+            onClick={() => fileInputRef.current?.click()} // open file picker
           >
             <Image src={assets.icons.clip} width={15} height={15} alt="clip" />
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              onChange={handleFileSelect}
+              className="absolute inset-0 opacity-0 cursor-pointer"
+              style={{ display: "none" }} // keep truly hidden
+            />
           </Button>
         </TooltipTrigger>
         <TooltipContent>Attachment</TooltipContent>
@@ -136,11 +160,17 @@ const InputButtons = ({
 export default function ChatInput({
   onSend,
   replyingTo,
-  setReplyingTo
+  setReplyingTo,
+  files,
+  setFiles,
+  setChatDragShow
 }: {
   onSend: (msg: string) => void;
   replyingTo: Message | null;
   setReplyingTo: React.Dispatch<React.SetStateAction<Message | null>>;
+  files: File[];
+  setFiles: React.Dispatch<React.SetStateAction<File[]>>;
+  setChatDragShow: (show: boolean) => void;
 }) {
   const { data } = useSession();
   const socket = useSocket();
@@ -291,6 +321,9 @@ export default function ChatInput({
               handleSubmit={handleSend}
               setModalOpen={setOpen}
               insertEmoji={insertEmoji}
+              files={files}
+              setFiles={setFiles}
+              setChatDragShow={setChatDragShow}
             />
             {/* </motion.div> */}
 
