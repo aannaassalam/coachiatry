@@ -6,6 +6,12 @@ import moment from "moment";
 import { useSession } from "next-auth/react";
 import { parseAsString, useQueryState } from "nuqs";
 import { SmartAvatar } from "../ui/smart-avatar";
+import { useEffect } from "react";
+import { useSocket } from "@/lib/socketContext";
+import { queryClient } from "@/pages/_app";
+import { PaginatedResponse } from "@/typescript/interface/common.interface";
+import { ChatConversation } from "@/typescript/interface/chat.interface";
+import { Message } from "@/typescript/interface/message.interface";
 
 moment.updateLocale("en", {
   relativeTime: {
@@ -29,16 +35,73 @@ moment.updateLocale("en", {
 });
 
 export default function ChatList() {
-  const [, setSelectedChat] = useQueryState(
+  const [room, setSelectedChat] = useQueryState(
     "room",
     parseAsString.withDefault("")
   );
   const { data } = useSession();
+  const socket = useSocket();
 
   const { data: chats, isLoading } = useQuery({
     queryKey: ["conversations"],
     queryFn: getAllConversations
   });
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleNewMessage = (msg: Message) => {
+      // Update conversation list regardless of which room user is viewing
+      queryClient.setQueryData<PaginatedResponse<ChatConversation[]>>(
+        ["conversations"],
+        (old) => {
+          if (!old) return old;
+
+          const newData = [...old.data];
+          const idx = newData.findIndex((c) => c._id === msg.chat);
+
+          // Prepare updated conversation object
+          const updatedConv = {
+            ...(idx > -1 ? newData[idx] : {}),
+            _id: msg.chat,
+            lastMessage: msg,
+            updatedAt: msg.updatedAt ?? new Date().toISOString()
+          } as ChatConversation;
+
+          // Determine if this conversation should be marked unread
+          const isCurrentRoom = msg.chat === room;
+          const isMyMessage = msg.sender?._id === data?.user?._id;
+
+          if (!isCurrentRoom && !isMyMessage) {
+            updatedConv.unreadCount = (updatedConv.unreadCount || 0) + 1;
+          } else {
+            updatedConv.unreadCount = 0;
+          }
+
+          // Insert or update in the list
+          if (idx > -1) {
+            newData[idx] = updatedConv;
+          } else {
+            newData.unshift(updatedConv); // brand new chat
+          }
+
+          // Sort by updatedAt descending
+          newData.sort(
+            (a, b) =>
+              moment(b.updatedAt).valueOf() - moment(a.updatedAt).valueOf()
+          );
+
+          return { ...old, data: newData };
+        }
+      );
+    };
+
+    socket.on("new_message", handleNewMessage);
+
+    return () => {
+      socket.off("new_message", handleNewMessage);
+    };
+  }, [socket, room, data?.user?._id]);
 
   return (
     <div className="w-xs mr-auto bg-white pt-4 rounded-lg flex flex-col max-md:w-full">
@@ -102,11 +165,15 @@ export default function ChatList() {
                   src={chatUser?.user?.photo}
                   name={chatUser?.user?.fullName}
                   key={chatUser?.user?.updatedAt}
-                  className="size-10"
+                  className="size-11"
                 />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center">
-                    <span className="font-medium  text-sm text-gray-900">
+                    <span
+                      className={cn("font-medium  text-sm text-gray-900", {
+                        "font-bold": _chat.unreadCount > 0
+                      })}
+                    >
                       {chatUser?.user.fullName}
                     </span>
                     {/* {msg.unread && (
@@ -114,10 +181,9 @@ export default function ChatList() {
                     )} */}
                   </div>
                   <p
-                    className={cn(
-                      "text-xs text-gray-500 truncate"
-                      // msg.unread && "font-semibold"
-                    )}
+                    className={cn("text-xs text-gray-500 truncate mt-1", {
+                      "font-semibold": _chat.unreadCount > 0
+                    })}
                   >
                     {_chat.lastMessage?.sender?._id === data?.user?._id
                       ? "You: "
@@ -125,9 +191,20 @@ export default function ChatList() {
                     {_chat.lastMessage?.content}
                   </p>
                 </div>
-                <span className="text-xs text-gray-500 whitespace-nowrap ">
-                  {moment(_chat.lastMessage?.createdAt).fromNow(true)}
-                </span>
+                <div className="flex flex-col items-center justify-between gap-1">
+                  <span
+                    className={cn("text-xs text-gray-500 whitespace-nowrap", {
+                      "font-semibold": _chat.unreadCount > 0
+                    })}
+                  >
+                    {moment(_chat.lastMessage?.createdAt).fromNow(true)}
+                  </span>
+                  {_chat.unreadCount > 0 && (
+                    <span className="text-xs h-5 min-w-5 px-1 rounded-full bg-primary text-white flex items-center justify-center">
+                      {_chat.unreadCount > 99 ? "99+" : _chat.unreadCount}
+                    </span>
+                  )}
+                </div>
                 {/* </div> */}
               </li>
             );

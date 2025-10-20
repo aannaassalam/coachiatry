@@ -13,6 +13,7 @@ export interface ChatConversation {
       lastReadAt: string;
     }
   ];
+  unreadCount: number;
   lastMessage: {
     sender?: User;
     content?: string;

@@ -24,7 +24,14 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
     });
     setSocket(s);
 
-    s.on("connect", () => console.log("🔌 Connected:", s.id));
+    s.on("connect", () => {
+      s.emit("user_online", { userId: data?.user?._id });
+
+      // Optional: handle reconnection after network loss
+      s.on("connect", () => {
+        s.emit("user_online", { userId: data?.user?._id });
+      });
+    });
     s.on("disconnect", () => console.log("❌ Disconnected"));
 
     return () => {

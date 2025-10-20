@@ -42,6 +42,9 @@ export default function ChatConversation() {
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
   const [isAtBottom, setIsAtBottom] = useState(true);
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
+  const [friendStatus, setFriendStatus] = useState<"online" | "offline">(
+    "offline"
+  );
 
   const {
     data: messagesData,
@@ -116,12 +119,42 @@ export default function ChatConversation() {
     prevMessageCount.current = newCount;
   }, [allMessages, isAtBottom]);
 
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleStatusUpdate = ({
+      userId,
+      status
+    }: {
+      userId: string;
+      status: "online" | "offline";
+    }) => {
+      console.log(userId);
+      if (userId === friend?.user._id) {
+        console.log("hit", status);
+        setFriendStatus(status);
+      }
+    };
+
+    socket.on("user_status_update", handleStatusUpdate);
+
+    return () => {
+      socket.off("user_status_update", handleStatusUpdate);
+    };
+  }, [socket, friend?.user._id]);
+
   // SOCKET HANDLERS
   useEffect(() => {
     if (!socket) return;
     if (!room) return;
 
-    socket.emit("join_room", { chatId: room, userId: data?.user?._id });
+    socket.emit("join_room", {
+      chatId: room,
+      userId: data?.user?._id,
+      friendId: friend?.user._id
+    });
+
+    socket.emit("mark_seen", { chatId: room, userId: data?.user?._id });
 
     // NEW MESSAGE (from server)
     socket.on("new_message", (msg: Message) => {
@@ -152,7 +185,7 @@ export default function ChatConversation() {
               const newData = [...page.data];
               newData[tempIdx] = {
                 ...msg,
-                status: "delivered" as MessageStatus
+                status: "sent" as MessageStatus
               };
               return { ...page, data: newData };
             }
@@ -164,10 +197,7 @@ export default function ChatConversation() {
             // **Append** to the end of page.data (newest at bottom after our flattening)
             return {
               ...page,
-              data: [
-                { ...msg, status: "delivered" as MessageStatus },
-                ...page.data
-              ]
+              data: [{ ...msg, status: "sent" as MessageStatus }, ...page.data]
             };
           });
 
@@ -192,6 +222,10 @@ export default function ChatConversation() {
               updatedAt: msg.updatedAt ?? new Date().toISOString()
             };
 
+            if (msg.sender?._id !== data?.user?._id && msg.chat !== room) {
+              updatedConv.unreadCount = (updatedConv.unreadCount || 0) + 1;
+            }
+
             newData = [...old.data];
             newData[idx] = updatedConv;
           } else {
@@ -209,30 +243,37 @@ export default function ChatConversation() {
     });
 
     // Delivery, seen, reaction updates (same as before)
-    socket.on("message_delivered_update", (incoming: Message) => {
+    socket.on("message_seen_update_bulk", ({ chatId, userId }) => {
+      if (chatId !== room) return;
+
       queryClient.setQueryData<InfiniteData<PaginatedResponse<Message[]>>>(
-        ["messages", room],
+        ["messages", chatId],
         (old) => {
           if (!old) return old;
           const updatedPages = old.pages.map((page) => ({
             ...page,
-            data: page.data.map((m) => (m._id === incoming._id ? incoming : m))
+            data: page.data.map((m) =>
+              m.sender?._id !== userId
+                ? { ...m, status: "seen" as MessageStatus }
+                : m
+            )
           }));
           return { ...old, pages: updatedPages };
         }
       );
-    });
 
-    socket.on("message_seen_update", (incoming: Message) => {
-      queryClient.setQueryData<InfiniteData<PaginatedResponse<Message[]>>>(
-        ["messages", room],
+      // also update chat list preview
+      queryClient.setQueryData<PaginatedResponse<Conversation[]>>(
+        ["conversations"],
         (old) => {
           if (!old) return old;
-          const updatedPages = old.pages.map((page) => ({
-            ...page,
-            data: page.data.map((m) => (m._id === incoming._id ? incoming : m))
-          }));
-          return { ...old, pages: updatedPages };
+          const idx = old.data.findIndex((c) => c._id === chatId);
+          if (idx === -1) return old;
+
+          const updated = { ...old.data[idx], unreadCount: 0 };
+          const newData = [...old.data];
+          newData[idx] = updated;
+          return { ...old, data: newData };
         }
       );
     });
@@ -271,7 +312,7 @@ export default function ChatConversation() {
       socket.off("user_typing");
       socket.off("user_stop_typing");
     };
-  }, [socket, room, data?.user?._id]);
+  }, [socket, room, data?.user?._id, friend?.user?._id]);
 
   // Fetch older pages when top hits viewport — keep scroll position stable
   useEffect(() => {
@@ -414,9 +455,13 @@ export default function ChatConversation() {
               <p className="font-semibold font-lato text-base">
                 {friend?.user.fullName}
               </p>
-              <p className="text-xs font-lato flex items-center gap-1">
-                <span className="bg-green-500 rounded-full w-2 h-2 flex"></span>
-                Online
+              <p className="text-xs font-lato flex items-center gap-1 capitalize">
+                <span
+                  className={cn("bg-green-500 rounded-full w-2 h-2 flex", {
+                    "bg-yellow-500": friendStatus === "offline"
+                  })}
+                ></span>
+                {friendStatus}
               </p>
             </div>
           </div>
