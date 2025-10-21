@@ -64,6 +64,7 @@ const EmojiPicker: React.FC<EmojiPickerProps> = ({
                     selectedIndex === index ? "bg-blue-100 scale-110" : ""
                   }`}
                   title={item.label}
+                  center
                 >
                   {item.emoji}
                 </Button>
@@ -74,10 +75,11 @@ const EmojiPicker: React.FC<EmojiPickerProps> = ({
             <Button
               variant="ghost"
               onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-              className={`w-10 h-10 rounded-full p-0 flex items-center justify-center text-xl hover:bg-gray-100 transition-all duration-200 transform hover:scale-110 ${
+              className={`size-8.5 rounded-full p-0 flex items-center justify-center text-xl hover:bg-gray-100 transition-all duration-200 transform hover:scale-110 ${
                 showEmojiPicker ? "bg-gray-100 scale-110 hidden" : ""
               }`}
               title="Add reaction"
+              center
             >
               <span className="text-gray-400">
                 <Image

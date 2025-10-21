@@ -188,7 +188,12 @@ export default function ChatList() {
                     {_chat.lastMessage?.sender?._id === data?.user?._id
                       ? "You: "
                       : null}
-                    {_chat.lastMessage?.content}
+                    {_chat.lastMessage?.content ||
+                      (_chat.lastMessage?.type === "image"
+                        ? "📷 Images"
+                        : _chat.lastMessage?.type === "video"
+                          ? "🎥 Videos"
+                          : "📁 Files")}
                   </p>
                 </div>
                 <div className="flex flex-col items-center justify-between gap-1">

@@ -1,6 +1,7 @@
 import { useState, DragEvent, ChangeEvent } from "react";
 import { RxCross1 } from "react-icons/rx";
 import { FaFileAlt } from "react-icons/fa";
+import Image from "next/image";
 
 interface ChatUploadProps {
   handleUpload: (files: File[]) => void;
@@ -17,7 +18,7 @@ export default function ChatUploadWithPreview({
 }: ChatUploadProps) {
   const [dragActive, setDragActive] = useState(false);
 
-  const [showPreview, setShowPreview] = useState(false);
+  const [, setShowPreview] = useState(false);
   const [selectedFileIndex, setSelectedFileIndex] = useState(0);
 
   const resetAll = () => {
@@ -64,7 +65,7 @@ export default function ChatUploadWithPreview({
     else if (selectedFileIndex >= updated.length)
       setSelectedFileIndex(updated.length - 1);
   };
-  console.log(showPreview);
+
   return (
     <div className="sticky w-full h-full inset-0 bg-gray-50 flex justify-center items-center z-50 p-4 max-md:px-0">
       {/* Single Close Button */}
@@ -90,6 +91,7 @@ export default function ChatUploadWithPreview({
               <video
                 controls
                 className="max-w-[70%] max-h-[100%] rounded-lg shadow-md object-contain"
+                key={selectedFileIndex}
               >
                 <source
                   src={URL.createObjectURL(files[selectedFileIndex])}
@@ -97,10 +99,12 @@ export default function ChatUploadWithPreview({
                 />
               </video>
             ) : files[selectedFileIndex]?.type.includes("image") ? (
-              <img
+              <Image
                 src={URL.createObjectURL(files[selectedFileIndex])}
                 alt="Preview"
                 className="max-w-[70%] max-h-[100%] rounded-lg shadow-md object-contain"
+                width={100}
+                height={100}
               />
             ) : (
               <div className="text-2xl text-gray-800 font-semibold flex flex-col justify-center items-center">
@@ -123,10 +127,12 @@ export default function ChatUploadWithPreview({
                 onClick={() => setSelectedFileIndex(i)}
               >
                 {file.type.includes("image") ? (
-                  <img
+                  <Image
                     src={URL.createObjectURL(file)}
                     alt="thumb"
                     className="w-[50px] h-[50px] object-cover rounded-md"
+                    width={100}
+                    height={100}
                   />
                 ) : file.type.includes("video") ? (
                   <video

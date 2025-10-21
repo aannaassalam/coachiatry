@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 "use client";
 
 import { getConversation } from "@/external-api/functions/chat.api";
@@ -27,6 +29,8 @@ import ChatMessage from "./ChatMessage";
 import { cn } from "@/lib/utils";
 import { BsChevronLeft } from "react-icons/bs";
 import ChatUploadWithPreview from "./ChatUpload";
+import { useChatUpload } from "@/hooks/useChatHook";
+import { uploadManager } from "@/services/uploadManager";
 
 export default function ChatConversation() {
   const topRef = useRef<HTMLDivElement>(null);
@@ -46,6 +50,36 @@ export default function ChatConversation() {
   const [friendStatus, setFriendStatus] = useState<"online" | "offline">(
     "offline"
   );
+  const [chatDragShow, setChatDragShow] = useState(false);
+  const [files, setFiles] = useState<File[]>([]);
+
+  const messageKeyMap = useRef<Map<string, string>>(new Map());
+
+  const uploadMutation = useChatUpload();
+
+  const getStableKey = (msg: Message) => {
+    // prefer a known unique identifier (tempId or _id)
+    const id = msg.tempId || msg._id;
+
+    if (!id) {
+      // fallback if neither exists — shouldn’t happen, but for safety
+      return `unknown-${Math.random().toString(36).substring(2, 9)}`;
+    }
+
+    // if we already have a key for this message, return it
+    if (messageKeyMap.current.has(id)) {
+      return messageKeyMap.current.get(id)!;
+    }
+
+    // otherwise create one and store it
+    const stableKey = crypto.randomUUID();
+    messageKeyMap.current.set(id, stableKey);
+    return stableKey;
+  };
+
+  useEffect(() => {
+    messageKeyMap.current.clear();
+  }, [room]);
 
   const {
     data: messagesData,
@@ -130,9 +164,7 @@ export default function ChatConversation() {
       userId: string;
       status: "online" | "offline";
     }) => {
-      console.log(userId);
       if (userId === friend?.user._id) {
-        console.log("hit", status);
         setFriendStatus(status);
       }
     };
@@ -160,6 +192,13 @@ export default function ChatConversation() {
     // NEW MESSAGE (from server)
     socket.on("new_message", (msg: Message) => {
       if (msg.chat !== room) return;
+
+      if (msg.tempId && msg._id) {
+        const oldKey = messageKeyMap.current.get(msg.tempId);
+        if (oldKey) {
+          messageKeyMap.current.set(msg._id, oldKey);
+        }
+      }
 
       queryClient.setQueryData<InfiniteData<PaginatedResponse<Message[]>>>(
         ["messages", room],
@@ -247,21 +286,25 @@ export default function ChatConversation() {
     socket.on("message_seen_update_bulk", ({ chatId, userId }) => {
       if (chatId !== room) return;
 
-      queryClient.setQueryData<InfiniteData<PaginatedResponse<Message[]>>>(
-        ["messages", chatId],
-        (old) => {
-          if (!old) return old;
-          const updatedPages = old.pages.map((page) => ({
-            ...page,
-            data: page.data.map((m) =>
-              m.sender?._id !== userId
-                ? { ...m, status: "seen" as MessageStatus }
-                : m
-            )
-          }));
-          return { ...old, pages: updatedPages };
-        }
-      );
+      if (userId !== data?.user?._id) {
+        queryClient.setQueryData<InfiniteData<PaginatedResponse<Message[]>>>(
+          ["messages", chatId],
+          (old) => {
+            if (!old) return old;
+
+            const updatedPages = old.pages.map((page) => ({
+              ...page,
+              data: page.data.map((m) =>
+                m.sender?._id === data?.user?._id
+                  ? { ...m, status: "seen" as MessageStatus }
+                  : m
+              )
+            }));
+
+            return { ...old, pages: updatedPages };
+          }
+        );
+      }
 
       // also update chat list preview
       queryClient.setQueryData<PaginatedResponse<Conversation[]>>(
@@ -342,92 +385,215 @@ export default function ChatConversation() {
   }, [fetchNextPage, hasNextPage]);
 
   // HANDLE SEND: optimistic insert (append to end of newest page)
-  const handleSend = (text: string) => {
-    if (!text || text === "<p></p>") return;
+  const handleSend = async (text: string, files: File[]) => {
+    if (!data?.user?._id || !socket) return;
+    if (!text && files.length === 0) return;
 
-    const message: Omit<Message, "replyTo" | "sender"> & {
+    setChatDragShow(false);
+
+    const tempId = Date.now().toString();
+    const now = new Date().toISOString();
+
+    const optimisticMessage: Omit<Message, "replyTo" | "sender"> & {
       replyTo?: string;
-      sender?: string;
+      sender?: string; // 👈 NEW
     } = {
       chat: room,
       sender: data?.user?._id,
-      type: "text",
+      type:
+        files.length > 0
+          ? files[0].type.startsWith("image")
+            ? "image"
+            : files[0].type.startsWith("video")
+              ? "video"
+              : "file"
+          : ("text" as Message["type"]),
       content: text,
-      tempId: Date.now().toString(),
-      status: "pending",
       replyTo: replyingTo?._id,
-      createdAt: new Date().toISOString()
+      files: files.map((f) => ({
+        url: URL.createObjectURL(f),
+        type: f.type.startsWith("video")
+          ? "video"
+          : f.type.startsWith("image")
+            ? "image"
+            : "file",
+        size: f.size,
+        thumbnailUrl: null,
+        duration: null,
+        uploading: true,
+        progress: 0,
+        filename: f.name
+      })),
+      tempId,
+      status: "pending",
+      createdAt: now,
+      overallProgress: 0
     };
 
-    socket?.emit("send_message", message);
-
-    queryClient.setQueryData<InfiniteData<PaginatedResponse<Message[]>>>(
-      ["messages", room],
-      (old) => {
-        if (!old) {
-          return {
-            pageParams: [1],
-            pages: [
-              {
-                data: [{ ...message, replyTo: replyingTo, sender: data?.user }],
-                meta: {
-                  currentPage: 1,
-                  totalPages: 1,
-                  totalCount: 1,
-                  results: 1,
-                  limit: 20
-                }
+    // Optimistic update
+    queryClient.setQueryData(["messages", room], (old: any) => {
+      if (!old) {
+        return {
+          pageParams: [1],
+          pages: [
+            {
+              data: [optimisticMessage],
+              meta: {
+                currentPage: 1,
+                totalPages: 1,
+                totalCount: 1,
+                results: 1,
+                limit: 20
               }
-            ]
-          };
-        }
-
-        const updatedPages = old.pages.map((page, idx) => {
-          if (idx !== 0) return page;
-          // Append (newest at bottom)
-          return {
-            ...page,
-            data: [
-              { ...message, replyTo: replyingTo, sender: data?.user },
-              ...page.data
-            ]
-          };
-        });
-
-        return { ...old, pages: updatedPages };
-      }
-    );
-
-    // Update conversation preview
-    queryClient.setQueryData<PaginatedResponse<Conversation[]>>(
-      ["conversations"],
-      (old) => {
-        if (!old) return old;
-        const idx = old.data.findIndex((c) => c._id === room);
-        if (idx === -1) return old;
-
-        const updatedConv = {
-          ...old.data[idx],
-          lastMessage: { ...message, replyTo: replyingTo, sender: data?.user },
-          updatedAt: new Date().toISOString()
+            }
+          ]
         };
-
-        const newData = [...old.data];
-        newData[idx] = updatedConv;
-        newData.sort(
-          (a, b) =>
-            moment(b.updatedAt).valueOf() - moment(a.updatedAt).valueOf()
-        );
-        return { ...old, data: newData };
       }
-    );
+
+      // produce copy of pages with new message prepended to newest page (pages[0] is newest in your backend)
+      const newPages = old.pages.map((page: any, idx: number) =>
+        idx === 0 ? { ...page, data: [optimisticMessage, ...page.data] } : page
+      );
+
+      return { ...old, pages: newPages };
+    });
+
+    if (files.length > 0) {
+      const totalSize = files.reduce((a, f) => a + f.size, 0);
+      const progressPerFile = Array(files.length).fill(0);
+
+      const uploadedFiles = await Promise.all(
+        files.map(async (file, i) => {
+          const controller = new AbortController();
+          uploadManager.add(tempId, controller); // ✅ register it
+
+          try {
+            const url = await uploadMutation.mutateAsync({
+              file,
+              chatId: room,
+              signal: controller.signal,
+              onProgress: (pct) => {
+                progressPerFile[i] = pct;
+                const uploadedBytes = files.reduce(
+                  (sum, f, idx) => sum + (progressPerFile[idx] / 100) * f.size,
+                  0
+                );
+                const overallPct = (uploadedBytes / totalSize) * 100;
+
+                queryClient.setQueryData(["messages", room], (old: any) => {
+                  if (!old) return old;
+
+                  return {
+                    ...old,
+                    pages: old.pages.map((page: any, pageIndex: number) => {
+                      // Only update the newest page (index 0)
+                      if (pageIndex !== 0) return page;
+
+                      return {
+                        ...page,
+                        data: page.data.map((m: any) =>
+                          m.tempId === tempId
+                            ? {
+                                ...m,
+                                overallProgress:
+                                  overallPct < 100 ? overallPct : 0, // update progress immutably
+                                files: m.files?.map((f: any, fi: number) =>
+                                  i === fi ? { ...f, progress: pct } : f
+                                )
+                              }
+                            : m
+                        )
+                      };
+                    })
+                  };
+                });
+              }
+            });
+
+            return {
+              url,
+              type: file.type.startsWith("video")
+                ? "video"
+                : file.type.startsWith("image")
+                  ? "image"
+                  : "file",
+              size: file.size
+            };
+          } catch {
+            if (controller.signal.aborted) {
+              console.log("Upload cancelled:", file.name);
+              return null;
+            }
+            return null;
+          }
+        })
+      );
+
+      uploadManager.clear(tempId); // ✅ cleanup after done
+
+      // Final update (success or fail)
+      const validFiles = uploadedFiles.filter(Boolean);
+      queryClient.setQueryData(["messages", room], (old: any) => {
+        if (!old) return old;
+
+        return {
+          ...old,
+          pages: old.pages.map((page: any, pageIndex: number) => {
+            if (pageIndex !== 0) return page; // update only the newest page
+
+            return {
+              ...page,
+              data: page.data.map((m: any) =>
+                m.tempId === tempId
+                  ? {
+                      ...m,
+                      files: validFiles,
+                      status: validFiles.length > 0 ? "sent" : "failed",
+                      overallProgress: 100,
+                      // Optional: mark each file as "uploading: false"
+                      ...(validFiles?.length
+                        ? {
+                            files: validFiles.map((f: any) => ({
+                              ...f,
+                              uploading: false,
+                              progress: 100
+                            }))
+                          }
+                        : {})
+                    }
+                  : m
+              )
+            };
+          })
+        };
+      });
+
+      if (validFiles.length > 0) {
+        socket.emit("send_message", {
+          ...optimisticMessage,
+          files: validFiles,
+          status: "sent"
+        });
+      }
+    } else {
+      socket.emit("send_message", optimisticMessage);
+    }
   };
-  const [chatDragShow, setChatDragShow] = useState(false);
-  const [files, setFiles] = useState<File[]>([]);
+
+  useEffect(() => {
+    if (containerRef.current) {
+      if (chatDragShow) {
+        containerRef.current.style.overflow = "hidden";
+      } else {
+        containerRef.current.style.overflow = "auto";
+      }
+    }
+  }, [containerRef, chatDragShow]);
 
   const handleUpload = (newFiles: File[]) => {
     setFiles(newFiles); // keep centralized file state
   };
+
   return (
     <div
       className={cn(
@@ -480,7 +646,12 @@ export default function ChatConversation() {
       {/* Messages */}
       <div
         ref={containerRef}
-        className="flex-1 min-h-0 overflow-y-auto px-4 py-0 bg-gray-50 "
+        className={cn(
+          "flex-1 min-h-0 overflow-y-auto p-4 bg-gray-50 relative",
+          {
+            "p-0": chatDragShow
+          }
+        )}
         onScroll={() => {
           if (!containerRef.current) return;
           const { scrollTop, scrollHeight, clientHeight } =
@@ -558,11 +729,9 @@ export default function ChatConversation() {
                   msg.sender?._id !== data?.user?._id &&
                   (!previous || previous.sender?._id !== msg.sender?._id);
 
-                const key = msg._id ?? msg.tempId;
-
                 return (
                   <motion.div
-                    key={key}
+                    key={getStableKey(msg)}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 10 }}

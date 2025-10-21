@@ -7,17 +7,23 @@ import assets from "@/json/assets";
 import { useSocket } from "@/lib/socketContext";
 import { Message } from "@/typescript/interface/message.interface";
 import { AnimatePresence, motion } from "framer-motion";
-import { X } from "lucide-react";
+import { Files, Image as ImageIcon, Video, X } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { parseAsString, useQueryState } from "nuqs";
+import CoachAI from "../CoachAIPopover";
 import { Button } from "../ui/button";
 import { Dialog } from "../ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from "../ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import EmojiPicker from "./EmojiPicker";
 import ScheduleMessageModal from "./ScheduleModal";
-import CoachAI from "../CoachAIPopover";
 
 const InputButtons = ({
   handleSubmit,
@@ -35,15 +41,17 @@ const InputButtons = ({
   setChatDragShow: (show: boolean) => void;
 }) => {
   const [room] = useQueryState("room", parseAsString.withDefault(""));
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [open, setOpen] = useState(false);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setOpen(false);
     const selectedFiles = Array.from(e.target.files || []);
     if (selectedFiles.length > 0) {
       const updated = [...files, ...selectedFiles];
       setFiles(updated);
       setChatDragShow(true); // show upload preview
     }
+    e.target.value = "";
   };
   return (
     <div className="flex items-stretch self-end">
@@ -96,27 +104,75 @@ const InputButtons = ({
         </Popover>
         <TooltipContent>Emoji Panel</TooltipContent>
       </Tooltip>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="hover:bg-secondary p-2 aspect-square"
-            onClick={() => fileInputRef.current?.click()} // open file picker
-          >
-            <Image src={assets.icons.clip} width={15} height={15} alt="clip" />
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              onChange={handleFileSelect}
-              className="absolute inset-0 opacity-0 cursor-pointer"
-              style={{ display: "none" }} // keep truly hidden
-            />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>Attachment</TooltipContent>
-      </Tooltip>
+      <DropdownMenu open={open} onOpenChange={setOpen}>
+        <DropdownMenuTrigger>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="hover:bg-secondary p-2 aspect-square"
+                asChild
+              >
+                <Image
+                  src={assets.icons.clip}
+                  width={15}
+                  height={15}
+                  alt="clip"
+                />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Attachment</TooltipContent>
+          </Tooltip>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent sideOffset={15}>
+          <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+            <label className="flex-1 inline-flex items-center gap-2">
+              <ImageIcon />
+              Images
+              <input
+                // ref={fileInputRef}
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={handleFileSelect}
+                className="absolute inset-0 opacity-0 cursor-pointer"
+                style={{ display: "none" }} // keep truly hidden
+              />
+            </label>
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+            <label className="flex-1 inline-flex items-center gap-2">
+              <Video />
+              Videos
+              <input
+                // ref={fileInputRef}
+                type="file"
+                multiple
+                accept="video/*"
+                onChange={handleFileSelect}
+                className="absolute inset-0 opacity-0 cursor-pointer"
+                style={{ display: "none" }} // keep truly hidden
+              />
+            </label>
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+            <label className="flex-1 inline-flex items-center gap-2">
+              <Files />
+              Documents
+              <input
+                // ref={fileInputRef}
+                type="file"
+                multiple
+                accept="application/*"
+                onChange={handleFileSelect}
+                className="absolute inset-0 opacity-0 cursor-pointer"
+                style={{ display: "none" }} // keep truly hidden
+              />
+            </label>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
       <Popover modal>
         <PopoverTrigger asChild>
           <Button
@@ -165,7 +221,7 @@ export default function ChatInput({
   setFiles,
   setChatDragShow
 }: {
-  onSend: (msg: string) => void;
+  onSend: (msg: string, files: File[]) => void;
   replyingTo: Message | null;
   setReplyingTo: React.Dispatch<React.SetStateAction<Message | null>>;
   files: File[];
@@ -220,9 +276,10 @@ export default function ChatInput({
   };
 
   const handleSend = () => {
-    if (!value.trim()) return;
-    onSend(value);
+    if (!value.trim() && files.length === 0) return;
+    onSend(value, files);
     setValue("");
+    setFiles([]);
     setReplyingTo(null);
     socket?.emit("stop_typing", { chatId: room, userId: data?.user?._id });
   };
@@ -274,7 +331,14 @@ export default function ChatInput({
                       ? "You"
                       : replyingTo?.sender?.fullName}
                   </p>
-                  <p className="truncate min-w-0">{replyingTo?.content}</p>
+                  <p className="truncate min-w-0">
+                    {replyingTo?.content ||
+                      (replyingTo.type === "image"
+                        ? `📷 ${replyingTo.files?.length} images`
+                        : replyingTo.type === "video"
+                          ? `🎥 ${replyingTo.files?.length} videos`
+                          : `📁 ${replyingTo.files?.length} files`)}
+                  </p>
                 </motion.div>
                 <span
                   className="cursor-pointer"

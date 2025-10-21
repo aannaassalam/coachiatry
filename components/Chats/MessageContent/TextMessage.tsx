@@ -38,7 +38,7 @@ export default function TextMessage({
 }: TextMessageProps) {
   const { data } = useSession();
   const socket = useSocket();
-  const isUser = sender?._id === data?.user?._id;
+  const isUser = sender?._id === data?.user?._id || sender === data?.user?._id;
   const reactions = message.reactions ?? [];
 
   const [room] = useQueryState("room", parseAsString.withDefault(""));
@@ -192,19 +192,34 @@ export default function TextMessage({
           !isUser && !showAvatar && "ml-[2.75rem]"
         )}
       >
-        {!!Object.keys(message.replyTo ?? {}).length && (
-          <div className="flex gap-1 mb-2 bg-gray-100 p-2 pl-1 rounded text-primary">
-            <div className="w-1 rounded-lg bg-primary" />
-            <div className="flex-1">
-              <p className="text-xs">
-                {message.replyTo?.sender?._id === data?.user?._id
-                  ? "You"
-                  : message.replyTo?.sender?.fullName}
-              </p>
-              <p className="truncate min-w-0">{message.replyTo?.content}</p>
+        {typeof message.replyTo !== "string" &&
+          !!Object.keys(message.replyTo ?? {}).length && (
+            <div
+              className={cn(
+                "flex gap-1 mb-2 bg-gray-100 p-2 pl-1 rounded text-primary",
+                {
+                  "bg-white/70": !isUser
+                }
+              )}
+            >
+              <div className="w-1 rounded-lg bg-primary" />
+              <div className="flex-1">
+                <p className="text-xs">
+                  {message.replyTo?.sender?._id === data?.user?._id
+                    ? "You"
+                    : message.replyTo?.sender?.fullName}
+                </p>
+                <p className="truncate min-w-0">
+                  {message.replyTo?.content ||
+                    (message.replyTo?.type === "image"
+                      ? `📷 ${message.replyTo.files?.length} images`
+                      : message.replyTo?.type === "video"
+                        ? `🎥 ${message.replyTo.files?.length} videos`
+                        : `📁 ${message.replyTo?.files?.length} files`)}
+                </p>
+              </div>
             </div>
-          </div>
-        )}
+          )}
         <p className="wrap-break-word">{message.content}</p>
         {reactions.length > 0 && (
           <div

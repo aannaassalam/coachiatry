@@ -22,7 +22,7 @@ export default function ChatMessage({
   setReplyingTo
 }: ChatMessageProps) {
   const { data } = useSession();
-  const isUser = sender?._id === data?.user?._id;
+  const isUser = sender?._id === data?.user?._id || sender === data?.user?._id;
   const reactions = message.reactions ?? [];
 
   const renderMessageContent = () => {
@@ -37,11 +37,35 @@ export default function ChatMessage({
           />
         );
       case "image":
-        return <ImageMessage files={message.files || []} />;
+        return (
+          <ImageMessage
+            sender={sender}
+            setReplyingTo={setReplyingTo}
+            showAvatar={showAvatar}
+            message={message}
+            overallProgress={message.overallProgress}
+          />
+        );
       case "video":
-        return <VideoMessage files={message.files || []} />;
+        return (
+          <VideoMessage
+            sender={sender}
+            setReplyingTo={setReplyingTo}
+            showAvatar={showAvatar}
+            message={message}
+            overallProgress={message.overallProgress}
+          />
+        );
       case "file":
-        return <FileMessage files={message.files || []} />;
+        return (
+          <FileMessage
+            sender={sender}
+            setReplyingTo={setReplyingTo}
+            showAvatar={showAvatar}
+            message={message}
+            overallProgress={message.overallProgress}
+          />
+        );
       default:
         return null;
     }
@@ -55,7 +79,9 @@ export default function ChatMessage({
         !showAvatar && "my-0.5",
         reactions.length > 0 && "mb-5"
       )}
-      onDoubleClick={() => setReplyingTo(message)}
+      onDoubleClick={() =>
+        message.overallProgress === undefined ? setReplyingTo(message) : null
+      }
     >
       {renderMessageContent()}
     </div>

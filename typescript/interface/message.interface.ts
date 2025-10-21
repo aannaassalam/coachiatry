@@ -4,8 +4,10 @@ export interface MessageFile {
   url: string;
   type: string;
   size: Number;
-  thumbnailUrl: string;
-  duration: Number;
+  thumbnailUrl: string | null;
+  duration: Number | null;
+  uploading?: boolean;
+  progress?: number;
 }
 
 export interface MessageReaction {
@@ -26,7 +28,7 @@ export interface Message {
   _id?: string;
   chat: string;
   sender?: User | undefined;
-  type: "text" | "image" | "video" | "file" | "system";
+  type: "text" | "image" | "video" | "file";
   content: string;
   files?: MessageFile[];
   reactions?: MessageReaction[];
@@ -37,4 +39,5 @@ export interface Message {
   status: MessageStatus;
   deletedAt?: string;
   tempId?: string;
+  overallProgress?: number;
 }
