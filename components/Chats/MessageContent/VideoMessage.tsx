@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+// import { Dialog, DialogContent } from "@/components/ui/dialog";
 import {
   Popover,
   PopoverContent,
@@ -24,6 +24,7 @@ import { parseAsString, useQueryState } from "nuqs";
 import { useState } from "react";
 import EmojiPicker from "../EmojiPicker";
 import UploadProgressOverlay from "../UploadProgress";
+import ImageSlider from "../ImageSlider";
 
 export default function VideoMessage({
   sender,
@@ -159,6 +160,7 @@ export default function VideoMessage({
             className="size-8"
           />
         )}
+
         {/* If user: Emoji first then bubble; if not user: bubble then emoji */}
         {isUser && !showProgress && (
           <div className="self-center">
@@ -199,6 +201,7 @@ export default function VideoMessage({
             </Popover>
           </div>
         )}
+
         <div
           className={cn(
             "max-w-xs relative px-[7px] py-[7px] rounded-lg rounded-tr-none text-sm ",
@@ -236,11 +239,11 @@ export default function VideoMessage({
             )}
           <div
             className={`
-          grid gap-1
-          ${message.files.length === 1 ? "grid-cols-1" : ""}
-          ${message.files.length >= 2 ? "grid-cols-2" : ""}
-          w-full max-w-xs relative
-        `}
+        grid gap-1
+        ${message.files.length === 1 ? "grid-cols-1" : ""}
+        ${message.files.length >= 2 ? "grid-cols-2" : ""}
+        w-full max-w-xs relative
+      `}
           >
             {message.files.map((file, idx) => (
               <div
@@ -264,18 +267,39 @@ export default function VideoMessage({
             {showProgress && (
               <UploadProgressOverlay progress={overallProgress} />
             )}
-            <Dialog open={open} onOpenChange={setOpen}>
-              <DialogContent>
-                {selected !== null && (
-                  <video
-                    src={message.files[selected].url}
-                    controls
-                    className="object-cover w-full h-full rounded-lg"
-                  />
-                )}
-              </DialogContent>
-            </Dialog>
+
+            {/* <Dialog open={open} onOpenChange={setOpen}>
+            <DialogContent>
+              {selected !== null && (
+                <video
+                  src={message.files[selected].url}
+                  controls
+                  className="object-cover w-full h-full rounded-lg"
+                />
+              )}
+            </DialogContent>
+          </Dialog> */}
+            {open && (
+              <ImageSlider
+                data={message.files.map((f) => ({
+                  // normalize to the shape ImageSlider expects and ensure `size` is a primitive number
+                  _id: f._id,
+                  url: f.url,
+                  type: f.type,
+                  size:
+                    typeof f.size === "number"
+                      ? f.size
+                      : f.size
+                        ? Number(f.size)
+                        : undefined
+                }))}
+                open={open}
+                close={() => setOpen(false)}
+                id={selected}
+              />
+            )}
           </div>
+
           {reactions.length > 0 && (
             <div
               className={cn(
@@ -298,6 +322,7 @@ export default function VideoMessage({
             </div>
           )}
         </div>
+
         {!isUser && !showProgress && (
           <div className="self-center">
             <Popover>

@@ -2,6 +2,7 @@ import { User } from "./user.interface";
 
 export interface MessageFile {
   url: string;
+  _id?: string;
   type: string;
   size: Number;
   thumbnailUrl: string | null;

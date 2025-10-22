@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+// import { Dialog, DialogContent } from "@/components/ui/dialog";
 import {
   Popover,
   PopoverContent,
@@ -24,6 +24,7 @@ import { parseAsString, useQueryState } from "nuqs";
 import { useState } from "react";
 import EmojiPicker from "../EmojiPicker";
 import UploadProgressOverlay from "../UploadProgress";
+import ImageSlider from "../ImageSlider";
 
 export default function ImageMessage({
   sender,
@@ -291,21 +292,42 @@ export default function ImageMessage({
             {showProgress && (
               <UploadProgressOverlay progress={overallProgress ?? 0} />
             )}
-            {/* ✅ Lightbox */}
-            <Dialog open={open} onOpenChange={setOpen}>
-              <DialogContent>
-                {selected !== null && (
-                  <Image
-                    src={message.files[selected].url}
-                    alt="preview"
-                    className="w-full h-auto"
-                    width={500}
-                    height={500}
-                  />
-                )}
-              </DialogContent>
-            </Dialog>
+
+            {/* ✅ Lightbox
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogContent>
+              {selected !== null && (
+                <Image
+                  src={message.files[selected].url}
+                  alt="preview"
+                  className="w-full h-auto"
+                  width={500}
+                  height={500}
+                />
+              )}
+            </DialogContent>
+          </Dialog> */}
+            {open && (
+              <ImageSlider
+                data={message.files.map((f) => ({
+                  // normalize to the shape ImageSlider expects and ensure `size` is a primitive number
+                  _id: f._id,
+                  url: f.url,
+                  type: f.type,
+                  size:
+                    typeof f.size === "number"
+                      ? f.size
+                      : f.size
+                        ? Number(f.size)
+                        : undefined
+                }))}
+                open={open}
+                close={() => setOpen(false)}
+                id={selected}
+              />
+            )}
           </div>
+
           {reactions.length > 0 && (
             <div
               className={cn(
@@ -328,6 +350,7 @@ export default function ImageMessage({
             </div>
           )}
         </div>
+
         {!isUser && !showProgress && (
           <div className="self-center">
             <Popover>
