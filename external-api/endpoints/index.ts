@@ -56,7 +56,9 @@ export const endpoints = {
   },
   chat: {
     getConversations: "/chat",
-    getConversation: (roomId: string) => `/chat/${roomId}`
+    getConversation: (roomId: string) => `/chat/${roomId}`,
+    createGroup: "/chat/group",
+    editGroup: "/chat/group/edit"
   },
   messages: {
     getMessages: (room: string) => `/message/${room}`

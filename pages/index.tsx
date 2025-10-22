@@ -290,26 +290,42 @@ export default function Home() {
                 const friend = msg.members.find(
                   (_m) => _m.user._id !== data?.user?._id
                 );
+                const details: { photo?: string; name?: string } = {
+                  photo: friend?.user.photo,
+                  name: friend?.user.fullName
+                };
+
+                if (msg && msg.type === "group") {
+                  details.photo = msg.groupPhoto;
+                  details.name = msg.name;
+                }
                 return (
                   <Link href={`/chat?room=${msg._id}`} key={msg._id}>
                     <div className="flex items-start gap-3 p-2.5 cursor-pointer hover:bg-gray-100 rounded-md">
                       <Avatar className="size-10">
                         <AvatarImage
-                          src={friend?.user.photo}
-                          alt={getInitials(friend?.user.fullName)}
+                          src={details?.photo}
+                          alt={getInitials(details?.name)}
                         />
                         <AvatarFallback className="bg-orange-100 flex items-center justify-center font-semibold text-orange-600">
-                          {getInitials(friend?.user.fullName)}
+                          {getInitials(details?.name)}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1">
                         <p className="font-semibold text-sm leading-5 text-gray-900">
-                          {friend?.user.fullName}
+                          {details?.name}
                         </p>
                         <p className="text-xs leading-4 text-gray-500">
                           {msg.lastMessage?.sender?._id === data?.user?._id &&
                             "You: "}
-                          {msg.lastMessage?.content}
+                          {msg.lastMessage?.content ||
+                            (msg.lastMessage?.type === "image"
+                              ? "📷 Images"
+                              : msg.lastMessage?.type === "video"
+                                ? "🎥 Videos"
+                                : msg.lastMessage?.type === "file"
+                                  ? "📁 Files"
+                                  : undefined)}
                         </p>
                       </div>
                       <span className="text-gray-500 font-medium text-xs leading-4 shrink-0 ml-3">

@@ -4,6 +4,7 @@ export interface ChatConversation {
   _id?: string;
   type: "direct" | "group";
   name?: string;
+  groupPhoto?: string;
   createdBy: string;
   members: [
     {

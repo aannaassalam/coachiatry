@@ -31,6 +31,7 @@ import { BsChevronLeft } from "react-icons/bs";
 import ChatUploadWithPreview from "./ChatUpload";
 import { useChatUpload } from "@/hooks/useChatHook";
 import { uploadManager } from "@/services/uploadManager";
+import GroupModal from "./GroupModal";
 
 export default function ChatConversation() {
   const topRef = useRef<HTMLDivElement>(null);
@@ -110,6 +111,16 @@ export default function ChatConversation() {
     (_member) => _member.user._id !== data?.user?._id
   );
 
+  const details: { photo?: string; name?: string } = {
+    photo: friend?.user.photo,
+    name: friend?.user.fullName
+  };
+
+  if (conversation && conversation.type === "group") {
+    details.photo = conversation.groupPhoto;
+    details.name = conversation.name;
+  }
+
   /**
    * IMPORTANT:
    * - Backend pages: pages[0] = newest page (messages newest -> oldest within page)
@@ -156,6 +167,7 @@ export default function ChatConversation() {
 
   useEffect(() => {
     if (!socket) return;
+    if (conversation?.type === "group") return;
 
     const handleStatusUpdate = ({
       userId,
@@ -174,7 +186,7 @@ export default function ChatConversation() {
     return () => {
       socket.off("user_status_update", handleStatusUpdate);
     };
-  }, [socket, friend?.user._id]);
+  }, [socket, friend?.user._id, conversation]);
 
   // SOCKET HANDLERS
   useEffect(() => {
@@ -184,7 +196,8 @@ export default function ChatConversation() {
     socket.emit("join_room", {
       chatId: room,
       userId: data?.user?._id,
-      friendId: friend?.user._id
+      friendId: friend?.user._id,
+      isGroup: conversation?.type === "group"
     });
 
     socket.emit("mark_seen", { chatId: room, userId: data?.user?._id });
@@ -274,7 +287,8 @@ export default function ChatConversation() {
 
           newData.sort(
             (a, b) =>
-              moment(b.updatedAt).valueOf() - moment(a.updatedAt).valueOf()
+              moment(b.lastMessage?.createdAt).valueOf() -
+              moment(a.lastMessage?.createdAt).valueOf()
           );
 
           return { ...old, data: newData };
@@ -286,40 +300,56 @@ export default function ChatConversation() {
     socket.on("message_seen_update_bulk", ({ chatId, userId }) => {
       if (chatId !== room) return;
 
-      if (userId !== data?.user?._id) {
-        queryClient.setQueryData<InfiniteData<PaginatedResponse<Message[]>>>(
-          ["messages", chatId],
+      // if (userId !== data?.user?._id) {
+      //   queryClient.setQueryData<InfiniteData<PaginatedResponse<Message[]>>>(
+      //     ["messages", chatId],
+      //     (old) => {
+      //       if (!old) return old;
+
+      //       const updatedPages = old.pages.map((page) => ({
+      //         ...page,
+      //         data: page.data.map((m) =>
+      //           m.sender?._id === data?.user?._id
+      //             ? { ...m, status: "seen" as MessageStatus }
+      //             : m
+      //         )
+      //       }));
+
+      //       return { ...old, pages: updatedPages };
+      //     }
+      //   );
+      // }
+
+      // also update chat list preview
+      if (userId === data?.user?._id) {
+        queryClient.setQueryData<PaginatedResponse<Conversation[]>>(
+          ["conversations"],
           (old) => {
             if (!old) return old;
+            const existing = [...old.data];
+            const idx = existing.findIndex((c) => c._id === chatId);
+            if (idx === -1) return old;
 
-            const updatedPages = old.pages.map((page) => ({
-              ...page,
-              data: page.data.map((m) =>
-                m.sender?._id === data?.user?._id
-                  ? { ...m, status: "seen" as MessageStatus }
-                  : m
-              )
-            }));
+            const updatedConv = {
+              ...existing[idx],
+              unreadCount: 0
+            };
 
-            return { ...old, pages: updatedPages };
+            const newList = [
+              updatedConv,
+              ...existing.filter((_, i) => i !== idx)
+            ];
+
+            newList.sort(
+              (a, b) =>
+                moment(b.lastMessage?.createdAt).valueOf() -
+                moment(a.lastMessage?.createdAt).valueOf()
+            );
+
+            return { ...old, data: newList };
           }
         );
       }
-
-      // also update chat list preview
-      queryClient.setQueryData<PaginatedResponse<Conversation[]>>(
-        ["conversations"],
-        (old) => {
-          if (!old) return old;
-          const idx = old.data.findIndex((c) => c._id === chatId);
-          if (idx === -1) return old;
-
-          const updated = { ...old.data[idx], unreadCount: 0 };
-          const newData = [...old.data];
-          newData[idx] = updated;
-          return { ...old, data: newData };
-        }
-      );
     });
 
     socket.on("reaction_updated", ({ messageId, reactions }) => {
@@ -356,7 +386,7 @@ export default function ChatConversation() {
       socket.off("user_typing");
       socket.off("user_stop_typing");
     };
-  }, [socket, room, data?.user?._id, friend?.user?._id]);
+  }, [socket, room, data?.user?._id, friend?.user?._id, conversation?.type]);
 
   // Fetch older pages when top hits viewport — keep scroll position stable
   useEffect(() => {
@@ -618,29 +648,43 @@ export default function ChatConversation() {
               onClick={() => setSelectedChat("")}
             />
             <SmartAvatar
-              src={friend?.user?.photo}
-              name={friend?.user?.fullName}
-              key={friend?.user?.updatedAt}
+              src={details.photo}
+              name={details.name}
+              key={conversation?.updatedAt}
               className="size-10"
             />
             <div>
               <p className="font-semibold font-lato text-base">
-                {friend?.user.fullName}
+                {details.name}
               </p>
-              <p className="text-xs font-lato flex items-center gap-1 capitalize">
-                <span
-                  className={cn("bg-green-500 rounded-full w-2 h-2 flex", {
-                    "bg-yellow-500": friendStatus === "offline"
-                  })}
-                ></span>
-                {friendStatus}
-              </p>
+              {conversation?.type === "direct" && (
+                <p className="text-xs font-lato flex items-center gap-1 capitalize">
+                  <span
+                    className={cn("bg-green-500 rounded-full w-2 h-2 flex", {
+                      "bg-yellow-500": friendStatus === "offline"
+                    })}
+                  ></span>
+                  {friendStatus}
+                </p>
+              )}
             </div>
           </div>
         )}
-        <Button variant="ghost" size="sm" className="hover:bg-secondary">
-          <Ellipsis className="text-gray-500" />
-        </Button>
+        {conversation?.type === "group" &&
+          conversation.members.find((_mem) => _mem.user._id === data?.user?._id)
+            ?.role === "owner" && (
+            <GroupModal
+              data={{
+                name: conversation.name,
+                members: conversation.members.map((_mem) => _mem.user._id),
+                groupPhoto: conversation.groupPhoto
+              }}
+            >
+              <Button variant="ghost" size="sm" className="hover:bg-secondary">
+                <Ellipsis className="text-gray-500" />
+              </Button>
+            </GroupModal>
+          )}
       </div>
 
       {/* Messages */}
@@ -742,6 +786,7 @@ export default function ChatConversation() {
                       message={msg}
                       showAvatar={showAvatar}
                       setReplyingTo={setReplyingTo}
+                      isGroup={conversation?.type === "group"}
                     />
                   </motion.div>
                 );

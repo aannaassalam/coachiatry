@@ -18,3 +18,37 @@ export const getConversation = async (
   const res = await axiosInstance.get(endpoints.chat.getConversation(roomId));
   return res.data;
 };
+
+export const createGroup = async (body: {
+  name: string;
+  members: string[];
+  groupPhoto: File | null;
+}) => {
+  const formData = new FormData();
+  formData.append("name", body.name);
+  body.members.forEach((_mem, i) => {
+    formData.append(`members[${i}]`, _mem);
+  });
+  if (body.groupPhoto) formData.append("groupPhoto", body.groupPhoto);
+
+  const res = await axiosInstance.post(endpoints.chat.createGroup, formData);
+  return res.data;
+};
+
+export const editGroup = async (body: {
+  name: string;
+  members: string[];
+  groupPhoto: File | string | null;
+  chatId: string;
+}) => {
+  const formData = new FormData();
+  formData.append("chatId", body.chatId);
+  formData.append("name", body.name);
+  body.members.forEach((_mem, i) => {
+    formData.append(`members[${i}]`, _mem);
+  });
+  if (body.groupPhoto) formData.append("groupPhoto", body.groupPhoto);
+
+  const res = await axiosInstance.post(endpoints.chat.editGroup, formData);
+  return res.data;
+};

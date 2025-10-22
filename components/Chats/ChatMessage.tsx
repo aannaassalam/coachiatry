@@ -13,13 +13,15 @@ type ChatMessageProps = {
   message: Message;
   showAvatar?: boolean;
   setReplyingTo: React.Dispatch<React.SetStateAction<Message | null>>;
+  isGroup: boolean;
 };
 
 export default function ChatMessage({
   sender,
   message,
   showAvatar,
-  setReplyingTo
+  setReplyingTo,
+  isGroup
 }: ChatMessageProps) {
   const { data } = useSession();
   const isUser = sender?._id === data?.user?._id || sender === data?.user?._id;
@@ -34,6 +36,7 @@ export default function ChatMessage({
             setReplyingTo={setReplyingTo}
             showAvatar={showAvatar}
             message={message}
+            isGroup={isGroup}
           />
         );
       case "image":
@@ -44,6 +47,7 @@ export default function ChatMessage({
             showAvatar={showAvatar}
             message={message}
             overallProgress={message.overallProgress}
+            isGroup={isGroup}
           />
         );
       case "video":
@@ -54,6 +58,7 @@ export default function ChatMessage({
             showAvatar={showAvatar}
             message={message}
             overallProgress={message.overallProgress}
+            isGroup={isGroup}
           />
         );
       case "file":
@@ -64,6 +69,7 @@ export default function ChatMessage({
             showAvatar={showAvatar}
             message={message}
             overallProgress={message.overallProgress}
+            isGroup={isGroup}
           />
         );
       default:

@@ -12,6 +12,9 @@ import { queryClient } from "@/pages/_app";
 import { PaginatedResponse } from "@/typescript/interface/common.interface";
 import { ChatConversation } from "@/typescript/interface/chat.interface";
 import { Message } from "@/typescript/interface/message.interface";
+import { Button } from "../ui/button";
+import { Plus } from "lucide-react";
+import GroupModal from "./GroupModal";
 
 moment.updateLocale("en", {
   relativeTime: {
@@ -50,65 +53,80 @@ export default function ChatList() {
   useEffect(() => {
     if (!socket) return;
 
-    const handleNewMessage = (msg: Message) => {
-      // Update conversation list regardless of which room user is viewing
+    const handleConversationUpdated = (update: {
+      chatId: string;
+      lastMessage: Message;
+      updatedAt: string;
+    }) => {
       queryClient.setQueryData<PaginatedResponse<ChatConversation[]>>(
         ["conversations"],
         (old) => {
           if (!old) return old;
 
-          const newData = [...old.data];
-          const idx = newData.findIndex((c) => c._id === msg.chat);
+          const existing = Array.isArray(old.data) ? [...old.data] : [];
+          const idx = existing.findIndex((c) => c._id === update.chatId);
 
-          // Prepare updated conversation object
+          const isMyMessage =
+            update.lastMessage?.sender?._id === data?.user?._id;
+          const isCurrentRoom = room === update.chatId;
+
+          const current = existing[idx];
           const updatedConv = {
-            ...(idx > -1 ? newData[idx] : {}),
-            _id: msg.chat,
-            lastMessage: msg,
-            updatedAt: msg.updatedAt ?? new Date().toISOString()
+            ...current,
+            lastMessage: update.lastMessage,
+            updatedAt: update.updatedAt,
+            unreadCount: current.unreadCount || 0
           } as ChatConversation;
 
-          // Determine if this conversation should be marked unread
-          const isCurrentRoom = msg.chat === room;
-          const isMyMessage = msg.sender?._id === data?.user?._id;
-
-          if (!isCurrentRoom && !isMyMessage) {
-            updatedConv.unreadCount = (updatedConv.unreadCount || 0) + 1;
-          } else {
-            updatedConv.unreadCount = 0;
-          }
-
-          // Insert or update in the list
           if (idx > -1) {
-            newData[idx] = updatedConv;
-          } else {
-            newData.unshift(updatedConv); // brand new chat
+            // ✅ Only increase unread count if:
+            // - this message is NOT mine
+            // - and I am NOT currently inside that chat
+            if (!isMyMessage && !isCurrentRoom) {
+              updatedConv.unreadCount = (current.unreadCount || 0) + 1;
+            }
           }
 
-          // Sort by updatedAt descending
-          newData.sort(
+          const newList = [
+            updatedConv,
+            ...existing.filter((_, i) => i !== idx)
+          ];
+
+          // ✅ Sort newest → oldest
+          newList.sort(
             (a, b) =>
-              moment(b.updatedAt).valueOf() - moment(a.updatedAt).valueOf()
+              moment(b.lastMessage?.createdAt).valueOf() -
+              moment(a.lastMessage?.createdAt).valueOf()
           );
 
-          return { ...old, data: newData };
+          return { ...old, data: newList };
         }
       );
     };
 
-    socket.on("new_message", handleNewMessage);
-
+    socket.on("conversation_updated", handleConversationUpdated);
     return () => {
-      socket.off("new_message", handleNewMessage);
+      socket.off("conversation_updated", handleConversationUpdated);
     };
   }, [socket, room, data?.user?._id]);
 
   return (
     <div className="w-xs mr-auto bg-white pt-4 rounded-lg flex flex-col max-md:w-full">
       {/* Header / Content Above */}
-      <h2 className="text-sm font-semibold mb-3 text-gray-800 pl-3">
-        All messages
-      </h2>
+      <div className="flex items-center justify-between gap-2 mb-3 px-3">
+        <h2 className="text-sm font-semibold text-gray-800">All messages</h2>
+        <GroupModal>
+          <Button
+            center
+            size="icon"
+            variant="ghost"
+            className="!size-7"
+            asChild
+          >
+            <Plus size={16} />
+          </Button>
+        </GroupModal>
+      </div>
 
       {/* Scrollable List */}
       <ul className="space-y-2 overflow-y-auto pr-2 pb-6 max-h-[calc(100vh-200px)] max-md:w-full">
@@ -155,6 +173,16 @@ export default function ChatList() {
             const chatUser = _chat.members.find(
               (_member) => _member.user._id !== data?.user?._id
             );
+            const details: { photo?: string; name?: string } = {
+              photo: chatUser?.user.photo,
+              name: chatUser?.user.fullName
+            };
+
+            if (_chat && _chat.type === "group") {
+              details.photo = _chat.groupPhoto;
+              details.name = _chat.name;
+            }
+
             return (
               <li
                 key={_chat._id}
@@ -162,9 +190,9 @@ export default function ChatList() {
                 onClick={() => setSelectedChat(_chat._id!)}
               >
                 <SmartAvatar
-                  src={chatUser?.user?.photo}
-                  name={chatUser?.user?.fullName}
-                  key={chatUser?.user?.updatedAt}
+                  src={details?.photo}
+                  name={details?.name}
+                  key={_chat.updatedAt}
                   className="size-11"
                 />
                 <div className="flex-1 min-w-0">
@@ -174,7 +202,7 @@ export default function ChatList() {
                         "font-bold": _chat.unreadCount > 0
                       })}
                     >
-                      {chatUser?.user.fullName}
+                      {details.name}
                     </span>
                     {/* {msg.unread && (
                       <span className="w-[7px] h-[7px] rounded-full bg-primary"></span>
@@ -193,7 +221,9 @@ export default function ChatList() {
                         ? "📷 Images"
                         : _chat.lastMessage?.type === "video"
                           ? "🎥 Videos"
-                          : "📁 Files")}
+                          : _chat.lastMessage?.type === "file"
+                            ? "📁 Files"
+                            : undefined)}
                   </p>
                 </div>
                 <div className="flex flex-col items-center justify-between gap-1">
