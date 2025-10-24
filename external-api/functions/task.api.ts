@@ -111,6 +111,15 @@ export const getAllTasks = async ({
   return res.data;
 };
 
+export const getTask = async (id: string): Promise<Task> => {
+  const res = await axiosInstance.get(endpoints.task.getOne(id), {
+    params: {
+      populate: "category,status,user"
+    }
+  });
+  return res.data;
+};
+
 export const addTask = async (taskData: TaskBody) => {
   const res = await axiosInstance.post(endpoints.task.post, taskData);
   return res;

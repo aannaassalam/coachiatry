@@ -3,10 +3,10 @@
 import { login, LoginBody } from "@/external-api/functions/auth.api";
 import { fetchProfile } from "@/external-api/functions/user.api";
 import { User } from "@/typescript/interface/user.interface";
-import NextAuth from "next-auth";
+import NextAuth, { AuthOptions } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 
-export default NextAuth({
+export const authOptions: AuthOptions = {
   providers: [
     Credentials({
       name: "Credentials",
@@ -52,7 +52,11 @@ export default NextAuth({
   ],
   debug: true,
   session: {
-    strategy: "jwt"
+    strategy: "jwt",
+    maxAge: 7 * 24 * 60 * 60
+  },
+  jwt: {
+    maxAge: 7 * 24 * 60 * 60
   },
   pages: {
     signIn: "/auth/login"
@@ -77,4 +81,6 @@ export default NextAuth({
       return session;
     }
   }
-});
+};
+
+export default NextAuth(authOptions);

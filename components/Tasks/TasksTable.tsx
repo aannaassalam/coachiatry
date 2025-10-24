@@ -208,7 +208,10 @@ function TasksTable({
 }) {
   const [openTasksIndex, setOpenTasksIndex] = useState<string[]>([]);
   const [statusBoxIndex, setStatusBoxIndex] = useState<string | null>(null);
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [selectedTask, setSelectedTask] = useQueryState(
+    "task",
+    parseAsString.withDefault("")
+  );
   const [selectedStatusId, setSelectedStatusId] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
 
@@ -262,77 +265,86 @@ function TasksTable({
                     <TableRow className="!h-[44px] hover:bg-gray-50 !border-b-1 !border-gray-100 cursor-pointer">
                       <TableCell
                         className={cn(
-                          "font-medium text-sm leading-5 flex items-center font-lato tracking-[-0.05px] relative",
+                          "font-medium text-sm leading-5 font-lato tracking-[-0.05px] relative",
                           task.subtasks &&
                             task.subtasks.length <= 0 &&
                             "pl-[42px]"
                         )}
                       >
-                        {task.subtasks && task.subtasks.length > 0 && (
-                          <div
-                            className="flex items-center justify-center rounded-sm p-2 hover:bg-gray-100 transition-all duration-200 mr-2"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setOpenTasksIndex((prev) => {
-                                if (prev.includes(task._id)) {
-                                  return prev.filter((i) => i !== task._id);
-                                } else {
-                                  return [...prev, task._id];
-                                }
-                              });
-                            }}
-                          >
-                            <Image
-                              src={assets.icons.triangle}
-                              width={10}
-                              height={5}
-                              alt="triangle"
-                              className={cn(
-                                openTasksIndex.includes(task._id)
-                                  ? "rotate-360"
-                                  : "rotate-270",
-                                "transition-all duration-200 shrink-0"
-                              )}
-                            />
-                          </div>
-                        )}
-                        <Popover>
-                          <PopoverTrigger asChild>
+                        <div className="flex items-center">
+                          {task.subtasks && task.subtasks.length > 0 && (
                             <div
-                              className={cn("size-4 rounded-full mr-3", {
-                                "border-2 border-gray-300 border-dotted":
-                                  task.status.title === "Todo"
-                              })}
-                              style={{
-                                backgroundColor:
-                                  task.status.title === "Todo"
-                                    ? "white"
-                                    : task.status.color.text
-                              }}
+                              className="flex items-center justify-center rounded-sm p-2 hover:bg-gray-100 transition-all duration-200 mr-2"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setStatusBoxIndex(
-                                  statusBoxIndex === task._id ? null : task._id
-                                );
+                                setOpenTasksIndex((prev) => {
+                                  if (prev.includes(task._id)) {
+                                    return prev.filter((i) => i !== task._id);
+                                  } else {
+                                    return [...prev, task._id];
+                                  }
+                                });
                               }}
-                            />
-                          </PopoverTrigger>
-                          <PopoverContent className="w-[245px] p-0 relative left-[111px] max-sm:left-[50px]">
-                            <StatusBox
-                              taskId={task._id}
-                              selectedStatus={task.status._id}
-                            />
-                          </PopoverContent>
-                        </Popover>
-                        <p
-                          className="flex-1"
-                          onClick={() => {
-                            setSelectedTask(task);
-                            setIsOpen(true);
-                          }}
-                        >
-                          {task.title}
-                        </p>
+                            >
+                              <Image
+                                src={assets.icons.triangle}
+                                width={10}
+                                height={5}
+                                alt="triangle"
+                                className={cn(
+                                  openTasksIndex.includes(task._id)
+                                    ? "rotate-360"
+                                    : "rotate-270",
+                                  "transition-all duration-200 shrink-0"
+                                )}
+                              />
+                            </div>
+                          )}
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <div
+                                className={cn(
+                                  "size-4 rounded-full mr-3 flex items-center justify-center",
+                                  {
+                                    "border-2 border-gray-300 border-dotted":
+                                      task.status.title === "Todo"
+                                  }
+                                )}
+                                style={{
+                                  backgroundColor:
+                                    task.status.title === "Todo"
+                                      ? "white"
+                                      : task.status.color.text
+                                }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setStatusBoxIndex(
+                                    statusBoxIndex === task._id
+                                      ? null
+                                      : task._id
+                                  );
+                                }}
+                              >
+                                <div className="h-3.5 w-3.5 rounded-full border-1 border-white bg-transparent" />
+                              </div>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-[245px] p-0 relative left-[111px] max-sm:left-[50px]">
+                              <StatusBox
+                                taskId={task._id}
+                                selectedStatus={task.status._id}
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <p
+                            className="flex-1"
+                            onClick={() => {
+                              setSelectedTask(task._id);
+                              setIsOpen(true);
+                            }}
+                          >
+                            {task.title}
+                          </p>
+                        </div>
                       </TableCell>
                       <TableCell className="tracking-[-0.05px]">
                         <div className="flex items-center gap-2">
@@ -368,11 +380,13 @@ function TasksTable({
                           {task.category?.title}
                         </Badge>
                       </TableCell>
-                      <TableCell className="tracking-[-0.05px] flex gap-2 capitalize">
-                        <PriorityFlag
-                          priority={task.priority.toLocaleLowerCase()}
-                        />
-                        {task.priority}
+                      <TableCell className="tracking-[-0.05px capitalize">
+                        <div className="flex items-center gap-2">
+                          <PriorityFlag
+                            priority={task.priority.toLocaleLowerCase()}
+                          />
+                          {task.priority}
+                        </div>
                       </TableCell>
                       <TableCell className="">
                         <Popover>
@@ -394,7 +408,7 @@ function TasksTable({
                               size="sm"
                               className="cursor-pointer flex items-center gap-2 w-full [&>span]:justify-start"
                               onClick={() => {
-                                setSelectedTask(task);
+                                setSelectedTask(task._id);
                                 setIsOpen(true);
                               }}
                             >
@@ -444,7 +458,7 @@ function TasksTable({
         Add Task
       </Button>
       <AddTaskSheet
-        open={isOpen}
+        open={isOpen || !!selectedTask}
         onOpenChange={(toggle) => {
           setIsOpen(toggle);
           setSelectedTask(null);

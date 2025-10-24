@@ -64,3 +64,38 @@ export function getInitials(fullName?: string): string {
   const initials = parts.slice(0, 2).map((name) => name[0].toUpperCase());
   return initials.join("");
 }
+
+export const createPageRange = (
+  siblingCount: number,
+  totalPages: number,
+  page: number
+) => {
+  const totalNumbers = siblingCount * 2 + 3; // current, siblings, first, last
+  const totalBlocks = totalNumbers + 2; // including ellipses
+
+  if (totalPages > totalBlocks) {
+    const startPage = Math.max(2, page - siblingCount);
+    const endPage = Math.min(totalPages - 1, page + siblingCount);
+    const pages = [];
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+
+    const hasLeftEllipsis = startPage > 2;
+    const hasRightEllipsis = endPage < totalPages - 1;
+
+    if (hasLeftEllipsis && !hasRightEllipsis) {
+      const extra = startPage === 3 ? [2] : ["…"];
+      return [1, ...extra, ...pages, totalPages];
+    } else if (!hasLeftEllipsis && hasRightEllipsis) {
+      const extra = endPage === totalPages - 2 ? [totalPages - 1] : ["…"];
+      return [1, ...pages, ...extra, totalPages];
+    } else if (hasLeftEllipsis && hasRightEllipsis) {
+      return [1, "…", ...pages, "…", totalPages];
+    }
+    return pages;
+  }
+
+  return Array.from({ length: totalPages }, (_, i) => i + 1);
+};

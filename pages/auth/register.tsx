@@ -22,6 +22,7 @@ import { useMutation } from "@tanstack/react-query";
 import Image from "next/image";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
+import { parseAsString, useQueryState } from "nuqs";
 
 const schema = yup.object().shape({
   fullName: yup.string().required(),
@@ -33,13 +34,18 @@ const schema = yup.object().shape({
 });
 
 export default function Register() {
+  const [local_callback] = useQueryState(
+    "local_callback",
+    parseAsString.withDefault("")
+  );
+
   const { mutate, isPending } = useMutation({
     mutationFn: signup,
     onSuccess: (_data, variables) => {
       signIn("credentials", {
         email: variables.email,
         password: variables.password,
-        callbackUrl: "/"
+        callbackUrl: local_callback || "/"
       });
     }
   });
@@ -120,7 +126,12 @@ export default function Register() {
                   )}
                 />
               </div>
-              <Button type="submit" className="w-full" isLoading={isPending}>
+              <Button
+                type="submit"
+                className="w-full"
+                isLoading={isPending}
+                center
+              >
                 Create account
               </Button>
             </form>
@@ -132,7 +143,7 @@ export default function Register() {
             </p>
             <Separator className="flex-1" />
           </div>
-          <Button variant="outline" className="w-full mt-4">
+          <Button variant="outline" className="w-full mt-4" center>
             <Image
               src={assets.google_logo}
               alt="Google"

@@ -9,6 +9,9 @@ export const mediaUrl = (url: string) => {
 };
 
 export const endpoints = {
+  common: {
+    search: "/search"
+  },
   auth: {
     signup: "/auth/signup",
     login: "/auth/login",
@@ -32,6 +35,11 @@ export const endpoints = {
     getAll: "/statuses",
     add: "/statuses"
   },
+  transcriptions: {
+    getAllTranscriptions: "/transcriptions",
+    getTranscription: (id: string) => `/transcriptions/${id}`,
+    deleteTranscription: (id: string) => `/transcriptions/${id}`
+  },
   task: {
     getAll: "/task",
     post: "/task",
@@ -51,6 +59,7 @@ export const endpoints = {
     getAllWatching: "/user/get-all-watching",
     suggestUsers: "/user/suggestions",
     addWatchers: "/user/add-watchers",
+    userByIds: "/user/user-by-ids",
     shared: (shareId: string) => `/user/share/${shareId}`,
     revokeAccess: (viewerId: string) => `/user/share/${viewerId}`
   },
@@ -61,9 +70,16 @@ export const endpoints = {
     editGroup: "/chat/group/edit"
   },
   messages: {
+    getScheduleMessages: "/message/schedule",
+    scheduleMessage: "/message/schedule",
+    editScheduleMessage: (messageId: string) =>
+      `/message/schedule/${messageId}`,
     getMessages: (room: string) => `/message/${room}`
   },
   ai: {
     chatWithAi: "/ai"
+  },
+  coach: {
+    getClients: "/coach/clients"
   }
 };

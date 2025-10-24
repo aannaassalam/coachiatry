@@ -5,7 +5,7 @@ import { useMutation } from "@tanstack/react-query";
 import { Camera } from "lucide-react";
 import { parseAsString, useQueryState } from "nuqs";
 import { ReactNode, useState } from "react";
-import MultiSelectUsers from "../MultiSelectUsers";
+import AsyncMultiSelectUsers from "../AsyncMultiSelectUsers";
 import { Button } from "../ui/button";
 import {
   Dialog,
@@ -57,11 +57,6 @@ export default function GroupModal({
   const { mutate: editMutate, isPending: isEditing } = useMutation({
     mutationFn: editGroup,
     onSuccess: () => {
-      setGroupPhoto(null);
-      setDetails({
-        name: "",
-        members: []
-      });
       setOpen(false);
       queryClient.invalidateQueries({ queryKey: ["conversations", room] });
     },
@@ -133,7 +128,7 @@ export default function GroupModal({
           </div>
           <div className="space-y-1">
             <span className="text-sm font-medium text-gray-700">Members</span>
-            <MultiSelectUsers
+            <AsyncMultiSelectUsers
               selectedUsers={details.members}
               onChange={(users) =>
                 setDetails((prev) => ({ ...prev, members: users }))

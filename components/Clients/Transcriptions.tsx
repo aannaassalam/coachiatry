@@ -1,4 +1,3 @@
-import { Search } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -9,9 +8,10 @@ import {
 } from "@/components/ui/tooltip";
 import assets from "@/json/assets";
 import { cn } from "@/lib/utils";
-import { FileText, Trash2 } from "lucide-react";
+import { FileText, Search, Trash2 } from "lucide-react";
 import Link from "next/link";
-import React, { useState } from "react";
+import { useState } from "react";
+
 function Transcriptions() {
   const [transcriptions] = useState([
     {
@@ -58,6 +58,7 @@ function Transcriptions() {
         : [...prev, id]
     );
   };
+
   return (
     <div className="px-2 my-2">
       <div className="bg-white flex items-center pl-2.5 border-1 border-gray-200 rounded-lg w-[250px] max-sm:w-full">
@@ -68,7 +69,7 @@ function Transcriptions() {
           placeholder="Search List"
         />
       </div>
-      <p className="font-lato font-semibold text-sm mt-4 ml-3">Meetings</p>
+      <p className="font-lato font-semibold text-base mt-3">Meetings</p>
       <div className="flex flex-col gap-3 mt-4">
         {transcriptions.map((data, id) => {
           const isSelected = selected.includes(id);
@@ -93,7 +94,9 @@ function Transcriptions() {
                 />
                 <Avatar className="size-8">
                   <AvatarImage src={assets.avatar} alt="AH" />
-                  <AvatarFallback>AH</AvatarFallback>
+                  <AvatarFallback className="bg-orange-100 flex items-center justify-center font-semibold text-orange-600">
+                    AH
+                  </AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col">
                   <span className="text-sm font-medium font-lato text-gray-900">

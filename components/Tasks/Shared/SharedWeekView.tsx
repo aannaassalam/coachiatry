@@ -205,7 +205,7 @@ function SharedWeekView() {
           setIsOpen(toggle);
           setSelectedTask(null);
         }}
-        selectedTask={selectedTask}
+        selectedTask={selectedTask?._id}
         editing={!!selectedTask}
         disabledAll
       />

@@ -155,7 +155,7 @@ export default function Home() {
     ]
   });
 
-  const slicedTasks = tasks?.slice(0, 7);
+  const slicedTasks = tasks?.slice(0, 5);
   const isAllLoading =
     isLoading || isStatusLoading || isChatsLoading || isDocumentsLoading;
 

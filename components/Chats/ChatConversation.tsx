@@ -424,7 +424,7 @@ export default function ChatConversation() {
     const tempId = Date.now().toString();
     const now = new Date().toISOString();
 
-    const optimisticMessage: Omit<Message, "replyTo" | "sender"> & {
+    const optimisticMessage: Omit<Message, "replyTo" | "sender" | "repeat"> & {
       replyTo?: string;
       sender?: string; // 👈 NEW
     } = {
@@ -850,6 +850,7 @@ export default function ChatConversation() {
         files={files} // current files state
         setFiles={setFiles} // allow child to modify
         setChatDragShow={setChatDragShow}
+        receiverName={conversation?.name ?? friend?.user?.fullName ?? ""}
       />
     </div>
   );

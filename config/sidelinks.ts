@@ -10,6 +10,11 @@ export default [
         href: "/"
       },
       {
+        icon: assets.icons.clients,
+        title: "Clients",
+        href: "/clients"
+      },
+      {
         icon: assets.icons.task,
         title: "my task",
         href: "/tasks"

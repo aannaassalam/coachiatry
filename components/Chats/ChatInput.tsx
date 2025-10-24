@@ -53,31 +53,36 @@ const InputButtons = ({
     }
     e.target.value = "";
   };
+
   return (
     <div className="flex items-stretch self-end">
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setModalOpen(true)}
-            className="hover:bg-secondary p-2 aspect-square"
-          >
-            <Image
-              src={assets.icons.clock}
-              width={15}
-              height={15}
-              alt="clock"
-            />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>Schedule Send</TooltipContent>
-      </Tooltip>
+      {files.length === 0 && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setModalOpen(true)}
+              className="hover:bg-secondary p-2 aspect-square"
+            >
+              <Image
+                src={assets.icons.clock}
+                width={15}
+                height={15}
+                alt="clock"
+              />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Schedule Send</TooltipContent>
+        </Tooltip>
+      )}
       <Tooltip>
         <Popover>
           <PopoverTrigger asChild>
             <TooltipTrigger asChild>
               <Button
+                type="button"
                 variant="ghost"
                 size="sm"
                 className="hover:bg-secondary p-2 aspect-square"
@@ -109,6 +114,7 @@ const InputButtons = ({
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
+                type="button"
                 variant="ghost"
                 size="sm"
                 className="hover:bg-secondary p-2 aspect-square"
@@ -176,6 +182,7 @@ const InputButtons = ({
       <Popover modal>
         <PopoverTrigger asChild>
           <Button
+            type="button"
             variant="ghost"
             size="sm"
             className="hover:bg-secondary aspect-square border-1 border-gray-300 bg-[#F8F8F8] p-2 mr-2 ml-1"
@@ -219,7 +226,8 @@ export default function ChatInput({
   setReplyingTo,
   files,
   setFiles,
-  setChatDragShow
+  setChatDragShow,
+  receiverName
 }: {
   onSend: (msg: string, files: File[]) => void;
   replyingTo: Message | null;
@@ -227,6 +235,7 @@ export default function ChatInput({
   files: File[];
   setFiles: React.Dispatch<React.SetStateAction<File[]>>;
   setChatDragShow: (show: boolean) => void;
+  receiverName: string;
 }) {
   const { data } = useSession();
   const socket = useSocket();
@@ -393,7 +402,11 @@ export default function ChatInput({
 
             {/* <ChatToolbar editor={editor} showToolBar={showToolBar} /> */}
             <Dialog open={open} onOpenChange={setOpen}>
-              <ScheduleMessageModal />
+              <ScheduleMessageModal
+                message={value}
+                receiverName={receiverName}
+                onClose={() => setOpen(false)}
+              />
             </Dialog>
           </div>
         </div>

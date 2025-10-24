@@ -64,6 +64,15 @@ export const getUserSuggestions = async (
   return res.data;
 };
 
+export const getUsersByIds = async (
+  ids: string[]
+): Promise<Pick<User, "_id" | "fullName" | "email" | "photo">[]> => {
+  const res = await axiosInstance.get(endpoints.user.userByIds, {
+    params: { ids }
+  });
+  return res.data;
+};
+
 export const addWatchers = async (userIds: string[]) => {
   const res = await axiosInstance.post(endpoints.user.addWatchers, { userIds });
   return res;

@@ -3,6 +3,7 @@ import axiosInstance from "../axiosInstance";
 import { endpoints } from "../endpoints";
 import { Message } from "@/typescript/interface/message.interface";
 import { QueryFunctionContext, QueryKey } from "@tanstack/react-query";
+import { ChatConversation } from "@/typescript/interface/chat.interface";
 
 export const getMessages = async (
   ctx: QueryFunctionContext<string[], number>
@@ -14,6 +15,47 @@ export const getMessages = async (
       page,
       limit: 25
     }
+  });
+  return res.data;
+};
+
+export const scheduleMessage = async (body: {
+  message: string;
+  date: string;
+  time: string;
+  frequency: string;
+  chatId: string;
+}) => {
+  const res = await axiosInstance.post(
+    endpoints.messages.scheduleMessage,
+    body
+  );
+  return res;
+};
+
+export const editScheduleMessage = async (body: {
+  messageId: string;
+  message: string;
+  date: string;
+  time: string;
+  frequency: string;
+}) => {
+  const res = await axiosInstance.patch(
+    endpoints.messages.editScheduleMessage(body.messageId),
+    body
+  );
+  return res;
+};
+
+export const getScheduleMessages = async ({
+  page = 1
+}: {
+  page: number;
+}): Promise<
+  PaginatedResponse<(Omit<Message, "chat"> & { chat: ChatConversation })[]>
+> => {
+  const res = await axiosInstance.get(endpoints.messages.getScheduleMessages, {
+    params: { page, limit: 10 }
   });
   return res.data;
 };

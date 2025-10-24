@@ -1,15 +1,35 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
+  DialogClose,
   //   Dialog,
   //   DialogTrigger,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   //   DialogDescription,
   DialogFooter,
-  DialogClose
+  DialogHeader,
+  DialogTitle
 } from "@/components/ui/dialog"; // import your wrapper
+import {
+  editScheduleMessage,
+  scheduleMessage
+} from "@/external-api/functions/message.api";
+import assets from "@/json/assets";
+import { cn } from "@/lib/utils";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { useMutation } from "@tanstack/react-query";
+import { CalendarIcon } from "lucide-react";
+import moment from "moment";
+import Image from "next/image";
+import Link from "next/link";
+import { parseAsString, useQueryState } from "nuqs";
+import React, { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { FaPen } from "react-icons/fa";
+import { IoMdClose } from "react-icons/io";
+import * as yup from "yup";
+import { Calendar } from "../ui/calendar";
+import { Combobox } from "../ui/combobox";
 import {
   Form,
   FormControl,
@@ -18,20 +38,7 @@ import {
   FormLabel,
   FormMessage
 } from "../ui/form";
-import { useForm } from "react-hook-form";
-import * as yup from "yup";
-import { yupResolver } from "@hookform/resolvers/yup";
-import { Button } from "@/components/ui/button";
-import { Archivo, Lato } from "next/font/google";
-import { IoMdClose } from "react-icons/io";
-import { Separator } from "../ui/separator";
-import { Textarea } from "../ui/textarea";
-import { FaPen } from "react-icons/fa";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { cn } from "@/lib/utils";
-import { CalendarIcon } from "lucide-react";
-import moment from "moment";
-import { Calendar } from "../ui/calendar";
 import {
   Select,
   SelectContent,
@@ -39,67 +46,104 @@ import {
   SelectTrigger,
   SelectValue
 } from "../ui/select";
-import { Combobox } from "../ui/combobox";
-import Image from "next/image";
-import assets from "@/json/assets";
-import Link from "next/link";
-const archivo = Archivo({ subsets: ["latin"], variable: "--font-archivo" });
-const lato = Lato({
-  display: "swap",
-  variable: "--font-lato",
-  subsets: ["latin"],
-  weight: ["100", "300", "400", "700", "900"]
+import { Separator } from "../ui/separator";
+import { Textarea } from "../ui/textarea";
+
+const schema = yup.object().shape({
+  message: yup.string().required("Message is required"),
+  date: yup.date().required("Scheduled Date is required"),
+  frequency: yup.string().default(""),
+  time: yup.string().default("")
 });
 
+const frequency = [
+  { label: "Daily", value: "daily" },
+  { label: "Weekly", value: "weekly" },
+  { label: "Monthly", value: "monthly" },
+  { label: "Yearly", value: "yearly" }
+];
+
 export default function ScheduleMessageModal({
-  selectedMessage
+  message = "",
+  selectedMessage,
+  receiverName,
+  onClose,
+  editing
 }: {
+  message?: string;
   selectedMessage?: {
+    _id: string;
     message: string;
     time: string;
     date: Date;
     repeat: string;
   };
+  receiverName: string;
+  onClose: () => void;
+  editing?: boolean;
 }) {
-  const schema = yup.object().shape({
-    message: yup.string().required("Message is required"),
-    date: yup.date().required("Scheduled Date is required"),
-    frequency: yup.string().default(""),
-    time: yup.string().default("")
+  const [room] = useQueryState("room", parseAsString.withDefault(""));
+  const [editMessage, setEditMessage] = useState(false);
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: scheduleMessage,
+    onSuccess: () => {
+      form.reset();
+      onClose();
+    },
+    meta: {
+      invalidateQueries: ["scheduled-messages"]
+    }
+  });
+
+  const { mutate: edit, isPending: isEditPending } = useMutation({
+    mutationFn: editScheduleMessage,
+    onSuccess: () => {
+      form.reset();
+      onClose();
+    },
+    meta: {
+      invalidateQueries: ["scheduled-messages"]
+    }
   });
 
   const form = useForm<yup.InferType<typeof schema>>({
     resolver: yupResolver(schema),
     defaultValues: {
-      message: selectedMessage
-        ? selectedMessage.message
-        : "Hey Riya, just checking in on your journaling habit this week. Let me  know how it's going 😊  \nHave you had at least 3 deep-breath moments today?” ",
-      date: selectedMessage ? selectedMessage.date : undefined,
+      message: selectedMessage ? selectedMessage.message : message,
+      date: selectedMessage ? selectedMessage.date : new Date(),
       frequency: "",
       time: selectedMessage ? selectedMessage.time : "12:00"
-    }
+    },
+    disabled: isPending || isEditPending
   });
 
   const onSubmit = (data: yup.InferType<typeof schema>) => {
-    console.log({ ...data });
+    if (editing) {
+      edit({
+        ...data,
+        date: moment(data.date).format("YYYY-MM-DD"),
+        messageId: selectedMessage?._id || ""
+      });
+    } else {
+      mutate({
+        ...data,
+        date: moment(data.date).format("YYYY-MM-DD"),
+        chatId: room
+      });
+    }
   };
 
-  const [editMessage, setEditMessage] = useState(false);
   const times = React.useMemo(() => {
     const slots: string[] = [];
     for (let h = 0; h < 24; h++) {
-      for (const m of [0, 30]) {
+      for (const m of [0, 5]) {
         slots.push(moment({ hour: h, minute: m }).format("HH:mm"));
       }
     }
     return slots;
   }, []);
-  const frequency = [
-    { label: "Daily", value: "daily" },
-    { label: "Weekly", value: "weekly" },
-    { label: "Monthly", value: "monthly" },
-    { label: "Yearly", value: "yearly" }
-  ];
+
   useEffect(() => {
     if (selectedMessage) {
       form.reset({
@@ -108,13 +152,20 @@ export default function ScheduleMessageModal({
         frequency: selectedMessage.repeat, // or selectedMessage.frequency if you rename
         time: selectedMessage.time
       });
+      return;
     }
-  }, [selectedMessage, form]);
+    if (message) {
+      form.reset({
+        message,
+        date: new Date(),
+        frequency: "",
+        time: "12:00"
+      });
+    }
+  }, [selectedMessage, form, message]);
+
   return (
-    <DialogContent
-      className={`${archivo.variable} ${lato.variable} sm:max-w-xl p-0`}
-      showCloseButton={false}
-    >
+    <DialogContent className={`sm:max-w-xl p-0`} showCloseButton={false}>
       <DialogHeader className="gap-0">
         <DialogTitle className="text-xl p-4 py-3 font-semibold font-archivo flex items-center justify-between">
           Schedule Message
@@ -284,21 +335,29 @@ export default function ScheduleMessageModal({
           alt="alert"
         />
         <p className="font-lato text-sm text-gray-600">
-          This message will be sent automatically to <strong>Riya</strong> at
-          the selected time.
+          This message will be sent automatically to{" "}
+          <strong>{receiverName}</strong> at the selected time.
         </p>
       </div>
       <Separator />
       {/* Footer */}
       <DialogFooter className="pb-4 px-4 flex items-center !justify-between max-sm:flex-row">
-        <DialogClose asChild>
+        <DialogClose asChild disabled={isPending || isEditPending}>
           <Button variant="outline">Cancel</Button>
         </DialogClose>
         <div className="flex gap-2">
-          <Link href="/chat/scheduled-messages">
-            <Button variant="outline">View All Scheduled</Button>
-          </Link>
-          <Button>{selectedMessage ? "Update" : "Create"}</Button>
+          {!editing && (
+            <Link href="/chat?tab=scheduled">
+              <Button variant="outline">View All Scheduled</Button>
+            </Link>
+          )}
+          <Button
+            onClick={form.handleSubmit(onSubmit)}
+            isLoading={isPending || isEditPending}
+            center
+          >
+            {editing ? "Update" : "Create"}
+          </Button>
         </div>
       </DialogFooter>
     </DialogContent>

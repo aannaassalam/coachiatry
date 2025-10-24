@@ -47,6 +47,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as yup from "yup";
+import { queryClient } from "./_app";
 
 const schema = yup.object().shape({
   fullName: yup.string().required("Name is required"),
@@ -83,6 +84,9 @@ export default function Settings() {
 
   const { mutate: revokeMutate, isPending: isRevoking } = useMutation({
     mutationFn: revokeViewAccess,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["conversations"] });
+    },
     meta: {
       invalidateQueries: ["settings-profile"]
     }
@@ -92,6 +96,7 @@ export default function Settings() {
     mutationFn: addWatchers,
     onSuccess: () => {
       setWatchersDialog(false);
+      queryClient.invalidateQueries({ queryKey: ["conversations"] });
     },
     meta: {
       invalidateQueries: ["settings-profile"]

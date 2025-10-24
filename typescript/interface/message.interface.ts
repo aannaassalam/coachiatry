@@ -35,6 +35,7 @@ export interface Message {
   reactions?: MessageReaction[];
   replyTo?: Message | null;
   scheduledAt?: Date;
+  repeat: "none" | "daily" | "weekly" | "monthly" | "yearly";
   createdAt?: string;
   updatedAt?: string;
   status: MessageStatus;

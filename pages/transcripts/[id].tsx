@@ -1,84 +1,86 @@
 "use client";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
+import { SmartAvatar } from "@/components/ui/smart-avatar";
 import { Textarea } from "@/components/ui/textarea";
+import { getTranscription } from "@/external-api/functions/transcriptions.api";
 import assets from "@/json/assets";
 import AppLayout from "@/layouts/AppLayout";
 import { cn } from "@/lib/utils";
+import {
+  EachTranscription,
+  Transcription
+} from "@/typescript/interface/transcription.interface";
+import { useQuery } from "@tanstack/react-query";
+import moment from "moment";
 import Image from "next/image";
 import Link from "next/link";
-import React, { useState } from "react";
+import { useParams } from "next/navigation";
+import { useState } from "react";
 
 const TranscriptHeader = ({
   showSummary,
-  generateTask
+  generateTask,
+  transcription,
+  isLoading
 }: {
   showSummary: () => void;
   generateTask: () => void;
+  transcription?: Transcription;
+  isLoading?: boolean;
 }) => {
-  const category: Record<string, Record<string, string>> = {
-    health: {
-      bg: "bg-amber-200/40",
-      text: "text-amber-600/80",
-      dotColor: "bg-amber-600/80"
-    },
-    fitness: {
-      bg: "bg-green-100",
-      text: "text-green-600/90",
-      dotColor: "bg-green-600/90"
-    },
-    sports: {
-      text: "text-red-600/80",
-      bg: "bg-red-100/80",
-      dotColor: "bg-red-600/80"
-    }
-  };
+  if (isLoading)
+    return (
+      <>
+        <div className="flex justify-between mt-5 items-center">
+          <div className="flex gap-2.5 items-center">
+            <div className="size-6 rounded-full bg-gray-200 animate-pulse" />
+            <span className="h-5 w-20 bg-gray-200 animate-pulse rounded-sm" />
+          </div>
+          <div className="w-25 h-6 rounded-sm bg-gray-200 animate-pulse" />
+        </div>
+        <div className="w-full">
+          <div className="w-2/3 mt-4 h-8 bg-gray-200 rounded-sm animate-pulse" />
+        </div>
+        <div className="border-1 border-[#E6E6E6] p-4 rounded-[6px] mt-4">
+          <div className="w-25 h-7 bg-gray-200 animate-pulse rounded-sm" />
+          <div className="grid grid-cols-3 w-full mt-4 gap-4 max-sm:grid-cols-1">
+            <div className="flex-1 h-10.5 bg-gray-200 animate-pulse rounded-md" />
+            <div className="flex-1 h-10.5 bg-gray-200 animate-pulse rounded-md" />
+            <div className="flex-1 h-10.5 bg-gray-200 animate-pulse rounded-md" />
+          </div>
+        </div>
+      </>
+    );
+
   return (
     <>
       <div className="flex justify-between mt-5 items-center">
         <div className="flex gap-2.5 items-center">
-          <Avatar className="size-6">
-            <AvatarImage src={assets.avatar} alt="AH" />
-            <AvatarFallback className="bg-orange-100 flex items-center justify-center font-semibold text-orange-600">
-              AH
-            </AvatarFallback>
-          </Avatar>
+          <SmartAvatar
+            src={transcription?.user?.photo}
+            name={transcription?.user?.fullName}
+            className="size-6"
+          />
           <span className="text-sm text-gray-900 font-lato font-medium">
-            John Nick
+            {transcription?.user?.fullName}
           </span>
         </div>
-        <div className="flex gap-6 max-sm:flex-wrap">
-          <Badge
-            className={cn(
-              "rounded-full py-0.5 px-2 flex items-center gap-1.5 font-archivo font-medium text-xs leading-4.5",
-              category["health"].bg,
-              category["health"].text
-            )}
-          >
-            <div
-              className={cn(
-                "size-1.5 rounded-full",
-                category["health"].dotColor
-              )}
-            />
-            Health
-          </Badge>
-          <div className="flex gap-2 items-center">
-            <Image
-              src={assets.icons.calendar}
-              width={16}
-              height={16}
-              alt="calendar"
-            />
-            <span className="text-sm">Dec 12, 2022</span>
-          </div>
+        <div className="flex gap-2 items-center">
+          <Image
+            src={assets.icons.calendar}
+            width={16}
+            height={16}
+            alt="calendar"
+          />
+          <span className="text-sm">
+            {moment(transcription?.createdAt).format("MMM DD,YYYY")}
+          </span>
         </div>
       </div>
       <h2 className="text-gray-900 font-archivo text-2xl tracking-[-3%] font-semibold mt-4 max-sm:text-xl ">
-        Any mechanical keyboard enthusiasts in design?
+        {transcription?.title}
       </h2>
       <div className="border-1 border-[#E6E6E6] p-4 rounded-[6px] mt-4">
         <p className="font-archivo font-medium text-lg">AI Tools</p>
@@ -132,6 +134,7 @@ const TranscriptHeader = ({
     </>
   );
 };
+
 const DetailsSummaryBox = () => {
   return (
     <div className="w-full my-5 p-4 border-1 border-gray-200 bg-[#f9f9f9] rounded-[6px] flex flex-col gap-3">
@@ -172,61 +175,112 @@ const GenerateTaskBox = () => {
   );
 };
 
-const TranscriptionsSection = () => {
-  const [transcriptions] = useState([
-    {
-      name: "John Nick",
-      message: "Hi there, how's it going?",
-      time: "00:00:00",
-      avatar: assets.avatar2
-    },
-    {
-      name: "You",
-      message:
-        "Hi everyone, thanks for joining. Before we dive into the project updates, can everyone hear me okay? Some friends and I are going hiking on Saturday, weather permitting of course.",
-      time: "00:00:05",
-      avatar: assets.avatar
-    },
-    {
-      name: "John Nick",
-      message:
-        "And if you go to a certain place, the video or the audio also jumps to that point. ",
-      time: "00:00:12",
-      avatar: assets.avatar2
-    },
-    {
-      name: "You",
-      message:
-        "You can just highlight something and that gives you the option to create notes. Awesome, that sounds promising. Sarah, how’s the development on the product side coming along? Not at the moment, but I’ll keep you posted if anything comes up during the campaign launch.",
-      time: "00:00:20",
-      avatar: assets.avatar
-    },
-    {
-      name: "John Nick",
-      message:
-        "Okay, before that, it does try to identify what are the words that are coming up frequently. Sure. We've finalized the digital campaign framework, and our team is set to launch it next week",
-      time: "00:00:28",
-      avatar: assets.avatar2
-    },
-    {
-      name: "You",
-      message:
-        "And if you go to a certain place, the video or the audio also jumps to that point.",
-      time: "00:00:35",
-      avatar: assets.avatar
-    }
-  ]);
+const TranscriptionsSection = ({
+  transcriptions,
+  isLoading
+}: {
+  transcriptions: EachTranscription[];
+  isLoading?: boolean;
+}) => {
+  if (isLoading)
+    return (
+      <div className="flex flex-col items-start mt-4">
+        <h3 className="font-medium text-lg text-gray-900 mb-4">
+          Transcription
+        </h3>
+        <div className="flex gap-2.5 mb-4 items-start">
+          <div className="size-8 rounded-full bg-gray-200 animate-pulse" />
+          <div>
+            <div className="flex gap-2 items-center">
+              <div className="h-5 w-17 bg-gray-200 rounded-sm animate-pulse" />
+              <div className="w-1 h-1 bg-gray-400 rounded-full" />
+              <div className="w-12.5 h-4 bg-gray-200 rounded-sm animate-pulse" />
+            </div>
+            <div className="h-5 w-50 animate-pulse bg-gray-200 rounded-sm mt-1.5" />
+          </div>
+        </div>
+        <div className="flex gap-2.5 mb-4 items-start">
+          <div className="size-8 rounded-full bg-gray-200 animate-pulse" />
+          <div>
+            <div className="flex gap-2 items-center">
+              <div className="h-5 w-17 bg-gray-200 rounded-sm animate-pulse" />
+              <div className="w-1 h-1 bg-gray-400 rounded-full" />
+              <div className="w-12.5 h-4 bg-gray-200 rounded-sm animate-pulse" />
+            </div>
+            <div className="h-5 w-100 animate-pulse bg-gray-200 rounded-sm mt-1.5" />
+          </div>
+        </div>
+        <div className="flex gap-2.5 mb-4 items-start">
+          <div className="size-8 rounded-full bg-gray-200 animate-pulse" />
+          <div>
+            <div className="flex gap-2 items-center">
+              <div className="h-5 w-17 bg-gray-200 rounded-sm animate-pulse" />
+              <div className="w-1 h-1 bg-gray-400 rounded-full" />
+              <div className="w-12.5 h-4 bg-gray-200 rounded-sm animate-pulse" />
+            </div>
+            <div className="h-5 w-55 animate-pulse bg-gray-200 rounded-sm mt-1.5" />
+            <div className="h-5 w-90 animate-pulse bg-gray-200 rounded-sm mt-1.5" />
+          </div>
+        </div>
+        <div className="flex gap-2.5 mb-4 items-start">
+          <div className="size-8 rounded-full bg-gray-200 animate-pulse" />
+          <div>
+            <div className="flex gap-2 items-center">
+              <div className="h-5 w-17 bg-gray-200 rounded-sm animate-pulse" />
+              <div className="w-1 h-1 bg-gray-400 rounded-full" />
+              <div className="w-12.5 h-4 bg-gray-200 rounded-sm animate-pulse" />
+            </div>
+            <div className="h-5 w-70 animate-pulse bg-gray-200 rounded-sm mt-1.5" />
+          </div>
+        </div>
+        <div className="flex gap-2.5 mb-4 items-start">
+          <div className="size-8 rounded-full bg-gray-200 animate-pulse" />
+          <div>
+            <div className="flex gap-2 items-center">
+              <div className="h-5 w-17 bg-gray-200 rounded-sm animate-pulse" />
+              <div className="w-1 h-1 bg-gray-400 rounded-full" />
+              <div className="w-12.5 h-4 bg-gray-200 rounded-sm animate-pulse" />
+            </div>
+            <div className="h-5 w-30 animate-pulse bg-gray-200 rounded-sm mt-1.5" />
+          </div>
+        </div>
+        <div className="flex gap-2.5 mb-4 items-start">
+          <div className="size-8 rounded-full bg-gray-200 animate-pulse" />
+          <div>
+            <div className="flex gap-2 items-center">
+              <div className="h-5 w-17 bg-gray-200 rounded-sm animate-pulse" />
+              <div className="w-1 h-1 bg-gray-400 rounded-full" />
+              <div className="w-12.5 h-4 bg-gray-200 rounded-sm animate-pulse" />
+            </div>
+            <div className="h-5 w-50 animate-pulse bg-gray-200 rounded-sm mt-1.5" />
+          </div>
+        </div>
+        <div className="flex gap-2.5 mb-4 items-start">
+          <div className="size-8 rounded-full bg-gray-200 animate-pulse" />
+          <div>
+            <div className="flex gap-2 items-center">
+              <div className="h-5 w-17 bg-gray-200 rounded-sm animate-pulse" />
+              <div className="w-1 h-1 bg-gray-400 rounded-full" />
+              <div className="w-12.5 h-4 bg-gray-200 rounded-sm animate-pulse" />
+            </div>
+            <div className="h-5 w-100 animate-pulse bg-gray-200 rounded-sm mt-1.5" />
+          </div>
+        </div>
+      </div>
+    );
+
+  const startTime = transcriptions[0]?.timestamp;
+
   return (
     <div className="flex flex-col items-start mt-4">
       <h3 className="font-medium text-lg text-gray-900 mb-4">Transcription</h3>
-      {transcriptions.map((transcription, id) => (
-        <div key={id} className="flex gap-2.5 mb-4 items-start">
-          <Avatar className="size-8">
-            <AvatarImage src={transcription.avatar} alt="AH" />
-            <AvatarFallback className="bg-orange-100 flex items-center justify-center font-semibold text-orange-600">
-              AH
-            </AvatarFallback>
-          </Avatar>
+      {transcriptions.map((transcription) => (
+        <div key={transcription._id} className="flex gap-2.5 mb-4 items-start">
+          <SmartAvatar
+            src={transcription.profile}
+            name={transcription.name}
+            className="size-8"
+          />
           <div>
             <div className="flex gap-2 items-center">
               <p className="font-lato font-medium tracking-[-2%] text-gray-900">
@@ -234,11 +288,13 @@ const TranscriptionsSection = () => {
               </p>
               <span className="w-1 h-1 bg-gray-400 rounded-full" />
               <p className="font-lato text-primary text-xs">
-                {transcription.time}
+                {moment
+                  .utc(moment(transcription.timestamp).diff(moment(startTime)))
+                  .format("HH:mm:ss")}
               </p>
             </div>
             <p className="font-lato text-sm text-gray-600 mt-0.5">
-              {transcription.message}
+              {transcription.text}
             </p>
           </div>
         </div>
@@ -246,9 +302,16 @@ const TranscriptionsSection = () => {
     </div>
   );
 };
+
 function TranscriptsDescription() {
+  const { id } = useParams();
   const [showDetailSummaryBox, setShowDetailSummaryBox] = useState(false);
   const [showGenerateTaskBox, setShowGenerateTaskBox] = useState(false);
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["transcriptions", id],
+    queryFn: () => getTranscription(id as string)
+  });
 
   return (
     <AppLayout>
@@ -270,10 +333,15 @@ function TranscriptsDescription() {
       <TranscriptHeader
         showSummary={() => setShowDetailSummaryBox(!showDetailSummaryBox)}
         generateTask={() => setShowGenerateTaskBox(!showGenerateTaskBox)}
+        transcription={data}
+        isLoading={isLoading}
       />
       {showGenerateTaskBox && <GenerateTaskBox />}
       {showDetailSummaryBox && <DetailsSummaryBox />}
-      <TranscriptionsSection />
+      <TranscriptionsSection
+        transcriptions={data?.transcriptions ?? []}
+        isLoading={isLoading}
+      />
     </AppLayout>
   );
 }

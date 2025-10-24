@@ -4,10 +4,15 @@ import Logo from "@/ui/Logo/Logo";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { parseAsString, useQueryState } from "nuqs";
 import React from "react";
 
 export default function AuthNavbar() {
   const router = useRouter();
+  const [local_callback] = useQueryState(
+    "local_callback",
+    parseAsString.withDefault("")
+  );
 
   return (
     <div className="px-12 py-5 flex gap-5 justify-between items-center border-b border-gray-300 max-sm:px-4">
@@ -20,11 +25,16 @@ export default function AuthNavbar() {
         </p>
         <Button asChild className="!w-auto">
           <Link
-            href={
-              router.pathname.includes("/auth/register")
+            href={{
+              pathname: router.pathname.includes("/auth/register")
                 ? "/auth/login"
-                : "/auth/register"
-            }
+                : "/auth/register",
+              query: local_callback
+                ? {
+                    local_callback
+                  }
+                : undefined
+            }}
           >
             {router.pathname.includes("/auth/register") ? "Sign In" : "Sign Up"}
           </Link>

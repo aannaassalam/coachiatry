@@ -21,6 +21,7 @@ import { signIn } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { parseAsString, useQueryState } from "nuqs";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -38,6 +39,10 @@ const schema = yup.object().shape({
 export default function Login() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [local_callback] = useQueryState(
+    "local_callback",
+    parseAsString.withDefault("")
+  );
 
   const form = useForm<yup.InferType<typeof schema>>({
     resolver: yupResolver(schema),
@@ -55,7 +60,7 @@ export default function Login() {
     if (result?.error) {
       toast.error(result?.error);
     } else {
-      router.push("/");
+      router.push(local_callback || "/");
     }
     setIsLoading(false);
   };

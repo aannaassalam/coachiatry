@@ -12,6 +12,7 @@ export default {
 
   icons: {
     dashboard: "/assets/svg/dashboard.svg",
+    clients: "/assets/svg/users.svg",
     task: "/assets/svg/task.svg",
     transcripts: "/assets/svg/transcripts.svg",
     chat: "/assets/svg/chat.svg",

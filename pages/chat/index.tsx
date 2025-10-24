@@ -12,7 +12,7 @@ function Chat() {
     "tab",
     parseAsString.withDefault("chats")
   );
-  const [room] = useQueryState("room", parseAsString.withDefault(""));
+  const [room, setRoom] = useQueryState("room", parseAsString.withDefault(""));
 
   return (
     <SocketProvider>
@@ -25,7 +25,13 @@ function Chat() {
                 : tab === "scheduled" && "Scheduled Messages"}
             </h1>
           </div>
-          <Tabs value={tab} onValueChange={(value) => setTab(value)}>
+          <Tabs
+            value={tab}
+            onValueChange={(value) => {
+              setRoom(null);
+              setTab(value);
+            }}
+          >
             <div className="flex items-center justify-between gap-5 pb-2">
               <TabsList className="h-auto">
                 <TabsTrigger

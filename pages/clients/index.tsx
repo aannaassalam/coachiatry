@@ -1,11 +1,10 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
-import assets from "@/json/assets";
-import AppLayout from "@/layouts/AppLayout";
-import { Ellipsis, ListFilter } from "lucide-react";
-import Image from "next/image";
+import ProfileModal from "@/components/Clients/ProfileModal";
+import EmptyTable from "@/components/Table/EmptyTable";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import { SmartAvatar } from "@/components/ui/smart-avatar";
 import {
   Table,
   TableBody,
@@ -14,81 +13,19 @@ import {
   TableHeader,
   TableRow
 } from "@/components/ui/table";
-import React, { useState } from "react";
+import { getClients } from "@/external-api/functions/coach.api";
+import assets from "@/json/assets";
+import AppLayout from "@/layouts/AppLayout";
+import { useQuery } from "@tanstack/react-query";
+import { Ellipsis, ListFilter } from "lucide-react";
 import moment from "moment";
-import EmptyTable from "@/components/Table/EmptyTable";
-import { Dialog } from "@/components/ui/dialog";
-import ProfileModal from "@/components/Clients/ProfileModal";
+import Image from "next/image";
 
 function Clients() {
-  const [open, setOpen] = useState(false);
-
-  const [clients] = useState([
-    {
-      name: "Savannah Nguyen",
-      age: 24,
-      gender: "Male",
-      email: "ahmad@yahoo.com",
-      date: new Date(),
-      avatar: assets.avatar
-    },
-    {
-      name: "Savannah Nguyen",
-      age: 24,
-      gender: "Male",
-      email: "ahmad@yahoo.com",
-      date: new Date(),
-      avatar: assets.avatar2
-    },
-    {
-      name: "Savannah Nguyen",
-      age: 24,
-      gender: "Male",
-      email: "ahmad@yahoo.com",
-      date: new Date(),
-      avatar: assets.avatar
-    },
-    {
-      name: "Savannah Nguyen",
-      age: 24,
-      gender: "Male",
-      email: "ahmad@yahoo.com",
-      date: new Date(),
-      avatar: assets.avatar
-    },
-    {
-      name: "Savannah Nguyen",
-      age: 24,
-      gender: "Male",
-      email: "ahmad@yahoo.com",
-      date: new Date(),
-      avatar: assets.avatar2
-    },
-    {
-      name: "Savannah Nguyen",
-      age: 24,
-      gender: "Male",
-      email: "ahmad@yahoo.com",
-      date: new Date(),
-      avatar: assets.avatar
-    },
-    {
-      name: "Savannah Nguyen",
-      age: 24,
-      gender: "Male",
-      email: "ahmad@yahoo.com",
-      date: new Date(),
-      avatar: assets.avatar
-    },
-    {
-      name: "Savannah Nguyen",
-      age: 24,
-      gender: "Male",
-      email: "ahmad@yahoo.com",
-      date: new Date(),
-      avatar: assets.avatar2
-    }
-  ]);
+  const { data = [], isLoading } = useQuery({
+    queryKey: ["clients"],
+    queryFn: getClients
+  });
 
   return (
     <AppLayout>
@@ -114,8 +51,6 @@ function Clients() {
           <TableHeader className="bg-gray-100">
             <TableRow className="border-none">
               <TableHead className="text-xs text-gray-500">Names</TableHead>
-              <TableHead className="text-xs text-gray-500">Age</TableHead>
-              <TableHead className="text-xs text-gray-500">Gender</TableHead>
               <TableHead className="text-xs text-gray-500">Email</TableHead>
               <TableHead className="text-xs text-gray-500">Since</TableHead>
               <TableHead className="text-xs text-gray-500 rounded-r-md">
@@ -124,54 +59,76 @@ function Clients() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {clients.length > 0 ? (
-              clients.map((client, index) => (
-                <TableRow
-                  key={index}
-                  className="cursor-pointer"
-                  onClick={() => setOpen(true)}
-                >
+            {isLoading ? (
+              <>
+                <TableRow className="border-b-0 hover:bg-transparent">
+                  <TableCell colSpan={4} className="p-0 pt-1.5">
+                    <div className="h-17 w-full rounded-md bg-gray-200/80 animate-pulse" />
+                  </TableCell>
+                </TableRow>
+                <TableRow className="border-b-0 hover:bg-transparent">
+                  <TableCell colSpan={4} className="p-0 pt-1.5">
+                    <div className="h-17 w-full rounded-md bg-gray-200/80 animate-pulse" />
+                  </TableCell>
+                </TableRow>
+                <TableRow className="border-b-0 hover:bg-transparent">
+                  <TableCell colSpan={4} className="p-0 pt-1.5">
+                    <div className="h-17 w-full rounded-md bg-gray-200/80 animate-pulse" />
+                  </TableCell>
+                </TableRow>
+                <TableRow className="border-b-0 hover:bg-transparent">
+                  <TableCell colSpan={4} className="p-0 pt-1.5">
+                    <div className="h-17 w-full rounded-md bg-gray-200/80 animate-pulse" />
+                  </TableCell>
+                </TableRow>
+                <TableRow className="border-b-0 hover:bg-transparent">
+                  <TableCell colSpan={4} className="p-0 pt-1.5">
+                    <div className="h-17 w-full rounded-md bg-gray-200/80 animate-pulse" />
+                  </TableCell>
+                </TableRow>
+              </>
+            ) : data?.length > 0 ? (
+              data.map((client, index) => (
+                <TableRow key={index} className="cursor-pointer">
                   <TableCell className="py-3.5">
                     <div className="flex items-center gap-3">
-                      <Avatar className="size-10">
-                        <AvatarImage src={client.avatar} alt="AH" />
-                        <AvatarFallback>AH</AvatarFallback>
-                      </Avatar>
-                      {client.name}
+                      <SmartAvatar
+                        src={client.photo}
+                        name={client.fullName}
+                        className="size-10"
+                      />
+                      {client.fullName}
                     </div>
-                  </TableCell>
-                  <TableCell className=" text-sm text-gray-500 leading-5 cursor-pointer">
-                    {client.age}
-                  </TableCell>
-                  <TableCell className="py-3.5 text-gray-500">
-                    {client.gender}
                   </TableCell>
                   <TableCell className="py-3.5 text-gray-500">
                     {client.email}
                   </TableCell>
                   <TableCell className="py-3.5 text-sm text-gray-600">
-                    {moment(client.date).format("ll")}
+                    {moment(client.createdAt).format("ll")}
                   </TableCell>
                   <TableCell className="py-3.5">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="hover:bg-secondary"
-                    >
-                      <Ellipsis className="text-gray-500 rotate-90" />
-                    </Button>
+                    <Dialog>
+                      <DialogTrigger>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="hover:bg-secondary"
+                          asChild
+                        >
+                          <Ellipsis className="text-gray-500 rotate-90" />
+                        </Button>
+                      </DialogTrigger>
+                      <ProfileModal client={client} />
+                    </Dialog>
                   </TableCell>
                 </TableRow>
               ))
             ) : (
-              <EmptyTable message="No documents found" colSpan={5} />
+              <EmptyTable message="No clients found" colSpan={5} />
             )}
           </TableBody>
         </Table>
       </div>
-      <Dialog open={open} onOpenChange={setOpen}>
-        <ProfileModal />
-      </Dialog>
     </AppLayout>
   );
 }
