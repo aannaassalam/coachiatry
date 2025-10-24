@@ -1,7 +1,5 @@
 "use client";
 
-import { signup } from "@/external-api/functions/auth.api";
-import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
@@ -15,14 +13,19 @@ import {
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { Separator } from "@/components/ui/separator";
+import { signup } from "@/external-api/functions/auth.api";
 import assets from "@/json/assets";
 import AuthLayout from "@/layouts/AuthLayout";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useMutation } from "@tanstack/react-query";
+import { signIn } from "next-auth/react";
 import Image from "next/image";
-import { useForm } from "react-hook-form";
-import * as yup from "yup";
+import { useRouter } from "next/router";
 import { parseAsString, useQueryState } from "nuqs";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import * as yup from "yup";
 
 const schema = yup.object().shape({
   fullName: yup.string().required(),
@@ -34,10 +37,12 @@ const schema = yup.object().shape({
 });
 
 export default function Register() {
+  const router = useRouter();
   const [local_callback] = useQueryState(
     "local_callback",
     parseAsString.withDefault("")
   );
+  const [isLoading, setIsLoading] = useState(false);
 
   const { mutate, isPending } = useMutation({
     mutationFn: signup,
@@ -62,6 +67,17 @@ export default function Register() {
 
   const onSubmit = (data: yup.InferType<typeof schema>) => {
     mutate(data);
+  };
+
+  const onGoogleLogin = async () => {
+    setIsLoading(true);
+    const result = await signIn("google", { redirect: false });
+    if (result?.error) {
+      toast.error(result?.error);
+    } else {
+      router.push(local_callback || "/");
+    }
+    setIsLoading(false);
   };
 
   return (
@@ -143,7 +159,14 @@ export default function Register() {
             </p>
             <Separator className="flex-1" />
           </div>
-          <Button variant="outline" className="w-full mt-4" center>
+          <Button
+            variant="outline"
+            className="w-full mt-4"
+            center
+            disabled={isPending}
+            isLoading={isLoading}
+            onClick={onGoogleLogin}
+          >
             <Image
               src={assets.google_logo}
               alt="Google"

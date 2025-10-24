@@ -26,6 +26,15 @@ export const login = async (
   return res;
 };
 
+export const googleAuth = async (
+  tokenId: string
+): Promise<{ data: { token: string; user: User } }> => {
+  const res = await axiosInstance.post(endpoints.auth.googleAuth, {
+    id_token: tokenId
+  });
+  return res;
+};
+
 export const forgotPassword = async (email: string) => {
   const res = await axiosInstance.post(endpoints.auth.forgotPassword, {
     email

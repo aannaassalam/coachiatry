@@ -1,13 +1,22 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { login, LoginBody } from "@/external-api/functions/auth.api";
+import {
+  googleAuth,
+  login,
+  LoginBody
+} from "@/external-api/functions/auth.api";
 import { fetchProfile } from "@/external-api/functions/user.api";
 import { User } from "@/typescript/interface/user.interface";
 import NextAuth, { AuthOptions } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
+import GoogleProvider from "next-auth/providers/google";
 
 export const authOptions: AuthOptions = {
   providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!
+    }),
     Credentials({
       name: "Credentials",
       credentials: {
@@ -45,7 +54,7 @@ export const authOptions: AuthOptions = {
           }
 
           // Default fallback
-          throw new Error(error.message || "Login failed");
+          throw new Error(error?.response.data?.message || "Login failed");
         }
       }
     })
@@ -62,8 +71,19 @@ export const authOptions: AuthOptions = {
     signIn: "/auth/login"
   },
   callbacks: {
-    async jwt({ token, trigger, user }) {
-      if (user) {
+    async jwt({ token, account, trigger, user }) {
+      if (account?.provider === "google") {
+        const googleIdToken = account.id_token;
+
+        try {
+          const res = await googleAuth(googleIdToken!);
+
+          token.user = res.data.user;
+          token.token = res.data.token; // Your app's JWT
+        } catch (err) {
+          console.error("Google auth backend failed:", err);
+        }
+      } else if (user?.token) {
         const { token: appToken, ...rest } = user as User & {
           token: string;
         };

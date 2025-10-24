@@ -65,6 +65,17 @@ export default function Login() {
     setIsLoading(false);
   };
 
+  const onGoogleLogin = async () => {
+    setIsLoading(true);
+    const result = await signIn("google", { redirect: false });
+    if (result?.error) {
+      toast.error(result?.error);
+    } else {
+      router.push(local_callback || "/");
+    }
+    setIsLoading(false);
+  };
+
   return (
     <AuthLayout className="flex items-center justify-center">
       <Card
@@ -158,7 +169,13 @@ export default function Login() {
             </p>
             <Separator className="flex-1" />
           </div>
-          <Button variant="outline" className="w-full mt-4" center>
+          <Button
+            variant="outline"
+            className="w-full mt-4"
+            center
+            disabled={isLoading}
+            onClick={onGoogleLogin}
+          >
             <Image
               src={assets.google_logo}
               alt="Google"
