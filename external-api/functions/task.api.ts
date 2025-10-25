@@ -111,6 +111,28 @@ export const getAllTasks = async ({
   return res.data;
 };
 
+export const getAllTasksByCoach = async ({
+  sort,
+  filter = [],
+  userId
+}: {
+  sort?: string;
+  filter?: Filter[];
+  userId: string;
+}): Promise<Task[]> => {
+  const filterQuery = buildFilterQuery(filter);
+
+  const res = await axiosInstance.get(endpoints.task.getAll, {
+    params: {
+      populate: "category,status,user",
+      sort,
+      ...filterQuery,
+      user: userId
+    }
+  });
+  return res.data;
+};
+
 export const getTask = async (id: string): Promise<Task> => {
   const res = await axiosInstance.get(endpoints.task.getOne(id), {
     params: {
@@ -122,6 +144,11 @@ export const getTask = async (id: string): Promise<Task> => {
 
 export const addTask = async (taskData: TaskBody) => {
   const res = await axiosInstance.post(endpoints.task.post, taskData);
+  return res;
+};
+
+export const addTaskByCoach = async (taskData: TaskBody & { user: string }) => {
+  const res = await axiosInstance.post(endpoints.task.postCoach, taskData);
   return res;
 };
 

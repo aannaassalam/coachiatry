@@ -1,4 +1,3 @@
-import React, { useState } from "react";
 import {
   Table,
   TableBody,
@@ -7,81 +6,51 @@ import {
   TableHeader,
   TableRow
 } from "@/components/ui/table";
-import { Checkbox } from "../ui/checkbox";
-import { Badge } from "../ui/badge";
-import { cn } from "@/lib/utils";
-import moment from "moment";
-import { Button } from "../ui/button";
+import { getAllDocumentsByCoach } from "@/external-api/functions/document.api";
+import { useQuery } from "@tanstack/react-query";
 import { Ellipsis } from "lucide-react";
-
-// Dummy data
-const dummyDocuments = [
-  {
-    title: "Therapy Progress Report",
-    tag: "Therapy",
-    createdAt: "2025-10-01"
-  },
-  {
-    title: "Client Goals Overview",
-    tag: "Goals",
-    createdAt: "2025-09-28"
-  },
-  {
-    title: "Weekly Summary - Week 3",
-    tag: "Weekly",
-    createdAt: "2025-09-21"
-  },
-  {
-    title: "Service Contract Agreement",
-    tag: "Contract",
-    createdAt: "2025-09-15"
-  },
-  {
-    title: "Weekly Summary - Week 2",
-    tag: "Weekly Summaries",
-    createdAt: "2025-09-07"
-  }
-];
+import moment from "moment";
+import { useParams } from "next/navigation";
+import { parseAsString, useQueryState } from "nuqs";
+import { useState } from "react";
+import { Badge } from "../ui/badge";
+import { Button } from "../ui/button";
+import DocumentSheet from "./DocumentSheet";
 
 function Documents() {
-  const [documents] = useState(dummyDocuments);
+  const { id: userId } = useParams();
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedDocument, setSelectedDocument] = useQueryState(
+    "document",
+    parseAsString.withDefault("")
+  );
 
-  const DocumentTagColorMap: Record<string, Record<string, string>> = {
-    Goals: {
-      bg: "bg-amber-200/40",
-      text: "text-amber-600/80",
-      dotColor: "bg-amber-600/80"
-    },
-    Therapy: {
-      bg: "bg-gray-200/70",
-      text: "text-primary",
-      dotColor: "bg-primary"
-    },
-    "Weekly Summaries": {
-      bg: "bg-gray-200/70",
-      text: "text-primary",
-      dotColor: "bg-primary"
-    },
-    Weekly: {
-      bg: "bg-green-100",
-      text: "text-green-600/90",
-      dotColor: "bg-green-600/90"
-    },
-    Contract: {
-      text: "text-red-600/80",
-      bg: "bg-red-100/80",
-      dotColor: "bg-red-600/80"
-    }
-  };
+  const { data = { data: [] }, isLoading } = useQuery({
+    queryKey: ["documents", userId],
+    queryFn: () =>
+      getAllDocumentsByCoach({
+        sort: "latest",
+        tab: "all",
+        userId: userId as string
+      }),
+    enabled: !!userId
+  });
 
   return (
     <div className="mt-1 max-md:w-[95vw] max-md:overflow-auto scrollbar-hide max-[480px]:!w-[93vw]">
+      <div className="w-full flex items-center justify-end mb-4">
+        <Button
+          onClick={() => {
+            setSelectedDocument(null);
+            setIsOpen(true);
+          }}
+        >
+          Create Doc
+        </Button>
+      </div>
       <Table>
         <TableHeader className="bg-gray-100">
           <TableRow className="border-none">
-            <TableHead className="rounded-l-md">
-              <Checkbox className="bg-white" />
-            </TableHead>
             <TableHead className="text-xs text-gray-500">Name</TableHead>
             <TableHead className="text-xs text-gray-500">Tags</TableHead>
             <TableHead className="text-xs text-gray-500">Date</TableHead>
@@ -91,34 +60,58 @@ function Documents() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {documents.length > 0 ? (
-            documents.map((document, index) => (
-              <TableRow key={index}>
-                <TableCell className="py-3.5">
-                  <Checkbox className="bg-white" />
+          {isLoading ? (
+            <>
+              <TableRow className="border-b-0 hover:bg-transparent">
+                <TableCell colSpan={4} className="p-0 pt-1.5">
+                  <div className="h-16 w-full rounded-md bg-gray-200/80 animate-pulse" />
                 </TableCell>
+              </TableRow>
+              <TableRow className="border-b-0 hover:bg-transparent">
+                <TableCell colSpan={4} className="p-0 pt-1.5">
+                  <div className="h-16 w-full rounded-md bg-gray-200/80 animate-pulse" />
+                </TableCell>
+              </TableRow>
+              <TableRow className="border-b-0 hover:bg-transparent">
+                <TableCell colSpan={4} className="p-0 pt-1.5">
+                  <div className="h-16 w-full rounded-md bg-gray-200/80 animate-pulse" />
+                </TableCell>
+              </TableRow>
+              <TableRow className="border-b-0 hover:bg-transparent">
+                <TableCell colSpan={4} className="p-0 pt-1.5">
+                  <div className="h-16 w-full rounded-md bg-gray-200/80 animate-pulse" />
+                </TableCell>
+              </TableRow>
+              <TableRow className="border-b-0 hover:bg-transparent">
+                <TableCell colSpan={4} className="p-0 pt-1.5">
+                  <div className="h-16 w-full rounded-md bg-gray-200/80 animate-pulse" />
+                </TableCell>
+              </TableRow>
+            </>
+          ) : data?.data.length > 0 ? (
+            data?.data.map((document, index) => (
+              <TableRow key={index}>
                 <TableCell
                   className="font-medium text-sm leading-5 cursor-pointer"
-                  //   onClick={() => setSelectedDocument(document)}
+                  onClick={() => setSelectedDocument(document._id)}
                 >
                   {document.title}
                 </TableCell>
                 <TableCell className="py-3.5">
                   <Badge
-                    className={cn(
-                      "rounded-full py-0.5 px-2 flex items-center gap-1.5 font-archivo font-medium text-xs leading-4.5",
-                      DocumentTagColorMap[document.tag]?.bg || "bg-gray-100",
-                      DocumentTagColorMap[document.tag]?.text || "text-gray-600"
-                    )}
+                    className="rounded-full py-0.5 px-2 flex items-center gap-1.5 font-archivo font-medium text-xs leading-4.5"
+                    style={{
+                      backgroundColor: document?.tag?.color.bg,
+                      color: document?.tag?.color.text
+                    }}
                   >
                     <div
-                      className={cn(
-                        "size-1.5 rounded-full",
-                        DocumentTagColorMap[document.tag]?.dotColor ||
-                          "bg-gray-400"
-                      )}
+                      className="size-1.5 rounded-full"
+                      style={{
+                        backgroundColor: document.tag?.color.text
+                      }}
                     ></div>
-                    {document.tag}
+                    {document.tag?.title}
                   </Badge>
                 </TableCell>
                 <TableCell className="py-3.5 text-sm text-gray-600">
@@ -144,6 +137,15 @@ function Documents() {
           )}
         </TableBody>
       </Table>
+      <DocumentSheet
+        open={!!selectedDocument || isOpen}
+        onOpenChange={() => {
+          setSelectedDocument(null);
+          setIsOpen(false);
+        }}
+        documentId={selectedDocument}
+        key="coach"
+      />
     </div>
   );
 }

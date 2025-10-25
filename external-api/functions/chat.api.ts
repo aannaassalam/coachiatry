@@ -19,6 +19,31 @@ export const getConversation = async (
   return res.data;
 };
 
+export const getAllConversationsByCoach = async ({
+  filters,
+  userId
+}: {
+  filters?: Record<string, any>;
+  userId: string;
+}): Promise<PaginatedResponse<ChatConversation[]>> => {
+  const res = await axiosInstance.get(
+    endpoints.chat.getConversationsByCoach(userId),
+    {
+      params: filters
+    }
+  );
+  return res.data;
+};
+
+export const getConversationByCoach = async (
+  roomId: string
+): Promise<ChatConversation> => {
+  const res = await axiosInstance.get(
+    endpoints.chat.getConversationByCoach(roomId)
+  );
+  return res.data;
+};
+
 export const createGroup = async (body: {
   name: string;
   members: string[];

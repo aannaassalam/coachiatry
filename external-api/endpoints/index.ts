@@ -23,6 +23,8 @@ export const endpoints = {
   document: {
     getAll: "/documents",
     add: "/documents",
+    coachAccess: "/documents/coach",
+    addCoach: "/documents/coach",
     getOne: (documentId: string) => `/documents/${documentId}`,
     edit: (documentId: string) => `/documents/${documentId}`,
     delete: (documentId: string) => `/documents/${documentId}`,
@@ -30,20 +32,28 @@ export const endpoints = {
   },
   category: {
     getAll: "/categories",
-    add: "/categories"
+    add: "/categories",
+    getAllCoach: (userId: string) => `/categories/coach/${userId}`,
+    addCoach: (userId: string) => `/categories/coach/${userId}`
   },
   status: {
     getAll: "/statuses",
-    add: "/statuses"
+    add: "/statuses",
+    getAllCoach: (userId: string) => `/statuses/coach/${userId}`,
+    addCoach: (userId: string) => `/statuses/coach/${userId}`
   },
   transcriptions: {
     getAllTranscriptions: "/transcriptions",
+    getAllTranscriptionsByCoach: "/transcriptions/coach",
     getTranscription: (id: string) => `/transcriptions/${id}`,
-    deleteTranscription: (id: string) => `/transcriptions/${id}`
+    deleteTranscription: (id: string) => `/transcriptions/${id}`,
+    deleteTranscriptionByCoach: (id: string) => `/transcriptions/coach/${id}`
   },
   task: {
     getAll: "/task",
+    getAllCoach: "/task/coach",
     post: "/task",
+    postCoach: "/task/coach",
     importBulkTasks: "/task/import-bulk-tasks",
     getOne: (taskId: string) => `/task/${taskId}`,
     edit: (taskId: string) => `/task/${taskId}`,
@@ -61,17 +71,22 @@ export const endpoints = {
     suggestUsers: "/user/suggestions",
     addWatchers: "/user/add-watchers",
     userByIds: "/user/user-by-ids",
+    userById: (userId: string) => `/user/user-by-id/${userId}`,
     shared: (shareId: string) => `/user/share/${shareId}`,
     revokeAccess: (viewerId: string) => `/user/share/${viewerId}`
   },
   chat: {
     getConversations: "/chat",
     getConversation: (roomId: string) => `/chat/${roomId}`,
+    getConversationsByCoach: (userId: string) => `/chat/coach/${userId}`,
+    getConversationByCoach: (roomId: string) => `/chat/coach/room/${roomId}`,
     createGroup: "/chat/group",
     editGroup: "/chat/group/edit"
   },
   messages: {
     getScheduleMessages: "/message/schedule",
+    getScheduleMessagesByCoach: (userId: string) =>
+      `/message/schedule/coach/${userId}`,
     scheduleMessage: "/message/schedule",
     editScheduleMessage: (messageId: string) =>
       `/message/schedule/${messageId}`,

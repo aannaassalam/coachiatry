@@ -20,8 +20,11 @@ import { useQuery } from "@tanstack/react-query";
 import { Ellipsis, ListFilter } from "lucide-react";
 import moment from "moment";
 import Image from "next/image";
+import { useState } from "react";
 
 function Clients() {
+  const [clientId, setClientId] = useState("");
+
   const { data = [], isLoading } = useQuery({
     queryKey: ["clients"],
     queryFn: getClients
@@ -90,7 +93,10 @@ function Clients() {
             ) : data?.length > 0 ? (
               data.map((client, index) => (
                 <TableRow key={index} className="cursor-pointer">
-                  <TableCell className="py-3.5">
+                  <TableCell
+                    className="py-3.5"
+                    onClick={() => setClientId(client._id)}
+                  >
                     <div className="flex items-center gap-3">
                       <SmartAvatar
                         src={client.photo}
@@ -107,7 +113,13 @@ function Clients() {
                     {moment(client.createdAt).format("ll")}
                   </TableCell>
                   <TableCell className="py-3.5">
-                    <Dialog>
+                    <Dialog
+                      open={clientId === client._id}
+                      onOpenChange={(open) => {
+                        if (open) setClientId(client._id);
+                        else setClientId("");
+                      }}
+                    >
                       <DialogTrigger>
                         <Button
                           variant="ghost"

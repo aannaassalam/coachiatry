@@ -1,17 +1,17 @@
 "use client";
 
-import { useQueryState } from "nuqs";
-import { parseAsJson } from "nuqs"; // we'll use JSON encoding
-import { Button } from "../ui/button";
+import { getAllCategoriesByCoach } from "@/external-api/functions/category.api";
+import { getAllStatusesByCoach } from "@/external-api/functions/status.api";
+import { Filter } from "@/typescript/interface/common.interface";
+import { PopoverClose } from "@radix-ui/react-popover";
+import { useQueries } from "@tanstack/react-query";
 import { Plus, Trash2, X } from "lucide-react";
+import { Archivo } from "next/font/google";
+import { useParams } from "next/navigation";
+import { parseAsJson, useQueryState } from "nuqs";
+import { Button } from "../ui/button";
 import { Combobox } from "../ui/combobox";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
-import { PopoverClose } from "@radix-ui/react-popover";
-import { Archivo } from "next/font/google";
-import { Filter } from "@/typescript/interface/common.interface";
-import { useQueries } from "@tanstack/react-query";
-import { getAllCategories } from "@/external-api/functions/category.api";
-import { getAllStatuses } from "@/external-api/functions/status.api";
 
 const archivo = Archivo({ subsets: ["latin"], variable: "--font-archivo" });
 
@@ -21,6 +21,8 @@ type FilterOption = {
 };
 
 function FilterBox() {
+  const { id: userId } = useParams();
+
   // ✅ store filters in URL instead of local state
   const [values, setValues] = useQueryState<Filter[]>(
     "filters",
@@ -37,12 +39,12 @@ function FilterBox() {
   ] = useQueries({
     queries: [
       {
-        queryKey: ["categories"],
-        queryFn: getAllCategories
+        queryKey: ["categories", userId],
+        queryFn: () => getAllCategoriesByCoach(userId as string)
       },
       {
-        queryKey: ["status"],
-        queryFn: getAllStatuses
+        queryKey: ["status", userId],
+        queryFn: () => getAllStatusesByCoach(userId as string)
       }
     ]
   });

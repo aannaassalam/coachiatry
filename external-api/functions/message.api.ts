@@ -59,3 +59,21 @@ export const getScheduleMessages = async ({
   });
   return res.data;
 };
+
+export const getScheduleMessagesByCoach = async ({
+  page = 1,
+  userId
+}: {
+  page: number;
+  userId: string;
+}): Promise<
+  PaginatedResponse<(Omit<Message, "chat"> & { chat: ChatConversation })[]>
+> => {
+  const res = await axiosInstance.get(
+    endpoints.messages.getScheduleMessagesByCoach(userId),
+    {
+      params: { page, limit: 10 }
+    }
+  );
+  return res.data;
+};

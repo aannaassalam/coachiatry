@@ -149,13 +149,19 @@ function Transcripts() {
             <div className="h-15.5 w-full rounded-md bg-gray-200/80 animate-pulse" />
             <div className="h-15.5 w-full rounded-md bg-gray-200/80 animate-pulse" />
           </>
-        ) : (
+        ) : data?.data && data?.data?.length > 0 ? (
           data?.data?.map((transcription) => (
             <TranscriptionItem
               key={transcription._id}
               transcription={transcription}
             />
           ))
+        ) : (
+          <div className="flex items-center w-full justify-center">
+            <span className="italic text-gray-500">
+              No transcriptions found
+            </span>
+          </div>
         )}
         {data?.meta?.totalPages && data?.meta?.totalPages > 1 ? (
           <Pagination className="mt-10 justify-center">

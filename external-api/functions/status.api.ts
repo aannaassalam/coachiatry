@@ -18,3 +18,25 @@ export const addStatus = async (body: {
   const res = await axiosInstance.post(endpoints.status.add, body);
   return res;
 };
+
+export const getAllStatusesByCoach = async (
+  userId: string
+): Promise<Status[]> => {
+  const res = await axiosInstance.get(endpoints.status.getAllCoach(userId));
+  return res.data;
+};
+
+export const addStatusByCoach = async (body: {
+  title: string;
+  color: {
+    bg: string;
+    text: string;
+  };
+  user: string;
+}) => {
+  const res = await axiosInstance.post(
+    endpoints.status.addCoach(body.user),
+    body
+  );
+  return res;
+};

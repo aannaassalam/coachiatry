@@ -19,6 +19,23 @@ export const getAllDocuments = async ({
   return res.data;
 };
 
+export const getAllDocumentsByCoach = async ({
+  sort,
+  tab,
+  limit,
+  userId
+}: {
+  sort: string;
+  tab: string;
+  limit?: number;
+  userId: string;
+}): Promise<PaginatedResponse<Document[]>> => {
+  const res = await axiosInstance.get(endpoints.document.coachAccess, {
+    params: { sort, tab, select: "-shareId", populate: "tag", limit, userId }
+  });
+  return res.data;
+};
+
 type DetailDocument = Omit<Document, "user"> & {
   user: User;
 };
@@ -40,6 +57,16 @@ export const createDocument = async (body: {
   tag: string;
 }) => {
   const res = await axiosInstance.post(endpoints.document.add, body);
+  return res;
+};
+
+export const createDocumentByCoach = async (body: {
+  title: string;
+  content: string;
+  tag: string;
+  user: string;
+}) => {
+  const res = await axiosInstance.post(endpoints.document.addCoach, body);
   return res;
 };
 

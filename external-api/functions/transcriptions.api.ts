@@ -21,6 +21,31 @@ export const getAllTranscriptions = async ({
   return res.data;
 };
 
+export const getAllTranscriptionsByCoach = async ({
+  page,
+  userId,
+  search
+}: {
+  page: number;
+  userId: string;
+  search: string;
+}): Promise<PaginatedResponse<Transcription[]>> => {
+  const res = await axiosInstance.get(
+    endpoints.transcriptions.getAllTranscriptionsByCoach,
+    {
+      params: {
+        page,
+        user: userId,
+        limit: 9,
+        populate: "user",
+        search,
+        searchFields: "title"
+      }
+    }
+  );
+  return res.data;
+};
+
 export const getTranscription = async (id: string): Promise<Transcription> => {
   const res = await axiosInstance.get(
     endpoints.transcriptions.getTranscription(id),
@@ -36,6 +61,13 @@ export const getTranscription = async (id: string): Promise<Transcription> => {
 export const deleteTranscription = async (id: string) => {
   const res = await axiosInstance.delete(
     endpoints.transcriptions.deleteTranscription(id)
+  );
+  return res;
+};
+
+export const deleteTranscriptionByCoach = async (id: string) => {
+  const res = await axiosInstance.delete(
+    endpoints.transcriptions.deleteTranscriptionByCoach(id)
   );
   return res;
 };
