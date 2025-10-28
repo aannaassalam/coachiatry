@@ -37,7 +37,7 @@ const TranscriptionItem = ({
   transcription: Transcription;
   page: number;
 }) => {
-  const { id: userId } = useParams();
+  const { userId } = useParams();
   const [isHovered, setIsHovered] = useState(false);
 
   const { mutate, isPending } = useMutation({
@@ -111,7 +111,7 @@ const TranscriptionItem = ({
 };
 
 function Transcriptions() {
-  const { id: userId } = useParams();
+  const { userId } = useParams();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
 

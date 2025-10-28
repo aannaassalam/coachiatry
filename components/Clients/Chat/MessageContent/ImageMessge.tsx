@@ -4,8 +4,8 @@ import { SmartAvatar } from "@/components/ui/smart-avatar";
 import { cn } from "@/lib/utils";
 import { Message } from "@/typescript/interface/message.interface";
 import { User } from "@/typescript/interface/user.interface";
-import { useSession } from "next-auth/react";
 import Image from "next/image";
+import { useParams } from "next/navigation";
 import { useState } from "react";
 
 export default function ImageMessage({
@@ -19,10 +19,10 @@ export default function ImageMessage({
   showAvatar?: boolean;
   isGroup: boolean;
 }) {
-  const { data } = useSession();
+  const { userId } = useParams();
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<number | null>(null);
-  const isUser = sender?._id === data?.user?._id || sender === data?.user?._id;
+  const isUser = sender?._id === userId || sender === userId;
   const reactions = message?.reactions ?? [];
 
   if (!message.files?.length) return null;
@@ -64,7 +64,7 @@ export default function ImageMessage({
                 <div className="w-1 rounded-lg bg-primary" />
                 <div className="flex-1">
                   <p className="text-xs">
-                    {message.replyTo?.sender?._id === data?.user?._id
+                    {message.replyTo?.sender?._id === userId
                       ? "You"
                       : message.replyTo?.sender?.fullName}
                   </p>

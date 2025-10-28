@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { Message } from "@/typescript/interface/message.interface";
 import { User } from "@/typescript/interface/user.interface";
 import { Download, FileText } from "lucide-react";
-import { useSession } from "next-auth/react";
+import { useParams } from "next/navigation";
 
 export default function FileMessage({
   sender,
@@ -18,8 +18,8 @@ export default function FileMessage({
   showAvatar?: boolean;
   isGroup: boolean;
 }) {
-  const { data } = useSession();
-  const isUser = sender?._id === data?.user?._id || sender === data?.user?._id;
+  const { userId } = useParams();
+  const isUser = sender?._id === userId || sender === userId;
   const reactions = message?.reactions ?? [];
 
   const formatSize = (bytes: number) => {
@@ -67,7 +67,7 @@ export default function FileMessage({
                 <div className="w-1 rounded-lg bg-primary" />
                 <div className="flex-1">
                   <p className="text-xs">
-                    {message.replyTo?.sender?._id === data?.user?._id
+                    {message.replyTo?.sender?._id === userId
                       ? "You"
                       : message.replyTo?.sender?.fullName}
                   </p>

@@ -53,7 +53,7 @@ export default function DocumentSheet({
   onOpenChange: (toggle: boolean) => void;
   documentId: string;
 }) {
-  const { id: userId } = useParams();
+  const { userId } = useParams();
   const [isEditing, setIsEditing] = useState(!documentId);
   const [downloading, setDownloading] = useState(false);
   const [errorState, setErrorState] = useState({
@@ -382,7 +382,7 @@ export default function DocumentSheet({
               {!isEditing || isPending || isDocUpdating ? (
                 <div
                   dangerouslySetInnerHTML={{ __html: documentData.content }}
-                  className="flex-1 leading-7 [&_hr]:my-2"
+                  className="flex-1 leading-7 [&_hr]:my-2 [&_ul]:py-2 [&_ul]:px-5 [&_ol]:py-2 [&_ol]:px-5 [&_ol]:list-decimal [&_ol]:space-y-2 [&_a]:text-blue-500 [&_a]:underline"
                 />
               ) : (
                 <EditorContent
@@ -471,7 +471,7 @@ export default function DocumentSheet({
                         side="top"
                         align="end"
                       >
-                        <CoachAI id={documentId} />
+                        <CoachAI id={documentId} page="document" />
                       </PopoverContent>
                     </Popover>
                   </>

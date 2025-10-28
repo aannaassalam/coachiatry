@@ -524,31 +524,29 @@ export default function AddTaskSheet({
                         />
                       </div>
                     </div>
-                    {!selectedTask && (
-                      <FormField
-                        control={form.control}
-                        name="frequency"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-sm text-gray-500">
-                              Frequency
-                            </FormLabel>
-                            <FormControl>
-                              <Combobox
-                                value={field.value}
-                                onChange={field.onChange}
-                                options={dropDownOptions.frequency}
-                                placeholder="Select frequency"
-                                disabled={
-                                  disabledAll || isPending || isEditPending
-                                }
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    )}
+                    <FormField
+                      control={form.control}
+                      name="frequency"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm text-gray-500">
+                            Frequency
+                          </FormLabel>
+                          <FormControl>
+                            <Combobox
+                              value={field.value}
+                              onChange={field.onChange}
+                              options={dropDownOptions.frequency}
+                              placeholder="Select frequency"
+                              disabled={
+                                disabledAll || isPending || isEditPending
+                              }
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                     <FormField
                       control={form.control}
                       name="remindBefore"

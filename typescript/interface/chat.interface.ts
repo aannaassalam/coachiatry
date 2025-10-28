@@ -23,6 +23,7 @@ export interface ChatConversation {
     status?: "pending" | "sent" | "delivered" | "seen" | "failed";
     createdAt?: string;
   } | null;
+  isDeletable: boolean;
   createdAt: string;
   updatedAt?: string;
 }

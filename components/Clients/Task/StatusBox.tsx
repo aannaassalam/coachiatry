@@ -19,7 +19,7 @@ function StatusBox({
   taskId: string;
   selectedStatus: string;
 }) {
-  const { id: userId } = useParams();
+  const { userId } = useParams();
   const [searchTerm, setSearchTerm] = useState("");
 
   const { data = [] } = useQuery({

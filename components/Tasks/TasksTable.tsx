@@ -353,6 +353,7 @@ function TasksTable({
                             name={task?.user?.fullName}
                             key={task?.user?.updatedAt}
                             className="size-5"
+                            textSize="text-[10px]"
                           />
                           <span className="font-lato font-medium text-sm text-gray-700">
                             me
@@ -360,7 +361,9 @@ function TasksTable({
                         </div>
                       </TableCell>
                       <TableCell className="font-lato text-sm text-gray-600 tracking-[-0.05px]">
-                        {moment(task.dueDate).format("DD-MM-YYYY")}
+                        {task.dueDate
+                          ? moment(task.dueDate).format("DD-MM-YYYY")
+                          : "-"}
                       </TableCell>
                       <TableCell className="tracking-[-0.05px]">
                         <Badge

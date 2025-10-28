@@ -29,6 +29,7 @@ type TextMessageProps = {
   showAvatar?: boolean;
   setReplyingTo: React.Dispatch<React.SetStateAction<Message | null>>;
   isGroup: boolean;
+  isDeletable?: boolean;
 };
 
 export default function TextMessage({
@@ -36,11 +37,14 @@ export default function TextMessage({
   message,
   showAvatar,
   setReplyingTo,
-  isGroup
+  isGroup,
+  isDeletable
 }: TextMessageProps) {
   const { data } = useSession();
   const socket = useSocket();
-  const isUser = sender?._id === data?.user?._id || sender === data?.user?._id;
+  const isUser = isDeletable
+    ? sender?._id === data?.user?._id || sender === data?.user?._id
+    : false;
   const reactions = message.reactions ?? [];
 
   const [room] = useQueryState("room", parseAsString.withDefault(""));
@@ -139,15 +143,19 @@ export default function TextMessage({
     <div>
       {!isUser && showAvatar && isGroup && (
         <p className="pl-12 text-xs font-medium text-gray-600/90 mb-1">
-          {sender?.fullName}
+          {isDeletable ? sender?.fullName : "Coachiatry"}
         </p>
       )}
       <div className="flex items-start gap-3 relative">
         {!isUser && showAvatar && (
           <SmartAvatar
-            src={sender?.photo}
-            name={sender?.fullName}
-            key={sender?.updatedAt}
+            src={
+              isDeletable
+                ? sender?.photo
+                : "https://coachiatry.s3.us-east-1.amazonaws.com/Logo+Mark+(1).png"
+            }
+            name={isDeletable ? sender?.fullName : "Coachiatry"}
+            key={sender?.updatedAt ?? "Coachiatry"}
             className="size-8"
           />
         )}
@@ -282,14 +290,16 @@ export default function TextMessage({
                 <EmojiPicker setSelectedEmoji={handleReaction} />
               </PopoverContent>
             </Popover>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="hover:bg-secondary self-center p-2 aspect-square opacity-0 group-hover:opacity-100"
-              onClick={() => setReplyingTo(message)}
-            >
-              <Reply size={15} />
-            </Button>
+            {isDeletable && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="hover:bg-secondary self-center p-2 aspect-square opacity-0 group-hover:opacity-100"
+                onClick={() => setReplyingTo(message)}
+              >
+                <Reply size={15} />
+              </Button>
+            )}
           </div>
         )}
       </div>

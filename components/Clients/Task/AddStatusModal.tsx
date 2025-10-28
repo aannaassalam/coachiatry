@@ -40,7 +40,7 @@ function AddStatusModal({
   isOpen: boolean;
   onClose: () => void;
 }) {
-  const { id: userId } = useParams();
+  const { userId } = useParams();
 
   const [title, setTitle] = useState("");
   const [selectedColor, setSelectedColor] = useState<

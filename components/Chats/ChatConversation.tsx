@@ -4,8 +4,11 @@
 
 import { getConversation } from "@/external-api/functions/chat.api";
 import { getMessages } from "@/external-api/functions/message.api";
+import { useChatUpload } from "@/hooks/useChatHook";
 import { useSocket } from "@/lib/socketContext";
+import { cn } from "@/lib/utils";
 import { queryClient } from "@/pages/_app";
+import { uploadManager } from "@/services/uploadManager";
 import { ChatConversation as Conversation } from "@/typescript/interface/chat.interface";
 import {
   InfiniteData,
@@ -22,15 +25,12 @@ import moment from "moment";
 import { useSession } from "next-auth/react";
 import { parseAsString, useQueryState } from "nuqs";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { BsChevronLeft } from "react-icons/bs";
 import { Button } from "../ui/button";
 import { SmartAvatar } from "../ui/smart-avatar";
 import ChatInput from "./ChatInput";
 import ChatMessage from "./ChatMessage";
-import { cn } from "@/lib/utils";
-import { BsChevronLeft } from "react-icons/bs";
 import ChatUploadWithPreview from "./ChatUpload";
-import { useChatUpload } from "@/hooks/useChatHook";
-import { uploadManager } from "@/services/uploadManager";
 import GroupModal from "./GroupModal";
 
 export default function ChatConversation() {
@@ -672,7 +672,8 @@ export default function ChatConversation() {
         )}
         {conversation?.type === "group" &&
           conversation.members.find((_mem) => _mem.user._id === data?.user?._id)
-            ?.role === "owner" && (
+            ?.role === "owner" &&
+          conversation.isDeletable && (
             <GroupModal
               data={{
                 name: conversation.name,
@@ -769,9 +770,10 @@ export default function ChatConversation() {
               allMessages.map((msg, idx) => {
                 // previous is the message above (older) in the list when rendering oldest -> newest
                 const previous = allMessages[idx - 1];
-                const showAvatar =
-                  msg.sender?._id !== data?.user?._id &&
-                  (!previous || previous.sender?._id !== msg.sender?._id);
+                const showAvatar = conversation?.isDeletable
+                  ? msg.sender?._id !== data?.user?._id &&
+                    (!previous || previous.sender?._id !== msg.sender?._id)
+                  : true;
 
                 return (
                   <motion.div
@@ -785,8 +787,11 @@ export default function ChatConversation() {
                       sender={msg.sender}
                       message={msg}
                       showAvatar={showAvatar}
-                      setReplyingTo={setReplyingTo}
+                      setReplyingTo={
+                        conversation?.isDeletable ? setReplyingTo : () => null
+                      }
                       isGroup={conversation?.type === "group"}
+                      isDeletable={conversation?.isDeletable}
                     />
                   </motion.div>
                 );
@@ -796,7 +801,7 @@ export default function ChatConversation() {
 
           <div ref={bottomRef} />
         </div>
-        {chatDragShow && (
+        {chatDragShow && conversation?.isDeletable && (
           <ChatUploadWithPreview
             files={files} // pass files from parent
             handleUpload={handleUpload}
@@ -843,15 +848,17 @@ export default function ChatConversation() {
       </AnimatePresence>
 
       {/* Footer */}
-      <ChatInput
-        onSend={handleSend}
-        replyingTo={replyingTo}
-        setReplyingTo={setReplyingTo}
-        files={files} // current files state
-        setFiles={setFiles} // allow child to modify
-        setChatDragShow={setChatDragShow}
-        receiverName={conversation?.name ?? friend?.user?.fullName ?? ""}
-      />
+      {conversation?.isDeletable && (
+        <ChatInput
+          onSend={handleSend}
+          replyingTo={replyingTo}
+          setReplyingTo={setReplyingTo}
+          files={files} // current files state
+          setFiles={setFiles} // allow child to modify
+          setChatDragShow={setChatDragShow}
+          receiverName={conversation?.name ?? friend?.user?.fullName ?? ""}
+        />
+      )}
     </div>
   );
 }

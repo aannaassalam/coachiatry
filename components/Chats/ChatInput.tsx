@@ -201,7 +201,7 @@ const InputButtons = ({
           align="center"
           collisionPadding={180}
         >
-          <CoachAI size="small" id={room} />
+          <CoachAI size="small" id={room} page="chat" />
         </PopoverContent>
       </Popover>
       <Tooltip>

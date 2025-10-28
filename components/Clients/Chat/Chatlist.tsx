@@ -34,7 +34,7 @@ export default function ChatList() {
     "room",
     parseAsString.withDefault("")
   );
-  const { id: userId } = useParams();
+  const { userId } = useParams();
   const { data } = useSession();
 
   const { data: chats, isLoading } = useQuery({
@@ -134,7 +134,8 @@ export default function ChatList() {
                       "font-semibold": _chat.unreadCount > 0
                     })}
                   >
-                    {_chat.lastMessage?.sender?._id === data?.user?._id
+                    {_chat.lastMessage?.sender?._id === data?.user?._id &&
+                    _chat.isDeletable
                       ? "You: "
                       : null}
                     {_chat.lastMessage?.content ||

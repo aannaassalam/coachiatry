@@ -31,7 +31,7 @@ function ListView() {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
 
-  const { id: userId } = useParams();
+  const { userId } = useParams();
 
   const [sort] = useQueryState(
     "sort",

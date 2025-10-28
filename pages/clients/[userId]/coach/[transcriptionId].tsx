@@ -260,6 +260,7 @@ const GenerateTaskBox = ({
   isPending: boolean;
 }) => {
   const router = useRouter();
+  const { userId } = useParams();
   const [selectedTasksId, setSelectedTasksId] = useState<string[]>([]);
   const [selectedTasks, setSelectedTasks] = useState<ChatTask[]>([]);
   const [isTaskAdded, setIsTaskAdded] = useState(false);
@@ -347,7 +348,8 @@ const GenerateTaskBox = ({
                   _task.dueDate ??
                   moment().add(1, "week").set("hour", 12).set("minutes", 0),
                 frequency: _task.recurrence ?? "none"
-              }))
+              })),
+              userId: userId as string
             })
           }
           isLoading={isAddingTasks}
@@ -488,7 +490,7 @@ const TranscriptionsSection = ({
 };
 
 function TranscriptsDescription() {
-  const { id } = useParams();
+  const { userId, transcriptionId } = useParams();
   const [openedBox, setOpenedBox] = useState<
     null | "short_summary" | "detailed_summary" | "generate_tasks"
   >(null);
@@ -496,8 +498,8 @@ function TranscriptsDescription() {
   const [sessionId] = useState(moment.now());
 
   const { data, isLoading } = useQuery({
-    queryKey: ["transcriptions", id],
-    queryFn: () => getTranscription(id as string)
+    queryKey: ["transcriptions", transcriptionId],
+    queryFn: () => getTranscription(transcriptionId as string)
   });
 
   const { mutate, isPending } = useMutation({
@@ -511,7 +513,7 @@ function TranscriptsDescription() {
     action: "short_summary" | "detailed_summary" | "generate_tasks",
     query?: string
   ) => {
-    if (!id) return;
+    if (!transcriptionId) return;
     setAIData(null);
 
     if (action === "detailed_summary") {
@@ -527,10 +529,11 @@ function TranscriptsDescription() {
       setOpenedBox("detailed_summary");
 
       mutate({
-        transcriptionId: id as string,
+        transcriptionId: transcriptionId as string,
         action,
         query,
-        session_id: sessionId.toString()
+        session_id: sessionId.toString(),
+        user: userId as string
       });
       return;
     }
@@ -538,10 +541,11 @@ function TranscriptsDescription() {
     // Normal toggle + mutation for other actions
     if (openedBox !== action) {
       mutate({
-        transcriptionId: id as string,
+        transcriptionId: transcriptionId as string,
         action,
         query: "",
-        session_id: sessionId.toString()
+        session_id: sessionId.toString(),
+        user: userId as string
       });
     }
     setOpenedBox((prev) => (prev === action ? null : action));

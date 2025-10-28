@@ -28,7 +28,7 @@ export default function ChatConversation() {
   const [chatDragShow, setChatDragShow] = useState(false);
 
   const messageKeyMap = useRef<Map<string, string>>(new Map());
-  const { id: userId } = useParams();
+  const { userId } = useParams();
 
   useEffect(() => {
     messageKeyMap.current.clear();
@@ -273,9 +273,10 @@ export default function ChatConversation() {
               allMessages.map((msg, idx) => {
                 // previous is the message above (older) in the list when rendering oldest -> newest
                 const previous = allMessages[idx - 1];
-                const showAvatar =
-                  msg.sender?._id !== userId &&
-                  (!previous || previous.sender?._id !== msg.sender?._id);
+                const showAvatar = conversation?.isDeletable
+                  ? msg.sender?._id !== userId &&
+                    (!previous || previous.sender?._id !== msg.sender?._id)
+                  : true;
 
                 return (
                   <motion.div
@@ -290,6 +291,7 @@ export default function ChatConversation() {
                       message={msg}
                       showAvatar={showAvatar}
                       isGroup={conversation?.type === "group"}
+                      isDeletable={conversation?.isDeletable}
                     />
                   </motion.div>
                 );

@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { chatWithAi } from "@/external-api/functions/ai.api";
-import { createDocument } from "@/external-api/functions/document.api";
+import {
+  createDocument,
+  createDocumentByCoach
+} from "@/external-api/functions/document.api";
 import { importBulkTasks } from "@/external-api/functions/task.api";
 import { cn } from "@/lib/utils";
 import { useMutation } from "@tanstack/react-query";
@@ -15,6 +18,8 @@ import { RiDvdAiFill } from "./RiDvdAiFill";
 import { Button } from "./ui/button";
 import { Checkbox } from "./ui/checkbox";
 import { SmartAvatar } from "./ui/smart-avatar";
+import moment from "moment";
+import { useParams } from "next/navigation";
 
 type DocumentInfo = {
   isDocumentRendered: boolean;
@@ -34,6 +39,8 @@ type ChatTask = {
   description: string;
   category: { title: string; id: string };
   priority: string;
+  dueDate: string;
+  recurrence: string;
 };
 
 type Chat =
@@ -92,10 +99,11 @@ const SystemMessages = ({
   setTaskInfo: React.Dispatch<React.SetStateAction<TaskInfo>>;
 }) => {
   const router = useRouter();
+  const { userId } = useParams();
   const [selectedTasksId, setSelectedTasksId] = useState<string[]>([]);
 
   const { mutate: addDocument, isPending: isAddingDocument } = useMutation({
-    mutationFn: createDocument,
+    mutationFn: userId ? createDocumentByCoach : createDocument,
     onSuccess: (data) => {
       setDocumentInfo({
         isDocumentRendered: false,
@@ -152,7 +160,7 @@ const SystemMessages = ({
             Tag: {chat.data.tag.title}
           </p>
           <div
-            className="text-gray-700 text-sm font-medium font-lato inline-block leading-6 [&_hr]:my-2 break-words overflow-hidden whitespace-pre-wrap [word-break:break-word]"
+            className="text-gray-700 text-sm font-medium font-lato inline-block leading-6 [&_hr]:my-2 break-words overflow-hidden whitespace-pre-wrap [word-break:break-word] [&_ul]:py-2 [&_ul]:px-5 [&_ol]:py-2 [&_ol]:px-5 [&_ol]:list-decimal [&_ol]:space-y-2 [&_a]:text-blue-500 [&_a]:underline"
             dangerouslySetInnerHTML={{ __html: chat.data.content }}
           />
           {documentInfo?.isDocumentRendered && (
@@ -164,7 +172,8 @@ const SystemMessages = ({
                 addDocument({
                   title: chat.data.title,
                   content: chat.data.content,
-                  tag: chat.data.tag.id
+                  tag: chat.data.tag.id,
+                  user: userId as string
                 })
               }
               isLoading={isAddingDocument}
@@ -247,8 +256,13 @@ const SystemMessages = ({
                     title: _task.title,
                     description: _task.description,
                     priority: _task.priority,
-                    category: _task.category.id
-                  }))
+                    category: _task.category.id,
+                    dueDate:
+                      _task.dueDate ??
+                      moment().add(1, "week").set("hour", 12).set("minutes", 0),
+                    frequency: _task.recurrence ?? "none"
+                  })),
+                  userId: userId as string
                 })
               }
               isLoading={isAddingDocument}
@@ -278,12 +292,16 @@ const SystemMessages = ({
 
 export default function CoachAI({
   id,
-  size = "small"
+  size = "small",
+  page = "general"
 }: {
   id?: string;
   size?: "large" | "small";
+  page?: "general" | "document" | "chat";
 }) {
   const { data } = useSession();
+  const { userId } = useParams();
+  const [session] = useState(moment.now().toString());
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const [value, setValue] = useState("");
@@ -356,7 +374,13 @@ export default function CoachAI({
 
   const handleSend = () => {
     if (value.trim()) {
-      mutate({ query: value, id });
+      mutate({
+        query: value,
+        id,
+        session_id: session,
+        page,
+        user: userId as string
+      });
     }
   };
 
@@ -396,21 +420,45 @@ export default function CoachAI({
                 <div className="flex flex-col gap-2">
                   <button
                     className="flex items-center gap-2 px-3 py-2 rounded-md border border-gray-300 hover:bg-gray-100 transition text-gray-700 text-sm font-medium"
-                    onClick={() => mutate({ action: "create_tasks", id })}
+                    onClick={() =>
+                      mutate({
+                        action: "create_tasks",
+                        id,
+                        session_id: session,
+                        page,
+                        user: userId as string
+                      })
+                    }
                   >
                     <LuFileText className="size-5 text-[#777878]" /> Generate a
                     Task
                   </button>
                   <button
                     className="flex items-center gap-2 px-3 py-2 rounded-md border border-gray-300 hover:bg-gray-100 transition text-gray-700 text-sm font-medium"
-                    onClick={() => mutate({ action: "create_document", id })}
+                    onClick={() =>
+                      mutate({
+                        action: "create_document",
+                        id,
+                        session_id: session,
+                        page,
+                        user: userId as string
+                      })
+                    }
                   >
                     <HiLightningBolt className="size-5 text-[#777878]" /> Create
                     a doc
                   </button>
                   <button
                     className="flex items-center gap-2 px-3 py-2 rounded-md border border-gray-300 hover:bg-gray-100 transition text-gray-700 text-sm font-medium"
-                    onClick={() => mutate({ action: "summarize", id })}
+                    onClick={() =>
+                      mutate({
+                        action: "summarize",
+                        id,
+                        session_id: session,
+                        page,
+                        user: userId as string
+                      })
+                    }
                   >
                     <FaFire className="size-5 text-[#777878]" /> Summarize
                   </button>

@@ -14,6 +14,7 @@ type ChatMessageProps = {
   showAvatar?: boolean;
   setReplyingTo: React.Dispatch<React.SetStateAction<Message | null>>;
   isGroup: boolean;
+  isDeletable?: boolean;
 };
 
 export default function ChatMessage({
@@ -21,10 +22,13 @@ export default function ChatMessage({
   message,
   showAvatar,
   setReplyingTo,
-  isGroup
+  isGroup,
+  isDeletable
 }: ChatMessageProps) {
   const { data } = useSession();
-  const isUser = sender?._id === data?.user?._id || sender === data?.user?._id;
+  const isUser = isDeletable
+    ? sender?._id === data?.user?._id || sender === data?.user?._id
+    : false;
   const reactions = message.reactions ?? [];
 
   const renderMessageContent = () => {
@@ -37,6 +41,7 @@ export default function ChatMessage({
             showAvatar={showAvatar}
             message={message}
             isGroup={isGroup}
+            isDeletable={isDeletable}
           />
         );
       case "image":

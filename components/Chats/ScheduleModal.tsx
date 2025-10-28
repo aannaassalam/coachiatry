@@ -137,7 +137,7 @@ export default function ScheduleMessageModal({
   const times = React.useMemo(() => {
     const slots: string[] = [];
     for (let h = 0; h < 24; h++) {
-      for (const m of [0, 5]) {
+      for (const m of [0, 15, 30, 45]) {
         slots.push(moment({ hour: h, minute: m }).format("HH:mm"));
       }
     }

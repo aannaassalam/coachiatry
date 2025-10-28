@@ -105,7 +105,7 @@ export function GlobalSearch() {
         </button>
         <Popover modal>
           <PopoverTrigger asChild>
-            <div className="px-2.5 flex items-center gap-2 shrink-0">
+            <div className="px-2.5 flex items-center gap-2 shrink-0 cursor-pointer">
               <Image src={assets.ai} alt="AI" width={24} height={24} />
               <p className="text-gray-900 font-semibold text-sm leading-4.5 max-md:hidden">
                 Coach AI

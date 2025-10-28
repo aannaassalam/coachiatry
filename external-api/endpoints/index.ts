@@ -93,7 +93,8 @@ export const endpoints = {
     getMessages: (room: string) => `/message/${room}`
   },
   ai: {
-    chatWithAi: "/ai"
+    chatWithAi: "/ai",
+    transcriptAi: "/ai/transcript"
   },
   coach: {
     getClients: "/coach/clients"

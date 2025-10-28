@@ -89,7 +89,7 @@ const ClientInfo = ({
   );
 };
 function ClientDetails() {
-  const { id: userId } = useParams();
+  const { userId } = useParams();
   const [tab, setTab] = useQueryState(
     "tab",
     parseAsString.withDefault("transcriptions")

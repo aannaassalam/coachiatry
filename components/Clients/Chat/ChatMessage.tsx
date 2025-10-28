@@ -12,16 +12,20 @@ type ChatMessageProps = {
   message: Message;
   showAvatar?: boolean;
   isGroup: boolean;
+  isDeletable?: boolean;
 };
 
 export default function ChatMessage({
   sender,
   message,
   showAvatar,
-  isGroup
+  isGroup,
+  isDeletable
 }: ChatMessageProps) {
-  const { id: userId } = useParams();
-  const isUser = sender?._id === userId || sender === userId;
+  const { userId } = useParams();
+  const isUser = isDeletable
+    ? sender?._id === userId || sender === userId
+    : false;
   const reactions = message.reactions ?? [];
 
   const renderMessageContent = () => {
@@ -33,6 +37,7 @@ export default function ChatMessage({
             showAvatar={showAvatar}
             message={message}
             isGroup={isGroup}
+            isDeletable={isDeletable}
           />
         );
       case "image":

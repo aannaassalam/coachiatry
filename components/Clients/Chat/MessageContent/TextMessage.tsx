@@ -2,38 +2,46 @@ import { SmartAvatar } from "@/components/ui/smart-avatar";
 import { cn } from "@/lib/utils";
 import { Message } from "@/typescript/interface/message.interface";
 import { User } from "@/typescript/interface/user.interface";
-import { useSession } from "next-auth/react";
+import { useParams } from "next/navigation";
 
 type TextMessageProps = {
   sender?: User;
   message: Message;
   showAvatar?: boolean;
   isGroup: boolean;
+  isDeletable?: boolean;
 };
 
 export default function TextMessage({
   sender,
   message,
   showAvatar,
-  isGroup
+  isGroup,
+  isDeletable
 }: TextMessageProps) {
-  const { data } = useSession();
-  const isUser = sender?._id === data?.user?._id || sender === data?.user?._id;
+  const { userId } = useParams();
+  const isUser = isDeletable
+    ? sender?._id === userId || sender === userId
+    : false;
   const reactions = message.reactions ?? [];
 
   return (
     <div>
       {!isUser && showAvatar && isGroup && (
         <p className="pl-12 text-xs font-medium text-gray-600/90 mb-1">
-          {sender?.fullName}
+          {isDeletable ? sender?.fullName : "Coachiatry"}
         </p>
       )}
       <div className="flex items-start gap-3 relative">
         {!isUser && showAvatar && (
           <SmartAvatar
-            src={sender?.photo}
-            name={sender?.fullName}
-            key={sender?.updatedAt}
+            src={
+              isDeletable
+                ? sender?.photo
+                : "https://coachiatry.s3.us-east-1.amazonaws.com/Logo+Mark+(1).png"
+            }
+            name={isDeletable ? sender?.fullName : "Coachiatry"}
+            key={sender?.updatedAt ?? "Coachiatry"}
             className="size-8"
           />
         )}
@@ -59,7 +67,7 @@ export default function TextMessage({
                 <div className="w-1 rounded-lg bg-primary" />
                 <div className="flex-1">
                   <p className="text-xs">
-                    {message.replyTo?.sender?._id === data?.user?._id
+                    {message.replyTo?.sender?._id === userId
                       ? "You"
                       : message.replyTo?.sender?.fullName}
                   </p>

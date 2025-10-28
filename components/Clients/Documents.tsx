@@ -18,7 +18,7 @@ import { Button } from "../ui/button";
 import DocumentSheet from "./DocumentSheet";
 
 function Documents() {
-  const { id: userId } = useParams();
+  const { userId } = useParams();
   const [isOpen, setIsOpen] = useState(false);
   const [selectedDocument, setSelectedDocument] = useQueryState(
     "document",

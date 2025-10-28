@@ -24,7 +24,7 @@ import { useParams } from "next/navigation";
 import { parseAsInteger, useQueryState } from "nuqs";
 
 function ScheduledTable() {
-  const { id: userId } = useParams();
+  const { userId } = useParams();
   const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
 
   const { data, isLoading } = useQuery({

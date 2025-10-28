@@ -360,7 +360,9 @@ function TasksTable({
                         </div>
                       </TableCell>
                       <TableCell className="font-lato text-sm text-gray-600 tracking-[-0.05px]">
-                        {moment(task.dueDate).format("DD-MM-YYYY")}
+                        {task.dueDate
+                          ? moment(task.dueDate).format("DD-MM-YYYY")
+                          : "-"}
                       </TableCell>
                       <TableCell className="tracking-[-0.05px]">
                         <Badge

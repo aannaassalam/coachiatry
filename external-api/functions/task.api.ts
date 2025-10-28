@@ -216,13 +216,21 @@ export const getAllSharedTasks = async ({
   return res.data;
 };
 
+type ImportBulkTasks = Pick<
+  Omit<TaskBody, "dueDate">,
+  "title" | "description" | "category" | "priority" | "frequency"
+> & { dueDate: string };
+
 export const importBulkTasks = async ({
-  tasks
+  tasks,
+  userId
 }: {
-  tasks: Pick<TaskBody, "title" | "description" | "category" | "priority">[];
+  tasks: ImportBulkTasks[];
+  userId?: string;
 }) => {
   const res = await axiosInstance.post(endpoints.task.importBulkTasks, {
-    tasks
+    tasks,
+    userId
   });
   return res.data;
 };
