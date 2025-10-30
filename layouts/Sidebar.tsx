@@ -30,7 +30,9 @@ export default function Sidebar({
     if (href === "/") {
       return pathname === "/";
     }
-    return pathname.replace("[shareId]", shareId?.toString() ?? "") === href;
+    return pathname
+      .replace("[shareId]", shareId?.toString() ?? "")
+      .startsWith(href);
   };
 
   const { data = [], isLoading } = useQuery({
