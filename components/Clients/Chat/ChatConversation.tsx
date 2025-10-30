@@ -156,7 +156,7 @@ export default function ChatConversation() {
   return (
     <div
       className={cn(
-        "flex flex-col h-full max-h-140 border-r border-l border-gray-200 relative max-md:absolute max-md:w-full ",
+        "flex flex-col h-full max-h-140 border-r border-l border-gray-200 relative max-md:absolute max-md:w-full max-md:min-h-[500px]",
         room ? "max-md:left-0" : "max-md:left-[110%]"
       )}
     >

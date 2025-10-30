@@ -17,7 +17,7 @@ import moment from "moment";
 import { motion } from "motion/react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import DeleteDialog from "../DeleteDialog";
 import {
   Pagination,
@@ -126,6 +126,15 @@ function Transcriptions() {
         search: debouncedSearch
       })
   });
+  useEffect(() => {
+    // Disable scroll
+    document.documentElement.style.overflow = "hidden";
+
+    // Cleanup on unmount — restore scroll
+    return () => {
+      document.documentElement.style.overflow = "";
+    };
+  }, []);
 
   const goToPage = (p: number) => {
     if (p < 1 || (data?.meta.totalPages && p > data?.meta.totalPages)) return;

@@ -20,6 +20,8 @@ import { Checkbox } from "./ui/checkbox";
 import { SmartAvatar } from "./ui/smart-avatar";
 import moment from "moment";
 import { useParams } from "next/navigation";
+import { PopoverClose } from "@radix-ui/react-popover";
+import { X } from "lucide-react";
 
 type DocumentInfo = {
   isDocumentRendered: boolean;
@@ -319,6 +321,7 @@ export default function CoachAI({
     isTaskAdded: false,
     selectedTasks: []
   });
+  const route = useRouter();
 
   const resize = () => {
     const el = textareaRef.current;
@@ -387,15 +390,22 @@ export default function CoachAI({
   return (
     <div
       className={cn(
-        "flex flex-col w-[400px] h-[600px] mx-auto rounded-2xl shadow-lg border border-gray-200 bg-white overflow-hidden",
+        "flex flex-col w-[400px] h-[600px] mx-auto rounded-2xl shadow-lg border border-gray-200 bg-white overflow-hidden max-[480px]:w-[350px]",
         {
-          "w-[450px] h-[800px]": size === "large"
+          "w-[450px] h-[650px] max-sm:h-[96vh] max-sm:w-[96vw]":
+            size === "large",
+          "max-md:relative max-md:left-[-70%]": route.pathname.includes("chat")
         }
       )}
     >
       {/* Header */}
       <div className="bg-[url('/assets/images/ai-background.png')] bg-right bg-cover text-white p-6">
-        <RiDvdAiFill className="mb-9 size-9" />
+        <div className="mb-9 flex w-full justify-between">
+          <RiDvdAiFill className=" size-9" />
+          <PopoverClose className="cursor-pointer">
+            <X />
+          </PopoverClose>
+        </div>
         <h1 className="text-3xl font-semibold">Hello</h1>
         <p className="text-3xl font-semibold mt-1 opacity-90">
           How can I help you

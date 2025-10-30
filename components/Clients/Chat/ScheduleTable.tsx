@@ -41,7 +41,7 @@ function ScheduledTable() {
   const pageNumbers = createPageRange(1, data?.meta?.totalPages ?? 0, page);
 
   return (
-    <div className="mt-5 max-md:w-[95vw] max-md:overflow-auto scrollbar-hide max-[480px]:!w-[93vw]">
+    <div className="mt-5 max-md:w-[95vw] max-md:overflow-auto scrollbar-hide max-[480px]:!w-[90vw]">
       <Table className="">
         <TableHeader className="bg-gray-100 ">
           <TableRow className="border-none rounded-sm">

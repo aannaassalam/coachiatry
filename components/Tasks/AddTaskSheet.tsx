@@ -476,7 +476,7 @@ export default function AddTaskSheet({
                           render={({ field }) => (
                             <FormItem>
                               <FormControl>
-                                <div className="grid grid-cols-[1fr_auto] max-w-max">
+                                <div className="grid grid-cols-[1fr_auto] ">
                                   <Combobox
                                     value={field.value}
                                     onChange={field.onChange}
@@ -502,7 +502,7 @@ export default function AddTaskSheet({
                           render={({ field }) => (
                             <FormItem>
                               <FormControl>
-                                <div className="grid grid-cols-[1fr_auto] max-w-max">
+                                <div className="grid grid-cols-[1fr_auto] ">
                                   <Combobox
                                     value={field.value}
                                     onChange={field.onChange}
