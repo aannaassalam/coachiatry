@@ -52,12 +52,12 @@ const ClientInfo = ({
             />
           </Link>
         </div>
-        <div className="flex gap-6 items-center mt-auto max-sm:gap-3 max-sm:justify-between max-sm:flex-wrap">
+        <div className="flex gap-6 items-center mt-auto max-sm:gap-3">
           {/* <div className="flex gap-2 items-center">
             <Image src={assets.icons.user} alt="user" width={24} height={24} />
             <p className="font-lato text-gray-600">Female</p>
           </div> */}
-          <div className="flex gap-2 items-center">
+          <div className="flex gap-2 items-center max-sm:w-full justify-center">
             <Image
               src={assets.icons.dateCalendar}
               alt="datecalender"
@@ -74,7 +74,7 @@ const ClientInfo = ({
           </div> */}
         </div>
       </div>
-      <div className="ml-auto flex items-stretch gap-3 self-start max-md:ml-0 max-md:self-center max-sm:w-full max-sm:grid max-sm:grid-cols-2">
+      <div className="ml-auto flex items-stretch gap-3 self-start max-md:ml-0 max-md:self-center ">
         {/* <Button
           size="sm"
           className="bg-white border-primary border-1 text-primary hover:text-white"
@@ -122,9 +122,9 @@ function ClientDetails() {
       <Tabs
         value={tab}
         onValueChange={(value) => setTab(value)}
-        className="mt-6"
+        className="mt-6 "
       >
-        <TabsList className="h-auto bg-white max-sm:w-full">
+        <TabsList className="h-auto bg-white max-sm:w-[95vw] overflow-auto scrollbar-hide justify-start">
           <TabsTrigger
             value="transcriptions"
             className="py-3.5 px-6 text-lg leading-5 data-[state=active]:bg-white cursor-pointer font-semibold text-gray-500 data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:border-0 rounded-none border-b-gray-300 data-[state=active]:border-b-2 data-[state=active]:border-primary"
