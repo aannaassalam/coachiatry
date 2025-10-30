@@ -4,7 +4,6 @@ import { getAllConversationsByCoach } from "@/external-api/functions/chat.api";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import moment from "moment";
-import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
 import { parseAsString, useQueryState } from "nuqs";
 
@@ -35,7 +34,6 @@ export default function ChatList() {
     parseAsString.withDefault("")
   );
   const { userId } = useParams();
-  const { data } = useSession();
 
   const { data: chats, isLoading } = useQuery({
     queryKey: ["conversations", userId],
@@ -92,7 +90,7 @@ export default function ChatList() {
         ) : (
           chats?.data?.map((_chat) => {
             const chatUser = _chat.members.find(
-              (_member) => _member.user._id !== data?.user?._id
+              (_member) => _member.user._id !== userId
             );
             const details: { photo?: string; name?: string } = {
               photo: chatUser?.user.photo,
@@ -134,7 +132,7 @@ export default function ChatList() {
                       "font-semibold": _chat.unreadCount > 0
                     })}
                   >
-                    {_chat.lastMessage?.sender?._id === data?.user?._id &&
+                    {_chat.lastMessage?.sender?._id === userId &&
                     _chat.isDeletable
                       ? "You: "
                       : null}

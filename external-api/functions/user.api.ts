@@ -56,10 +56,11 @@ export const getMyProfile = async (): Promise<User> => {
 };
 
 export const getUserSuggestions = async (
-  search: string
+  search: string,
+  type: "group" | "watchers" = "group"
 ): Promise<Pick<User, "_id" | "fullName" | "email" | "photo">[]> => {
   const res = await axiosInstance.get(endpoints.user.suggestUsers, {
-    params: { search }
+    params: { search, type }
   });
   return res.data;
 };

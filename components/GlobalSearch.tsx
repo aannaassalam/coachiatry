@@ -90,23 +90,29 @@ export function GlobalSearch() {
   return (
     <>
       {/* Trigger */}
-      <div className="border rounded-xl overflow-hidden flex max-sm:hidden">
+      <div className="border rounded-xl overflow-hidden flex max-sm:border-none">
         <button
           onClick={() => setOpen(true)}
-          className="bg-white flex items-center gap-2 py-2.5 px-2"
+          className="bg-white flex items-center gap-2 py-2.5 px-2 max-sm:bg-transparent max-sm:p-1.5"
         >
-          <Search className="text-gray-500 size-4.5" />
-          <span className="text-gray-900 min-w-52.5 max-lg:!min-w-0 max-lg:w-30 text-left">
+          <Search className="text-gray-500 size-4.5 max-sm:size-6" />
+          <span className="text-gray-900 min-w-52.5 max-lg:!min-w-0 max-lg:w-30 text-left max-sm:hidden">
             Search...
           </span>
-          <kbd className="ml-auto text-xs text-gray-400 border rounded px-1.5 py-0.5">
+          <kbd className="ml-auto text-xs text-gray-400 border rounded px-1.5 py-0.5 max-sm:hidden">
             ⌘K
           </kbd>
         </button>
         <Popover modal>
           <PopoverTrigger asChild>
-            <div className="px-2.5 flex items-center gap-2 shrink-0 cursor-pointer">
-              <Image src={assets.ai} alt="AI" width={24} height={24} />
+            <div className="px-2.5 flex items-center gap-2 shrink-0 cursor-pointer max-sm:pr-1 max-sm:pl-2">
+              <Image
+                src={assets.ai}
+                alt="AI"
+                width={24}
+                height={24}
+                className="max-sm:size-7"
+              />
               <p className="text-gray-900 font-semibold text-sm leading-4.5 max-md:hidden">
                 Coach AI
               </p>
@@ -206,10 +212,10 @@ export function GlobalSearch() {
                                   onSelect={() => handleSelect(item)}
                                   className="flex items-center group mb-2 gap-3"
                                 >
-                                  <div className="size-12 bg-gray-200 rounded-sm flex items-center justify-center">
+                                  <div className="size-12 shrink-0 bg-gray-200 rounded-sm flex items-center justify-center">
                                     <Icon className="!size-6 text-gray-400 group-hover:text-gray-700" />
                                   </div>
-                                  <div className="space-y-2">
+                                  <div className="space-y-2 max-sm:space-y-1.5">
                                     <div className="flex items-center gap-2">
                                       <HighlightText
                                         text={item.title}
@@ -217,7 +223,7 @@ export function GlobalSearch() {
                                       />
                                     </div>
                                     <div className="flex items-center gap-5">
-                                      <Badge className="capitalize bg-gray-200 text-gray-700 font-semibold text-xs">
+                                      <Badge className="capitalize bg-gray-200 text-gray-700 font-semibold text-xs max-sm:py-0.5">
                                         {item.type}
                                       </Badge>
                                       <span className="flex items-center gap-1 text-xs">
@@ -249,7 +255,7 @@ export function GlobalSearch() {
                                   <div className="size-12 bg-gray-200 rounded-sm flex items-center justify-center">
                                     <Icon className="!size-6 text-gray-400 group-hover:text-gray-700" />
                                   </div>
-                                  <div className="space-y-2">
+                                  <div className="space-y-2 max-sm:space-y-1.5">
                                     <div className="flex items-center gap-2">
                                       <HighlightText
                                         text={item.title}
@@ -257,7 +263,7 @@ export function GlobalSearch() {
                                       />
                                     </div>
                                     <div className="flex items-center gap-5">
-                                      <Badge className="capitalize bg-gray-200 text-gray-700 font-semibold text-xs">
+                                      <Badge className="capitalize bg-gray-200 text-gray-700 font-semibold text-xs max-sm:py-0.5">
                                         {item.type}
                                       </Badge>
                                       <span className="flex items-center gap-1 text-xs">
@@ -300,11 +306,11 @@ export function GlobalSearch() {
 
 // Highlight matched text helper
 function HighlightText({ text, query }: { text: string; query: string }) {
-  if (!query) return <span>{text}</span>;
+  if (!query) return <p className="line-clamp-1">{text}</p>;
   const regex = new RegExp(`(${query})`, "gi");
   const parts = text.split(regex);
   return (
-    <span className="text-sm font-medium text-gray-700">
+    <span className="text-sm font-medium text-gray-700 line-clamp-1">
       {parts.map((part, i) =>
         part.toLowerCase() === query.toLowerCase() ? (
           <mark key={i} className="bg-yellow-200 text-gray-900 rounded px-0.5">

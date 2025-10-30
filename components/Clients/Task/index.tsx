@@ -1,4 +1,3 @@
-import FilterBox from "@/components/Tasks/FilterBox";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -13,6 +12,7 @@ import { parseAsJson, useQueryState } from "nuqs";
 import { useState } from "react";
 import AddTaskSheet from "./AddTaskSheet";
 import ListView from "./ListView";
+import FilterBox from "./FilterBox";
 
 moment.updateLocale("en", {
   week: {

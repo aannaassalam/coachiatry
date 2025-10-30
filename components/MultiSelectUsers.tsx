@@ -45,8 +45,8 @@ export default function MultiSelectUsers({
     isLoading,
     isFetching
   } = useQuery({
-    queryKey: ["suggest-users", search],
-    queryFn: () => getUserSuggestions(search)
+    queryKey: ["suggest-users", search, "watchers"],
+    queryFn: () => getUserSuggestions(search, "watchers")
   });
 
   const toggleUser = (id: string) => {

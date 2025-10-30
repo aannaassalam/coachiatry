@@ -51,8 +51,8 @@ export default function AsyncMultiSelectUsers({
     isLoading,
     isFetching
   } = useQuery({
-    queryKey: ["suggest-users", search],
-    queryFn: () => getUserSuggestions(search)
+    queryKey: ["suggest-users", search, "group"],
+    queryFn: () => getUserSuggestions(search, "group")
   });
 
   // 🔄 Preload user details for selected IDs

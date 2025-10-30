@@ -27,6 +27,7 @@ import { BsCalendar2 } from "react-icons/bs";
 import { GoPencil } from "react-icons/go";
 import { IoIosShareAlt } from "react-icons/io";
 import { toast } from "sonner";
+import CoachAI from "./CoachAIPopover";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Combobox } from "./ui/combobox";
@@ -41,7 +42,6 @@ import {
   SheetTitle
 } from "./ui/sheet";
 import { SmartAvatar } from "./ui/smart-avatar";
-import CoachAI from "./CoachAIPopover";
 
 export default function DocumentSheet({
   open,

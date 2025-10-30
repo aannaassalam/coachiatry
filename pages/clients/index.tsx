@@ -14,12 +14,10 @@ import {
   TableRow
 } from "@/components/ui/table";
 import { getClients } from "@/external-api/functions/coach.api";
-import assets from "@/json/assets";
 import AppLayout from "@/layouts/AppLayout";
 import { useQuery } from "@tanstack/react-query";
-import { Ellipsis, ListFilter } from "lucide-react";
+import { Ellipsis } from "lucide-react";
 import moment from "moment";
-import Image from "next/image";
 import { useState } from "react";
 
 function Clients() {
@@ -36,7 +34,7 @@ function Clients() {
         <h1 className="text-2xl leading-7 tracking-[-3%] font-semibold text-gray-900 mb-2">
           All Clients
         </h1>
-        <div className="flex gap-3 max-sm:w-full max-sm:gap-1 max-sm:mt-1">
+        {/* <div className="flex gap-3 max-sm:w-full max-sm:gap-1 max-sm:mt-1">
           <Button variant="ghost">
             <Image src={assets.icons.sort} alt="sort" width={18} height={18} />
             Sort
@@ -46,7 +44,7 @@ function Clients() {
             Filter
           </Button>
           <Button className="max-sm:ml-auto">Add a New Client</Button>
-        </div>
+        </div> */}
       </div>
       <Separator />
       <div className="mt-4 max-md:w-[95vw] max-md:overflow-auto scrollbar-hide max-[480px]:!w-[93vw]">
