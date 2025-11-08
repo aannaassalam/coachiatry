@@ -12,6 +12,7 @@ import {
   TooltipTrigger
 } from "@/components/ui/tooltip";
 import {
+  assignToggle,
   deleteTask,
   markSubtaskAsCompleted
 } from "@/external-api/functions/task.api";
@@ -24,7 +25,7 @@ import { Ellipsis, Pencil, Trash } from "lucide-react";
 import moment from "moment";
 import Image from "next/image";
 import { parseAsArrayOf, parseAsString, useQueryState } from "nuqs";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import DeleteDialog from "../DeleteDialog";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
@@ -34,6 +35,7 @@ import { SmartAvatar } from "../ui/smart-avatar";
 import AddTaskSheet from "./AddTaskSheet";
 import PriorityFlag from "./PriorityFlag";
 import StatusBox from "./StatusBox";
+import { useSession } from "next-auth/react";
 
 export const SubTasksTable = ({
   subTasks,
@@ -45,6 +47,12 @@ export const SubTasksTable = ({
   const [localCompleted, setLocalCompleted] = useState<Record<string, boolean>>(
     () => Object.fromEntries(subTasks.map((s) => [s._id, s.completed ?? false]))
   );
+
+  useEffect(() => {
+    setLocalCompleted(
+      Object.fromEntries(subTasks.map((s) => [s._id, s.completed ?? false]))
+    );
+  }, [subTasks]);
 
   const { mutate } = useMutation({
     mutationFn: markSubtaskAsCompleted,
@@ -70,6 +78,9 @@ export const SubTasksTable = ({
 
       queryClient.setQueryData(["tasks"], updatedTasks);
       return { previousResponse };
+    },
+    meta: {
+      invalidateQueries: ["tasks"]
     }
   });
 
@@ -206,6 +217,7 @@ function TasksTable({
   tasks: Task[];
   isLoading: boolean;
 }) {
+  const { data } = useSession();
   const [openTasksIndex, setOpenTasksIndex] = useState<string[]>([]);
   const [statusBoxIndex, setStatusBoxIndex] = useState<string | null>(null);
   const [selectedTask, setSelectedTask] = useQueryState(
@@ -217,6 +229,13 @@ function TasksTable({
 
   const { mutate, isPending } = useMutation({
     mutationFn: deleteTask,
+    meta: {
+      invalidateQueries: ["tasks"]
+    }
+  });
+
+  const { mutate: assign, isPending: isAssigning } = useMutation({
+    mutationFn: assignToggle,
     meta: {
       invalidateQueries: ["tasks"]
     }
@@ -262,7 +281,13 @@ function TasksTable({
                 ))
               : tasks.map((task) => (
                   <React.Fragment key={task._id}>
-                    <TableRow className="!h-[44px] hover:bg-gray-50 !border-b-1 !border-gray-100 cursor-pointer">
+                    <TableRow
+                      className="!h-[44px] hover:bg-gray-50 !border-b-1 !border-gray-100 cursor-pointer"
+                      onClick={() => {
+                        setSelectedTask(task._id);
+                        setIsOpen(true);
+                      }}
+                    >
                       <TableCell
                         className={cn(
                           "font-medium text-sm leading-5 font-lato tracking-[-0.05px] relative",
@@ -335,30 +360,36 @@ function TasksTable({
                               />
                             </PopoverContent>
                           </Popover>
-                          <p
-                            className="flex-1"
-                            onClick={() => {
-                              setSelectedTask(task._id);
-                              setIsOpen(true);
-                            }}
-                          >
-                            {task.title}
-                          </p>
+                          <p className="flex-1">{task.title}</p>
                         </div>
                       </TableCell>
-                      <TableCell className="tracking-[-0.05px]">
-                        <div className="flex items-center gap-2">
-                          <SmartAvatar
-                            src={task?.user?.photo}
-                            name={task?.user?.fullName}
-                            key={task?.user?.updatedAt}
-                            className="size-5"
-                            textSize="text-[10px]"
-                          />
-                          <span className="font-lato font-medium text-sm text-gray-700">
-                            me
-                          </span>
-                        </div>
+                      <TableCell
+                        className="tracking-[-0.05px]"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              className="[all:unset] !flex !items-center !gap-2 disabled:opacity-70"
+                              onClick={() => assign(task._id)}
+                              disabled={isAssigning}
+                            >
+                              <SmartAvatar
+                                src={task?.assignedTo?.photo}
+                                name={task?.assignedTo?.fullName}
+                                key={task?.assignedTo?.updatedAt}
+                                className="size-5"
+                                textSize="text-[10px]"
+                              />
+                              <span className="font-lato font-medium text-sm text-gray-700">
+                                {task.assignedTo?._id === data?.user?._id
+                                  ? "me"
+                                  : task.assignedTo?.fullName}
+                              </span>
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent>Click to toggle</TooltipContent>
+                        </Tooltip>
                       </TableCell>
                       <TableCell className="font-lato text-sm text-gray-600 tracking-[-0.05px]">
                         {task.dueDate
@@ -391,7 +422,10 @@ function TasksTable({
                           {task.priority}
                         </div>
                       </TableCell>
-                      <TableCell className="">
+                      <TableCell
+                        className=""
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <Popover>
                           <PopoverTrigger asChild>
                             <Button

@@ -55,6 +55,7 @@ export const endpoints = {
     post: "/task",
     postCoach: "/task/coach",
     importBulkTasks: "/task/import-bulk-tasks",
+    assignToggle: "/task/assign-toggle",
     getOne: (taskId: string) => `/task/${taskId}`,
     edit: (taskId: string) => `/task/${taskId}`,
     delete: (taskId: string) => `/task/${taskId}`,
@@ -81,7 +82,8 @@ export const endpoints = {
     getConversationsByCoach: (userId: string) => `/chat/coach/${userId}`,
     getConversationByCoach: (roomId: string) => `/chat/coach/room/${roomId}`,
     createGroup: "/chat/group",
-    editGroup: "/chat/group/edit"
+    editGroup: "/chat/group/edit",
+    leaveGroup: (chatId: string) => `/chat/leave-group/${chatId}`
   },
   messages: {
     getScheduleMessages: "/message/schedule",

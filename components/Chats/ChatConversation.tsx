@@ -608,6 +608,9 @@ export default function ChatConversation() {
     } else {
       socket.emit("send_message", optimisticMessage);
     }
+    setTimeout(() => {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 50);
   };
 
   useEffect(() => {

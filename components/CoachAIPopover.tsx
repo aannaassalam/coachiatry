@@ -248,30 +248,47 @@ const SystemMessages = ({
             </>
           )}
           {taskInfo?.isTaskRendered && (
-            <Button
-              size="sm"
-              variant="outline"
-              className="mt-5 shadow-sm"
-              onClick={() =>
-                addTasks({
-                  tasks: taskInfo.selectedTasks?.map((_task) => ({
-                    title: _task.title,
-                    description: _task.description,
-                    priority: _task.priority,
-                    category: _task.category.id,
-                    dueDate:
-                      _task.dueDate ??
-                      moment().add(1, "week").set("hour", 12).set("minutes", 0),
-                    frequency: _task.recurrence ?? "none"
-                  })),
-                  userId: userId as string
-                })
-              }
-              isLoading={isAddingDocument}
-              disabled={taskInfo.selectedTasks.length === 0}
-            >
-              Import selected tasks
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                className="mt-5 shadow-sm"
+                onClick={() =>
+                  addTasks({
+                    tasks: taskInfo.selectedTasks?.map((_task) => ({
+                      title: _task.title,
+                      description: _task.description,
+                      priority: _task.priority,
+                      category: _task.category.id,
+                      frequency: _task.recurrence ?? "none"
+                    })),
+                    userId: userId as string
+                  })
+                }
+                isLoading={isAddingDocument}
+                disabled={taskInfo.selectedTasks.length === 0}
+              >
+                Import selected tasks
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="mt-5 shadow-sm"
+                onClick={() => {
+                  setSelectedTasksId(
+                    chat.data.tasks.map((_task) => _task.tempId)
+                  );
+
+                  setTaskInfo((prev) => ({
+                    ...prev,
+                    selectedTasks: chat.data.tasks
+                  }));
+                }}
+                isLoading={isAddingDocument}
+              >
+                Select all
+              </Button>
+            </div>
           )}
         </div>
       </div>

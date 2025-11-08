@@ -101,7 +101,7 @@ export const getAllTasks = async ({
 
   const res = await axiosInstance.get(endpoints.task.getAll, {
     params: {
-      populate: "category,status,user",
+      populate: "category,status,assignedTo",
       sort,
       ...filterQuery,
       dueDate:
@@ -124,7 +124,7 @@ export const getAllTasksByCoach = async ({
 
   const res = await axiosInstance.get(endpoints.task.getAll, {
     params: {
-      populate: "category,status,user",
+      populate: "category,status,assignedTo",
       sort,
       ...filterQuery,
       user: userId
@@ -217,9 +217,9 @@ export const getAllSharedTasks = async ({
 };
 
 type ImportBulkTasks = Pick<
-  Omit<TaskBody, "dueDate">,
+  TaskBody,
   "title" | "description" | "category" | "priority" | "frequency"
-> & { dueDate: string };
+>;
 
 export const importBulkTasks = async ({
   tasks,
@@ -233,4 +233,11 @@ export const importBulkTasks = async ({
     userId
   });
   return res.data;
+};
+
+export const assignToggle = async (taskId: string) => {
+  const res = await axiosInstance.patch(endpoints.task.assignToggle, {
+    taskId
+  });
+  return res;
 };

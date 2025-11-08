@@ -1,4 +1,8 @@
-import { createGroup, editGroup } from "@/external-api/functions/chat.api";
+import {
+  createGroup,
+  editGroup,
+  leaveGroup
+} from "@/external-api/functions/chat.api";
 import { cn } from "@/lib/utils";
 import { queryClient } from "@/pages/_app";
 import { useMutation } from "@tanstack/react-query";
@@ -29,7 +33,7 @@ export default function GroupModal({
   children: ReactNode;
   data?: Partial<Details> & { groupPhoto?: string };
 }) {
-  const [room] = useQueryState("room", parseAsString.withDefault(""));
+  const [room, setRoom] = useQueryState("room", parseAsString.withDefault(""));
   const [open, setOpen] = useState(false);
   const [groupPhoto, setGroupPhoto] = useState<File | string | null>(
     data?.groupPhoto ?? null
@@ -65,9 +69,21 @@ export default function GroupModal({
     }
   });
 
+  const { mutate: leave, isPending: isLeaving } = useMutation({
+    mutationFn: leaveGroup,
+    onSuccess: () => {
+      setOpen(false);
+      setRoom(null);
+    },
+    meta: {
+      invalidateQueries: ["conversations"]
+    }
+  });
+
   const handleSubmit = () => {
     if (!details.name?.trim() || details.members.length === 0) return;
-    if (typeof groupPhoto !== "string") mutate({ ...details, groupPhoto });
+    if (!data && typeof groupPhoto !== "string")
+      mutate({ ...details, groupPhoto });
     if (data) editMutate({ ...details, groupPhoto, chatId: room });
   };
 
@@ -138,7 +154,19 @@ export default function GroupModal({
             />
           </div>
         </div>
-        <DialogFooter>
+        <DialogFooter className="!flex-col">
+          {data ? (
+            <Button
+              center
+              className="w-full border-red-500 text-red-500 hover:text-red-500"
+              onClick={() => leave(room)}
+              disabled={isEditing}
+              isLoading={isLeaving}
+              variant="outline"
+            >
+              Leave group
+            </Button>
+          ) : null}
           <Button
             center
             className="w-full"

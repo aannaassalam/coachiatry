@@ -233,7 +233,9 @@ export default function ChatList() {
                       "font-semibold": _chat.unreadCount > 0
                     })}
                   >
-                    {moment(_chat.lastMessage?.createdAt).fromNow(true)}
+                    {_chat.lastMessage?.createdAt
+                      ? moment(_chat.lastMessage?.createdAt).fromNow(true)
+                      : null}
                   </span>
                   {_chat.unreadCount > 0 && (
                     <span className="text-xs h-5 min-w-5 px-1 rounded-full bg-primary text-white flex items-center justify-center">

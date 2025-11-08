@@ -77,3 +77,8 @@ export const editGroup = async (body: {
   const res = await axiosInstance.post(endpoints.chat.editGroup, formData);
   return res.data;
 };
+
+export const leaveGroup = async (chatId: string) => {
+  const res = await axiosInstance.delete(endpoints.chat.leaveGroup(chatId));
+  return res;
+};

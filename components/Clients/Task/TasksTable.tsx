@@ -25,7 +25,7 @@ import { Ellipsis, Pencil, Trash } from "lucide-react";
 import moment from "moment";
 import Image from "next/image";
 import { parseAsArrayOf, parseAsString, useQueryState } from "nuqs";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import DeleteDialog from "../../DeleteDialog";
 import { Badge } from "../../ui/badge";
 import { Button } from "../../ui/button";
@@ -45,6 +45,12 @@ export const SubTasksTable = ({
   const [localCompleted, setLocalCompleted] = useState<Record<string, boolean>>(
     () => Object.fromEntries(subTasks.map((s) => [s._id, s.completed ?? false]))
   );
+
+  useEffect(() => {
+    setLocalCompleted(
+      Object.fromEntries(subTasks.map((s) => [s._id, s.completed ?? false]))
+    );
+  }, [subTasks]);
 
   const { mutate } = useMutation({
     mutationFn: markSubtaskAsCompleted,
@@ -70,6 +76,9 @@ export const SubTasksTable = ({
 
       queryClient.setQueryData(["tasks"], updatedTasks);
       return { previousResponse };
+    },
+    meta: {
+      invalidateQueries: ["tasks"]
     }
   });
 
