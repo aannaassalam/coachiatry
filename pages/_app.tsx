@@ -14,6 +14,7 @@ import React from "react";
 import { toast, Toaster } from "sonner";
 import { NuqsAdapter } from "nuqs/adapters/next/pages";
 import { SessionProvider } from "next-auth/react";
+import { SocketProvider } from "@/lib/socketContext";
 
 interface ErrorData {
   response: {

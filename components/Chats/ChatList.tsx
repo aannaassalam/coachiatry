@@ -50,65 +50,66 @@ export default function ChatList() {
     queryFn: getAllConversations
   });
 
-  useEffect(() => {
-    if (!socket) return;
+  const handleConversationUpdated = (update: {
+    chatId: string;
+    lastMessage: Message;
+    updatedAt: string;
+  }) => {
+    queryClient.setQueryData<PaginatedResponse<ChatConversation[]>>(
+      ["conversations"],
+      (old) => {
+        if (!old) return old;
 
-    const handleConversationUpdated = (update: {
-      chatId: string;
-      lastMessage: Message;
-      updatedAt: string;
-    }) => {
-      queryClient.setQueryData<PaginatedResponse<ChatConversation[]>>(
-        ["conversations"],
-        (old) => {
-          if (!old) return old;
+        const existing = Array.isArray(old.data) ? [...old.data] : [];
+        const idx = existing.findIndex((c) => c._id === update.chatId);
 
-          const existing = Array.isArray(old.data) ? [...old.data] : [];
-          const idx = existing.findIndex((c) => c._id === update.chatId);
+        const isMyMessage = update.lastMessage?.sender?._id === data?.user?._id;
+        const isCurrentRoom = room === update.chatId;
 
-          const isMyMessage =
-            update.lastMessage?.sender?._id === data?.user?._id;
-          const isCurrentRoom = room === update.chatId;
+        const current = existing[idx];
+        const updatedConv = {
+          ...current,
+          lastMessage: update.lastMessage,
+          updatedAt: update.updatedAt,
+          unreadCount: current.unreadCount || 0
+        } as ChatConversation;
 
-          const current = existing[idx];
-          const updatedConv = {
-            ...current,
-            lastMessage: update.lastMessage,
-            updatedAt: update.updatedAt,
-            unreadCount: current.unreadCount || 0
-          } as ChatConversation;
-
-          if (idx > -1) {
-            // ✅ Only increase unread count if:
-            // - this message is NOT mine
-            // - and I am NOT currently inside that chat
-            if (!isMyMessage && !isCurrentRoom) {
-              updatedConv.unreadCount = (current.unreadCount || 0) + 1;
-            }
+        if (idx > -1) {
+          // ✅ Only increase unread count if:
+          // - this message is NOT mine
+          // - and I am NOT currently inside that chat
+          if (!isMyMessage && !isCurrentRoom) {
+            updatedConv.unreadCount = (current.unreadCount || 0) + 1;
           }
-
-          const newList = [
-            updatedConv,
-            ...existing.filter((_, i) => i !== idx)
-          ];
-
-          // ✅ Sort newest → oldest
-          newList.sort(
-            (a, b) =>
-              moment(b.lastMessage?.createdAt).valueOf() -
-              moment(a.lastMessage?.createdAt).valueOf()
-          );
-
-          return { ...old, data: newList };
         }
-      );
-    };
+
+        const newList = [updatedConv, ...existing.filter((_, i) => i !== idx)];
+
+        // ✅ Sort newest → oldest
+        newList.sort((a, b) => {
+          const aCreated = a.lastMessage?.createdAt;
+          const bCreated = b.lastMessage?.createdAt;
+
+          if (!aCreated && !bCreated) return 0;
+          if (!aCreated) return 1; // a goes to bottom
+          if (!bCreated) return -1; // b goes to bottom
+
+          return moment(bCreated).valueOf() - moment(aCreated).valueOf();
+        });
+
+        return { ...old, data: newList };
+      }
+    );
+  };
+
+  useEffect(() => {
+    if (!socket || socket.connected === false) return;
 
     socket.on("conversation_updated", handleConversationUpdated);
     return () => {
       socket.off("conversation_updated", handleConversationUpdated);
     };
-  }, [socket, room, data?.user?._id]);
+  }, [socket, socket?.connected, room, data?.user?._id]);
 
   return (
     <div className="w-xs mr-auto bg-white pt-4 rounded-lg flex flex-col max-md:w-full">
@@ -192,7 +193,6 @@ export default function ChatList() {
                 <SmartAvatar
                   src={details?.photo}
                   name={details?.name}
-                  key={_chat.updatedAt}
                   className="size-11"
                 />
                 <div className="flex-1 min-w-0">

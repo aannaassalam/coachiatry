@@ -285,11 +285,16 @@ export default function ChatConversation() {
             newData = [...old.data];
           }
 
-          newData.sort(
-            (a, b) =>
-              moment(b.lastMessage?.createdAt).valueOf() -
-              moment(a.lastMessage?.createdAt).valueOf()
-          );
+          newData.sort((a, b) => {
+            const aCreated = a.lastMessage?.createdAt;
+            const bCreated = b.lastMessage?.createdAt;
+
+            if (!aCreated && !bCreated) return 0;
+            if (!aCreated) return 1; // a goes to bottom
+            if (!bCreated) return -1; // b goes to bottom
+
+            return moment(bCreated).valueOf() - moment(aCreated).valueOf();
+          });
 
           return { ...old, data: newData };
         }
