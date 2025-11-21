@@ -8,13 +8,12 @@ import {
   QueryKey
 } from "@tanstack/react-query";
 import { AxiosResponse } from "axios";
+import { SessionProvider } from "next-auth/react";
 import type { AppContext, AppProps } from "next/app";
 import App from "next/app";
+import { NuqsAdapter } from "nuqs/adapters/next/pages";
 import React from "react";
 import { toast, Toaster } from "sonner";
-import { NuqsAdapter } from "nuqs/adapters/next/pages";
-import { SessionProvider } from "next-auth/react";
-import { SocketProvider } from "@/lib/socketContext";
 
 interface ErrorData {
   response: {

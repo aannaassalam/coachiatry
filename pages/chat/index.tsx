@@ -4,7 +4,6 @@ import ScheduledTable from "@/components/Chats/ScheduledTable";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AppLayout from "@/layouts/AppLayout";
-import { SocketProvider } from "@/lib/socketContext";
 import { parseAsString, useQueryState } from "nuqs";
 
 function Chat() {
