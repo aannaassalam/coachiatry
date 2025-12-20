@@ -55,7 +55,7 @@ export const getScheduleMessages = async ({
   PaginatedResponse<(Omit<Message, "chat"> & { chat: ChatConversation })[]>
 > => {
   const res = await axiosInstance.get(endpoints.messages.getScheduleMessages, {
-    params: { page, limit: 10 }
+    params: { page, limit: 10, populate: "chat.member.user" }
   });
   return res.data;
 };

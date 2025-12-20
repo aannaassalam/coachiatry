@@ -8,7 +8,7 @@ import { queryClient } from "@/pages/_app";
 import { useMutation } from "@tanstack/react-query";
 import { Camera } from "lucide-react";
 import { parseAsString, useQueryState } from "nuqs";
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useMemo, useState } from "react";
 import AsyncMultiSelectUsers from "../AsyncMultiSelectUsers";
 import { Button } from "../ui/button";
 import {
@@ -42,6 +42,24 @@ export default function GroupModal({
     name: data?.name ?? "",
     members: data?.members ?? []
   });
+
+  const previewUrl = useMemo(() => {
+    if (typeof groupPhoto === "string" || !groupPhoto) {
+      return groupPhoto;
+    }
+    // This function is only called when groupPhoto changes
+    return URL.createObjectURL(groupPhoto);
+  }, [groupPhoto]);
+
+  // Cleanup effect for memory (revokes the previous URL when a new one is created or component unmounts)
+  useEffect(() => {
+    return () => {
+      // Only revoke if groupPhoto is a File (i.e., we created an Object URL)
+      if (groupPhoto instanceof File && previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl, groupPhoto]);
 
   const { mutate, isPending } = useMutation({
     mutationFn: createGroup,
@@ -96,13 +114,9 @@ export default function GroupModal({
           <div className="relative size-25 mr-2 group self-center">
             {groupPhoto && (
               <SmartAvatar
-                src={
-                  typeof groupPhoto === "string"
-                    ? groupPhoto
-                    : URL.createObjectURL(groupPhoto)
-                }
-                name={details.name}
-                key={groupPhoto.toString()}
+                src={previewUrl ?? undefined}
+                // name={details.name}
+                // key={previewUrl?.toString()}
                 className="size-25"
               />
             )}

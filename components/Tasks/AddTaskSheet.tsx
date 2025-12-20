@@ -34,10 +34,9 @@ import SubtaskList from "./AddSubTasks";
 import { getAllCategories } from "@/external-api/functions/category.api";
 import { getAllStatuses } from "@/external-api/functions/status.api";
 import { addTask, editTask, getTask } from "@/external-api/functions/task.api";
+import { queryClient } from "@/pages/_app";
 import { Subtask } from "@/typescript/interface/task.interface";
 import { useMutation, useQueries } from "@tanstack/react-query";
-import { FaBell } from "react-icons/fa";
-import { Switch } from "../ui/switch";
 
 const schema = yup.object().shape({
   title: yup.string().required("Title is required"),
@@ -147,6 +146,7 @@ export default function AddTaskSheet({
         subtasks: []
       });
       onOpenChange(false);
+      queryClient.invalidateQueries({ queryKey: ["task", selectedTask] });
     },
     meta: {
       invalidateQueries: ["tasks"]
@@ -167,24 +167,26 @@ export default function AddTaskSheet({
       hoursDuration: "",
       remindBefore: "",
       subtasks: []
-    },
-    disabled: isPending || isEditPending || disabledAll
+    }
   });
 
   useEffect(() => {
-    form.reset({
-      title: "",
-      description: "",
-      priority: "low",
-      category: "",
-      dueDate: predefinedDueDate ? new Date(predefinedDueDate) : undefined,
-      status: predefinedStatus ?? "",
-      frequency: "",
-      minutesDuration: "",
-      hoursDuration: "",
-      remindBefore: "",
-      subtasks: []
-    });
+    form.reset(
+      {
+        title: "",
+        description: "",
+        priority: "low",
+        category: "",
+        dueDate: predefinedDueDate ? new Date(predefinedDueDate) : undefined,
+        status: predefinedStatus ?? "",
+        frequency: "",
+        minutesDuration: "",
+        hoursDuration: "",
+        remindBefore: "",
+        subtasks: []
+      },
+      { keepDirty: false }
+    );
   }, [predefinedStatus, predefinedDueDate, form]);
 
   const onSubmit = (data: yup.InferType<typeof schema>) => {
@@ -210,27 +212,30 @@ export default function AddTaskSheet({
 
   useEffect(() => {
     if (data && editing) {
-      form.reset({
-        title: data?.title,
-        description: data?.description,
-        priority: data?.priority,
-        category: data?.category._id,
-        dueDate: data?.dueDate ? new Date(data?.dueDate) : undefined,
-        status: data?.status._id,
-        frequency: data?.frequency || "",
-        minutesDuration: data?.taskDuration
-          ? (data?.taskDuration % 60).toString().padStart(2, "0")
-          : "",
-        hoursDuration: data?.taskDuration
-          ? Math.floor(data?.taskDuration / 60)
-              .toString()
-              .padStart(2, "0")
-          : "",
-        remindBefore: data?.remindBefore
-          ? data?.remindBefore.toString().padStart(2, "0")
-          : "",
-        subtasks: data?.subtasks as Subtask[]
-      });
+      form.reset(
+        {
+          title: data?.title,
+          description: data?.description,
+          priority: data?.priority,
+          category: data?.category._id,
+          dueDate: data?.dueDate ? new Date(data?.dueDate) : undefined,
+          status: data?.status._id,
+          frequency: data?.frequency || "",
+          minutesDuration: data?.taskDuration
+            ? (data?.taskDuration % 60).toString().padStart(2, "0")
+            : "",
+          hoursDuration: data?.taskDuration
+            ? Math.floor(data?.taskDuration / 60)
+                .toString()
+                .padStart(2, "0")
+            : "",
+          remindBefore: data?.remindBefore
+            ? data?.remindBefore.toString().padStart(2, "0")
+            : "",
+          subtasks: data?.subtasks as Subtask[]
+        },
+        { keepDirty: false }
+      );
     }
   }, [data, form, editing]);
 
@@ -287,21 +292,26 @@ export default function AddTaskSheet({
                   <FormField
                     control={form.control}
                     name="title"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-base text-gray-500">
-                          Task Title
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            type="text"
-                            placeholder="Enter Task Title"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    render={({ field }) => {
+                      return (
+                        <FormItem>
+                          <FormLabel className="text-base text-gray-500">
+                            Task Title
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              type="text"
+                              placeholder="Enter Task Title"
+                              {...field}
+                              disabled={
+                                isPending || isEditPending || disabledAll
+                              }
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      );
+                    }}
                   />
                   <FormField
                     control={form.control}
@@ -316,6 +326,7 @@ export default function AddTaskSheet({
                             rows={7}
                             placeholder="Enter Task Description"
                             {...field}
+                            disabled={isPending || isEditPending || disabledAll}
                           />
                         </FormControl>
                         <FormMessage />
@@ -329,26 +340,28 @@ export default function AddTaskSheet({
                     <FormField
                       control={form.control}
                       name="priority"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-sm text-gray-500">
-                            Priority
-                          </FormLabel>
-                          <FormControl>
-                            <Combobox
-                              value={field.value}
-                              onChange={field.onChange}
-                              options={dropDownOptions.priority}
-                              placeholder="Select priority"
-                              isFlag={true}
-                              disabled={
-                                disabledAll || isPending || isEditPending
-                              }
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
+                      render={({ field }) => {
+                        return (
+                          <FormItem>
+                            <FormLabel className="text-sm text-gray-500">
+                              Priority
+                            </FormLabel>
+                            <FormControl>
+                              <Combobox
+                                value={field.value}
+                                onChange={field.onChange}
+                                options={dropDownOptions.priority}
+                                placeholder="Select priority"
+                                isFlag={true}
+                                disabled={
+                                  disabledAll || isPending || isEditPending
+                                }
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        );
+                      }}
                     />
                     <FormField
                       control={form.control}
@@ -577,16 +590,6 @@ export default function AddTaskSheet({
                       )}
                     />
                   </div>
-
-                  <label className="text-sm cursor-pointer font-lato text-gray-500 flex justify-between pt-4 border-t border-gray-100">
-                    <div className="flex items-center gap-3">
-                      <FaBell />
-                      Send reminder via chat
-                    </div>
-                    <Switch
-                      disabled={disabledAll || isPending || isEditPending}
-                    />
-                  </label>
                 </div>
               </form>
             </Form>

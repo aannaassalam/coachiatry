@@ -94,6 +94,7 @@ function ScheduledTable() {
               const friend = message.chat.members.find(
                 (_member) => _member?.user?._id !== message.sender?._id
               );
+              console.log(friend);
               return (
                 <TableRow
                   key={index}

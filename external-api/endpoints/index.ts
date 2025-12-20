@@ -15,6 +15,7 @@ export const endpoints = {
   auth: {
     signup: "/auth/signup",
     login: "/auth/login",
+    verifyOtp: "/auth/verifyOtp",
     googleAuth: "/auth/google-auth",
     forgotPassword: "/auth/forgot-password",
     resetPassword: "/auth/reset-password",

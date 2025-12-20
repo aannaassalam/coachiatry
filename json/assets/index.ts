@@ -41,7 +41,7 @@ export default {
     clock: "/assets/svg/clock.svg",
     emoji: "/assets/svg/emoji.svg",
     clip: "/assets/svg/clip.svg",
-    coachAi: "/assets/svg/coachAi.svg",
+    coachAi: "/assets/svg/coachAI.svg",
     send: "/assets/svg/send.svg",
     chatEmoji: "/assets/svg/chatEmoji.svg",
     alertTriangle: "/assets/svg/alert-triangle.svg",

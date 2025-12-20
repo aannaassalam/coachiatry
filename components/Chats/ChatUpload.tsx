@@ -44,8 +44,10 @@ export default function ChatUploadWithPreview({
   const handleDrag = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") setDragActive(true);
-    else if (e.type === "dragleave") setDragActive(false);
+    const isFileDrag = e.dataTransfer.types.includes("Files");
+    if (e.type === "dragenter" || e.type === "dragover") {
+      if (isFileDrag) setDragActive(true);
+    } else if (e.type === "dragleave") setDragActive(false);
   };
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {

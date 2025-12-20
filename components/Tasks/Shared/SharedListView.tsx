@@ -49,7 +49,7 @@ function SharedListView() {
   ] = useQueries({
     queries: [
       {
-        queryKey: ["shared-tasks", sort, validatedFilters],
+        queryKey: ["shared-tasks", shareId, sort, validatedFilters],
         queryFn: () =>
           getAllSharedTasks({
             shareId: shareId?.toString() ?? "",

@@ -7,7 +7,7 @@ export const getAllConversations = async (
   filters?: Record<string, any>
 ): Promise<PaginatedResponse<ChatConversation[]>> => {
   const res = await axiosInstance.get(endpoints.chat.getConversations, {
-    params: filters
+    params: { ...filters, limit: 100 }
   });
   return res.data;
 };
@@ -29,7 +29,7 @@ export const getAllConversationsByCoach = async ({
   const res = await axiosInstance.get(
     endpoints.chat.getConversationsByCoach(userId),
     {
-      params: filters
+      params: { ...filters, limit: 100 }
     }
   );
   return res.data;

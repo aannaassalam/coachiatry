@@ -31,7 +31,6 @@ import {
 import { Textarea } from "../../ui/textarea";
 
 import SubtaskList from "@/components/Tasks/AddSubTasks";
-import { Switch } from "@/components/ui/switch";
 import { getAllCategoriesByCoach } from "@/external-api/functions/category.api";
 import { getAllStatusesByCoach } from "@/external-api/functions/status.api";
 import {
@@ -42,7 +41,6 @@ import {
 import { Subtask } from "@/typescript/interface/task.interface";
 import { useMutation, useQueries } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
-import { FaBell } from "react-icons/fa";
 
 const schema = yup.object().shape({
   title: yup.string().required("Title is required"),
@@ -174,8 +172,7 @@ export default function AddTaskSheet({
       hoursDuration: "",
       remindBefore: "",
       subtasks: []
-    },
-    disabled: isPending || isEditPending || disabledAll
+    }
   });
 
   useEffect(() => {
@@ -305,6 +302,7 @@ export default function AddTaskSheet({
                             type="text"
                             placeholder="Enter Task Title"
                             {...field}
+                            disabled={isPending || isEditPending || disabledAll}
                           />
                         </FormControl>
                         <FormMessage />
@@ -324,6 +322,7 @@ export default function AddTaskSheet({
                             rows={7}
                             placeholder="Enter Task Description"
                             {...field}
+                            disabled={isPending || isEditPending || disabledAll}
                           />
                         </FormControl>
                         <FormMessage />
@@ -585,16 +584,6 @@ export default function AddTaskSheet({
                       )}
                     />
                   </div>
-
-                  <label className="text-sm cursor-pointer font-lato text-gray-500 flex justify-between pt-4 border-t border-gray-100">
-                    <div className="flex items-center gap-3">
-                      <FaBell />
-                      Send reminder via chat
-                    </div>
-                    <Switch
-                      disabled={disabledAll || isPending || isEditPending}
-                    />
-                  </label>
                 </div>
               </form>
             </Form>

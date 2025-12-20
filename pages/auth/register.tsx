@@ -47,11 +47,14 @@ export default function Register() {
   const { mutate, isPending } = useMutation({
     mutationFn: signup,
     onSuccess: (_data, variables) => {
-      signIn("credentials", {
-        email: variables.email,
-        password: variables.password,
-        callbackUrl: local_callback || "/"
-      });
+      // signIn("credentials", {
+      //   email: variables.email,
+      //   password: variables.password,
+      //   callbackUrl: local_callback || "/"
+      // });
+      router.push(
+        `/auth/verification?email=${variables.email}&local_callback=${local_callback}`
+      );
     }
   });
 

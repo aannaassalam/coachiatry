@@ -1,6 +1,12 @@
 "use client";
 
-import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
+import {
+  Dispatch,
+  SetStateAction,
+  useLayoutEffect,
+  useRef,
+  useState
+} from "react";
 // import Toolbar from "@/ui/MarkdownEditor/Toolbar";
 // import { GoClock } from "react-icons/go";
 import assets from "@/json/assets";
@@ -244,26 +250,23 @@ export default function ChatInput({
   const [room] = useQueryState("room", parseAsString.withDefault(""));
 
   const [value, setValue] = useState("");
-  const [height] = useState("auto");
-  const [maxHeight] = useState<number | undefined>();
   const [open, setOpen] = useState(false);
 
-  const resize = () => {
+  const resizeTextarea = () => {
     const el = textareaRef.current;
     if (!el) return;
 
-    el.style.height = "auto"; // reset to shrink when deleting
-    const lineHeight = parseInt(getComputedStyle(el).lineHeight || "20", 10);
+    const lineHeight = parseFloat(getComputedStyle(el).lineHeight);
     const maxHeight = lineHeight * 6;
 
-    const newHeight = Math.min(el.scrollHeight, maxHeight);
-    el.style.height = newHeight + "px";
+    el.style.height = "auto";
+    el.style.height = Math.min(el.scrollHeight, maxHeight) + "px";
     el.style.overflowY = el.scrollHeight > maxHeight ? "auto" : "hidden";
   };
 
-  useEffect(() => {
-    resize();
-  }, [value]);
+  useLayoutEffect(() => {
+    resizeTextarea();
+  }, [value, replyingTo]);
 
   const insertEmoji = (emoji: string) => {
     const textarea = textareaRef.current;
@@ -367,18 +370,12 @@ export default function ChatInput({
               onChange={(e) => handleTyping(e.target.value)}
               className="flex-1 pr-4 resize-none overflow-y-auto [scrollbar-gutter:stable] focus:outline-0 self-center "
               rows={1}
-              style={{
-                height,
-                maxHeight,
-                overflowY: height === `${maxHeight}px` ? "auto" : "hidden"
-              }}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
                   handleSend();
                 }
               }}
-              animate={{ height }}
               transition={{ type: "spring", stiffness: 200, damping: 25 }}
             />
             {/* <motion.div

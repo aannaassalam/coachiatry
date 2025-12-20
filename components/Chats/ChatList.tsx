@@ -47,7 +47,7 @@ export default function ChatList() {
 
   const { data: chats, isLoading } = useQuery({
     queryKey: ["conversations"],
-    queryFn: getAllConversations
+    queryFn: () => getAllConversations()
   });
 
   useEffect(() => {
@@ -116,7 +116,7 @@ export default function ChatList() {
   }, [socket, socket?.connected, room, data?.user?._id]);
 
   return (
-    <div className="w-xs mr-auto bg-white pt-4 rounded-lg flex flex-col max-md:w-full">
+    <div className="w-xs mr-auto bg-white pt-4 rounded-lg flex flex-col min-h-0 max-md:w-full">
       {/* Header / Content Above */}
       <div className="flex items-center justify-between gap-2 mb-3 px-3">
         <h2 className="text-sm font-semibold text-gray-800">All messages</h2>

@@ -271,7 +271,13 @@ function TasksTable({
                 ))
               : tasks.map((task) => (
                   <React.Fragment key={task._id}>
-                    <TableRow className="!h-[44px] hover:bg-gray-50 !border-b-1 !border-gray-100 cursor-pointer">
+                    <TableRow
+                      className="!h-[44px] hover:bg-gray-50 !border-b-1 !border-gray-100 cursor-pointer"
+                      onClick={() => {
+                        setSelectedTask(task._id);
+                        setIsOpen(true);
+                      }}
+                    >
                       <TableCell
                         className={cn(
                           "font-medium text-sm leading-5 font-lato tracking-[-0.05px] relative",
@@ -337,7 +343,10 @@ function TasksTable({
                                 <div className="h-3.5 w-3.5 rounded-full border-1 border-white bg-transparent" />
                               </div>
                             </PopoverTrigger>
-                            <PopoverContent className="w-[245px] p-0 relative left-[111px] max-sm:left-[50px]">
+                            <PopoverContent
+                              className="w-[245px] p-0 relative left-[111px] max-sm:left-[50px]"
+                              onClick={(e) => e.stopPropagation()}
+                            >
                               <StatusBox
                                 taskId={task._id}
                                 selectedStatus={task.status._id}
@@ -469,11 +478,13 @@ function TasksTable({
         Add Task
       </Button>
       <AddTaskSheet
-        open={isOpen || !!selectedTask}
+        open={isOpen}
         onOpenChange={(toggle) => {
           setIsOpen(toggle);
-          setSelectedTask(null);
-          setSelectedStatusId(null);
+          setTimeout(() => {
+            setSelectedTask(null);
+            setSelectedStatusId(null);
+          }, 200);
         }}
         selectedTask={selectedTask}
         editing={!!selectedTask}

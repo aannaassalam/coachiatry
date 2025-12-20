@@ -711,7 +711,9 @@ export default function ChatConversation() {
             containerRef.current;
           setIsAtBottom(scrollHeight - scrollTop - clientHeight < 50);
         }}
-        onDragOver={() => setChatDragShow(true)}
+        onDragOver={(e) => {
+          if (e.dataTransfer.types.includes("Files")) setChatDragShow(true);
+        }}
         onDragEnd={() => setChatDragShow(false)}
       >
         <div className="flex flex-col">

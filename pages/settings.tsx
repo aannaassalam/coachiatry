@@ -240,6 +240,7 @@ export default function Settings() {
                 <FormField
                   control={form.control}
                   name="email"
+                  disabled
                   render={({ field }) => (
                     <FormItem className="space-y-0.5 flex-1 max-md:w-full">
                       <FormLabel>Email</FormLabel>

@@ -241,7 +241,7 @@ const SystemMessages = ({
                 variant="outline"
                 className="mt-5 shadow-sm"
                 onClick={() => router.push(`/tasks`)}
-                isLoading={isAddingDocument}
+                isLoading={isAddingDocument || isAddingTasks}
               >
                 View Tasks
               </Button>
@@ -265,7 +265,7 @@ const SystemMessages = ({
                     userId: userId as string
                   })
                 }
-                isLoading={isAddingDocument}
+                isLoading={isAddingDocument || isAddingTasks}
                 disabled={taskInfo.selectedTasks.length === 0}
               >
                 Import selected tasks
@@ -284,7 +284,7 @@ const SystemMessages = ({
                     selectedTasks: chat.data.tasks
                   }));
                 }}
-                isLoading={isAddingDocument}
+                isLoading={isAddingDocument || isAddingTasks}
               >
                 Select all
               </Button>

@@ -145,7 +145,7 @@ export default function Home() {
       },
       {
         queryKey: ["conversations"],
-        queryFn: () => getAllConversations({ limit: 4, sort: "-updatedAt" })
+        queryFn: () => getAllConversations({ sort: "-updatedAt" })
       },
       {
         queryKey: ["documents"],
@@ -155,7 +155,7 @@ export default function Home() {
     ]
   });
 
-  const slicedTasks = tasks?.slice(0, 5);
+  const slicedTasks = tasks?.slice(0, 30);
   const isAllLoading =
     isLoading || isStatusLoading || isChatsLoading || isDocumentsLoading;
 
@@ -168,12 +168,12 @@ export default function Home() {
         <p className="flex items-center gap-2 text-sm leading-5 text-gray-800">
           {moment().startOf("month").format("MMMM DD")} -{" "}
           {moment().endOf("month").format("MMMM DD")}
-          <Image
+          {/* <Image
             src={assets.icons.info}
             alt="Info icon"
             width={20}
             height={20}
-          />
+          /> */}
         </p>
       </div>
       <div className="grid grid-cols-2 grid-rows-2 gap-5 flex-1 max-md:grid-cols-1">
@@ -286,7 +286,7 @@ export default function Home() {
                 </div>
               </div>
             ) : (
-              chats?.data.map((msg) => {
+              chats?.data.slice(0, 6).map((msg) => {
                 const friend = msg.members.find(
                   (_m) => _m.user._id !== data?.user?._id
                 );

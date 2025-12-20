@@ -26,6 +26,16 @@ export const login = async (
   return res;
 };
 
+export const verifyOtp = async (body: {
+  email: string;
+  otp: string;
+}): Promise<{
+  data: { token: string; user: User };
+}> => {
+  const res = await axiosInstance.post(endpoints.auth.verifyOtp, body);
+  return res;
+};
+
 export const googleAuth = async (
   tokenId: string
 ): Promise<{ data: { token: string; user: User } }> => {
