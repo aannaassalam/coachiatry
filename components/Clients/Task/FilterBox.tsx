@@ -8,7 +8,7 @@ import { useQueries } from "@tanstack/react-query";
 import { Plus, Trash2, X } from "lucide-react";
 import { Archivo } from "next/font/google";
 import { useParams } from "next/navigation";
-import { parseAsJson, useQueryState } from "nuqs";
+import { parseAsJson, parseAsString, useQueryState } from "nuqs";
 import { Button } from "../../ui/button";
 import { Combobox } from "../../ui/combobox";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../../ui/tooltip";
@@ -32,6 +32,7 @@ function FilterBox() {
       { selectedKey: "", selectedOperator: "", selectedValue: "" }
     ])
   );
+  const [tab] = useQueryState("tab", parseAsString.withDefault("list"));
 
   const [
     { data: categories = [], isLoading: isCategoryLoading },
@@ -135,7 +136,8 @@ function FilterBox() {
                       _item.value === filter.selectedKey || // ✅ allow current row's key
                       !values.some(
                         (item, i) =>
-                          i !== index && item.selectedKey === _item.value
+                          (i !== index && item.selectedKey === _item.value) ||
+                          (tab === "week" && _item.value === "dueDate")
                       ) // exclude if another row has it
                   )}
                   isLoading={isCategoryLoading || isStatusLoading}

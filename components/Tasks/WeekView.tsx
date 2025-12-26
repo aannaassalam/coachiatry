@@ -295,7 +295,9 @@ function WeekView() {
         open={isOpen}
         onOpenChange={(toggle) => {
           setIsOpen(toggle);
-          setSelectedTask(null);
+          setTimeout(() => {
+            setSelectedTask(null);
+          }, 200);
         }}
         selectedTask={selectedTask?._id}
         editing={!!selectedTask}

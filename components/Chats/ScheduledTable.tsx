@@ -94,7 +94,6 @@ function ScheduledTable() {
               const friend = message.chat.members.find(
                 (_member) => _member?.user?._id !== message.sender?._id
               );
-              console.log(friend);
               return (
                 <TableRow
                   key={index}
@@ -104,7 +103,7 @@ function ScheduledTable() {
                   }}
                   className="cursor-pointer"
                 >
-                  <TableCell className="font-medium py-4 text-gray-700 text-sm leading-6 max-w-[300px] whitespace-normal">
+                  <TableCell className="font-medium py-4 text-gray-700 text-sm leading-6 max-w-[300px] whitespace-normal wrap-anywhere">
                     {message.content}
                   </TableCell>
                   <TableCell className="font-medium py-4 text-gray-700 text-sm leading-6 max-w-[300px] whitespace-normal">

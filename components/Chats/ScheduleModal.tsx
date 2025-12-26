@@ -212,7 +212,7 @@ export default function ScheduleMessageModal({
                     </>
                   ) : (
                     <div className="rounded-xl bg-[#F1F1F3] p-3 flex gap-2 items-start justify-between">
-                      <pre className="text-gray-900 font-lato text-sm whitespace-pre-line">
+                      <pre className="text-gray-900 font-lato text-sm whitespace-pre-line wrap-anywhere">
                         {field.value}
                       </pre>
                       <Button

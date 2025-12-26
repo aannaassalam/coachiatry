@@ -13,32 +13,31 @@ function getDueDateQuery(value: string) {
   switch (value) {
     case "today":
       return {
-        $gte: today.toDate(),
-        $lte: today.endOf("day").toDate()
+        gte: today.clone().startOf("day").toDate(),
+        lte: today.clone().endOf("day").toDate()
       };
-
     case "yesterday":
+      const yesterday = today.clone().subtract(1, "day");
       return {
-        $gte: today.clone().subtract(1, "day").startOf("day").toDate(),
-        $lte: today.clone().subtract(1, "day").endOf("day").toDate()
+        gte: yesterday.clone().startOf("day").toDate(),
+        lte: yesterday.clone().endOf("day").toDate()
       };
-
     case "tomorrow":
+      const tomorrow = today.clone().add(1, "day");
       return {
-        $gte: today.clone().add(1, "day").startOf("day").toDate(),
-        $lte: today.clone().add(1, "day").endOf("day").toDate()
+        gte: tomorrow.clone().startOf("day").toDate(),
+        lte: tomorrow.clone().endOf("day").toDate()
       };
-
     case "thisWeek":
       return {
-        $gte: today.clone().startOf("week").toDate(),
-        $lte: today.clone().endOf("week").toDate()
+        gte: today.clone().startOf("week").toDate(),
+        lte: today.clone().endOf("week").toDate()
       };
-
     case "nextWeek":
+      const nextWeek = today.clone().add(1, "week");
       return {
-        $gte: today.clone().add(1, "week").startOf("week").toDate(),
-        $lte: today.clone().add(1, "week").endOf("week").toDate()
+        gte: nextWeek.clone().startOf("week").toDate(),
+        lte: nextWeek.clone().endOf("week").toDate()
       };
 
     default:
@@ -68,17 +67,14 @@ function buildFilterQuery(values: Filter[]): Record<string, any> {
         query.dueDate = dateRange;
       } else if (filter.selectedOperator === "is not") {
         // exclude that range -> tasks before OR after
-        query.$or = [
-          { dueDate: { $lt: dateRange.$gte } },
-          { dueDate: { $gt: dateRange.$lte } }
-        ];
+        query.dueDate = { not: dateRange };
       }
     } else {
       // Normal fields (status, category, priority)
       if (filter.selectedOperator === "is") {
         query[key] = value;
       } else if (filter.selectedOperator === "is not") {
-        query[key] = { $ne: value };
+        query[key] = { ne: value };
       }
     }
   });
@@ -105,7 +101,9 @@ export const getAllTasks = async ({
       sort,
       ...filterQuery,
       dueDate:
-        startDate && endDate ? { gte: startDate, lte: endDate } : undefined
+        startDate && endDate
+          ? { gte: startDate, lte: endDate }
+          : filterQuery.dueDate
     }
   });
   return res.data;

@@ -24,7 +24,12 @@ import { useMutation } from "@tanstack/react-query";
 import { Ellipsis, Pencil, Trash } from "lucide-react";
 import moment from "moment";
 import Image from "next/image";
-import { parseAsArrayOf, parseAsString, useQueryState } from "nuqs";
+import {
+  parseAsArrayOf,
+  parseAsJson,
+  parseAsString,
+  useQueryState
+} from "nuqs";
 import React, { useEffect, useState } from "react";
 import DeleteDialog from "../DeleteDialog";
 import { Badge } from "../ui/badge";
@@ -36,6 +41,8 @@ import AddTaskSheet from "./AddTaskSheet";
 import PriorityFlag from "./PriorityFlag";
 import StatusBox from "./StatusBox";
 import { useSession } from "next-auth/react";
+import { Filter } from "@/typescript/interface/common.interface";
+import { sanitizeFilters } from "@/lib/functions/_helpers.lib";
 
 export const SubTasksTable = ({
   subTasks,
@@ -227,8 +234,40 @@ function TasksTable({
   const [selectedStatusId, setSelectedStatusId] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
 
+  const [sort] = useQueryState(
+    "sort",
+    parseAsArrayOf(parseAsString.withDefault("")).withDefault([])
+  );
+  const [values] = useQueryState<Filter[]>(
+    "filters",
+    parseAsJson<Filter[]>((v) =>
+      Array.isArray(v) ? (v as Filter[]) : null
+    ).withDefault([
+      { selectedKey: "", selectedOperator: "", selectedValue: "" }
+    ])
+  );
+
+  const validatedFilters = sanitizeFilters(values);
+
   const { mutate, isPending } = useMutation({
     mutationFn: deleteTask,
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({
+        queryKey: ["tasks", sort, validatedFilters]
+      });
+
+      const previousResponse = queryClient.getQueryData<Task[]>([
+        "tasks",
+        sort,
+        validatedFilters
+      ]);
+
+      // Remove the deleted task from cache
+      const updatedTasks = previousResponse?.filter((task) => task._id !== id);
+
+      queryClient.setQueryData(["tasks", sort, validatedFilters], updatedTasks);
+      return { previousResponse };
+    },
     meta: {
       invalidateQueries: ["tasks"]
     }
