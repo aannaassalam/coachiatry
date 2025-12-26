@@ -315,7 +315,7 @@ export default function Home() {
                         <p className="font-semibold text-sm leading-5 text-gray-900">
                           {details?.name}
                         </p>
-                        <p className="text-xs leading-4 text-gray-500">
+                        <p className="text-xs leading-4 text-gray-500 text-ellipsis overflow-hidden max-w-[200px]">
                           {msg.lastMessage?.sender?._id === data?.user?._id &&
                             "You: "}
                           {msg.lastMessage?.content ||

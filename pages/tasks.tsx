@@ -98,7 +98,7 @@ function Tasks() {
             </DialogTrigger>
             <DialogContent>
               <DialogTitle>Share Access</DialogTitle>
-              <div className="p-2 bg-white border rounded-sm flex items-center gap-2 w-full">
+              <div className="p-2 bg-white border rounded-sm flex items-center gap-2 w-full overflow-hidden">
                 <p
                   className="w-100 truncate text-sm text-gray-700"
                   title={`${process.env.NEXTAUTH_URL}/share/user/${data?.user?.shareId}`}

@@ -309,7 +309,7 @@ export default function DocumentSheet({
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-5 mt-4">
+                  <div className="flex items-center gap-5 mt-4 max-sm:flex-col max-sm:items-start">
                     {isEditing ? (
                       <Combobox
                         value={documentData.tag}
@@ -428,7 +428,7 @@ export default function DocumentSheet({
                       </DialogTrigger>
                       <DialogContent>
                         <DialogTitle>Share Document</DialogTitle>
-                        <div className="p-2 bg-white border rounded-sm flex items-center gap-2 w-full">
+                        <div className="p-2 bg-white border rounded-sm flex items-center gap-2 w-full overflow-hidden">
                           <p
                             className="w-100 truncate text-sm text-gray-700"
                             title={`${process.env.NEXTAUTH_URL}/share/${data?.shareId}`}

@@ -288,11 +288,11 @@ export default function Settings() {
               <h2 className="font-lato font-semibold gap-5 text-lg tracking-[-2%] mb-2.5">
                 Watchers
               </h2>
-              <div className="flex items-center gap-2 max-sm:self-end max-sm:w-full max-sm:grid max-sm:grid-cols-2">
+              <div className="flex items-center max-sm:justify-end gap-2 max-sm:self-end max-sm:w-full">
                 <Button
                   variant="secondary"
                   size="sm"
-                  className="gap-1.5 font-semibold"
+                  className="gap-1.5 font-semibold max-sm:w-max"
                   onClick={handleCopyShareLink}
                 >
                   <Link2 />
@@ -306,7 +306,7 @@ export default function Settings() {
                     <Button
                       variant="default"
                       size="sm"
-                      className="gap-1.5 font-semibold"
+                      className="gap-1.5 font-semibold max-sm:w-max"
                       onClick={() => setWatchersDialog(true)}
                     >
                       <Plus />
@@ -384,13 +384,13 @@ export default function Settings() {
                       src={_viewer.photo}
                       name={getInitials(_viewer.fullName)}
                       textSize="text-lg"
-                      className="size-13"
+                      className="size-13 max-sm:size-10"
                     />
                     <div>
-                      <p className="font-medium text-gray-800 leading-[150%]">
+                      <p className="font-medium text-gray-800 leading-[150%] max-sm:text-sm">
                         {_viewer.fullName}
                       </p>
-                      <p className="text-gray-700 leading-[150%]">
+                      <p className="text-gray-700 leading-[150%] max-sm:text-xs">
                         {_viewer.email}
                       </p>
                     </div>
