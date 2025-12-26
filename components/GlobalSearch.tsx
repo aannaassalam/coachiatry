@@ -119,12 +119,20 @@ export function GlobalSearch() {
             </div>
           </PopoverTrigger>
           <PopoverContent
-            className="border-none shadow-none bg-transparent"
+            className="border-none shadow-none bg-transparent max-sm:hidden"
             side="bottom"
             align="center"
             collisionPadding={180}
           >
             <CoachAI size="large" />
+          </PopoverContent>
+          <PopoverContent
+            className="border-none shadow-none bg-transparent sm:hidden"
+            side="bottom"
+            align="center"
+            collisionPadding={40}
+          >
+            <CoachAI size="small" />
           </PopoverContent>
         </Popover>
       </div>
@@ -139,13 +147,14 @@ export function GlobalSearch() {
               exit={{ opacity: 0, scale: 0.98 }}
               transition={{ duration: 0.15 }}
             >
-              <div className="backdrop-blur-md bg-white/80 rounded-xl shadow-2xl border border-gray-200 overflow-hidden">
+              <div className="backdrop-blur-md bg-white/80 rounded-xl shadow-2xl border border-gray-200 overflow-hidden max-sm:h-[450px]">
                 <Command shouldFilter={false}>
                   <CommandInput
                     placeholder="Search documents, task, transcriptions..."
                     value={query}
+                    autoFocus={false}
                     onValueChange={setQuery}
-                    className="text-base py-3 px-4"
+                    className="text-base py-3 px-4 max-sm:max-w-[87%]"
                   />
                   <div className="flex items-center gap-2 p-3">
                     <Badge

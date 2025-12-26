@@ -407,7 +407,7 @@ export default function CoachAI({
   return (
     <div
       className={cn(
-        "flex flex-col w-[400px] h-[600px] mx-auto rounded-2xl shadow-lg border border-gray-200 bg-white overflow-hidden max-[480px]:w-[350px]",
+        "flex flex-col w-[400px] h-[600px] mx-auto rounded-2xl shadow-lg border border-gray-200 bg-white overflow-hidden max-[480px]:w-[95vw]",
         {
           "w-[450px] h-[650px] max-sm:h-[96vh] max-sm:w-[96vw]":
             size === "large",

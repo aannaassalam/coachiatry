@@ -37,7 +37,7 @@ function Documents() {
   });
 
   return (
-    <div className="mt-1 max-md:w-[95vw] max-md:overflow-auto scrollbar-hide max-[480px]:!w-[93vw]">
+    <div className="mt-1 max-md:w-[95vw] max-md:overflow-hidden scrollbar-hide max-[480px]:!w-[93vw]">
       <div className="w-full flex items-center justify-end mb-4">
         <Button
           onClick={() => {
@@ -48,7 +48,7 @@ function Documents() {
           Create Doc
         </Button>
       </div>
-      <Table>
+      <Table className="max-md:w-[95vw] !max-md:overflow-auto scrollbar-hide max-[480px]:!w-[93vw]">
         <TableHeader className="bg-gray-100">
           <TableRow className="border-none">
             <TableHead className="text-xs text-gray-500">Name</TableHead>

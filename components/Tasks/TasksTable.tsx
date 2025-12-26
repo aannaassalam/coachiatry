@@ -332,7 +332,7 @@ function TasksTable({
                           "font-medium text-sm leading-5 font-lato tracking-[-0.05px] relative",
                           task.subtasks &&
                             task.subtasks.length <= 0 &&
-                            "pl-[42px]"
+                            "pl-[42px] max-sm:pl-2"
                         )}
                       >
                         <div className="flex items-center">
