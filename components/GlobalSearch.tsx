@@ -126,14 +126,14 @@ export function GlobalSearch() {
           >
             <CoachAI size="large" />
           </PopoverContent>
-          <PopoverContent
+          {/* <PopoverContent
             className="border-none shadow-none bg-transparent sm:hidden"
             side="bottom"
             align="center"
             collisionPadding={40}
           >
             <CoachAI size="small" />
-          </PopoverContent>
+          </PopoverContent> */}
         </Popover>
       </div>
 
