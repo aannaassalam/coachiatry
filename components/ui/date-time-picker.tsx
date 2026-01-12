@@ -8,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
+import { isBefore, startOfDay } from "date-fns";
 import { Calendar as Clock } from "lucide-react";
 import moment from "moment";
 import * as React from "react";
@@ -22,6 +23,7 @@ export function DateTimePicker({ value, onChange }: DateTimePickerProps) {
   const [time, setTime] = React.useState(
     value ? moment(value).format("HH:mm") : "08:00"
   );
+  const today = startOfDay(new Date());
 
   React.useEffect(() => {
     if (date) {
@@ -47,7 +49,12 @@ export function DateTimePicker({ value, onChange }: DateTimePickerProps) {
 
   return (
     <div className="w-auto p-3 space-y-3">
-      <Calendar mode="single" selected={date} onSelect={setDate} />
+      <Calendar
+        mode="single"
+        selected={date}
+        onSelect={setDate}
+        disabled={(date) => isBefore(date, today)}
+      />
       <div className="flex items-center gap-2">
         <Clock className="h-4 w-4 text-muted-foreground" />
         <Select value={time} onValueChange={(val) => setTime(val)}>
