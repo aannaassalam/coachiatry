@@ -66,6 +66,8 @@ export const endpoints = {
     shared: (shareId: string) => `/task/shared/${shareId}`
   },
   user: {
+    getAllUsers: "/user/get-all",
+    getUsers: "/user/get-users",
     getProfile: "/user/me",
     updateProfile: "/user/me",
     updateProfilePicture: "/user/me/update-profile-picture",
@@ -73,9 +75,12 @@ export const endpoints = {
     suggestUsers: "/user/suggestions",
     addWatchers: "/user/add-watchers",
     userByIds: "/user/user-by-ids",
+    createUser: "/user/create-user",
     userById: (userId: string) => `/user/user-by-id/${userId}`,
     shared: (shareId: string) => `/user/share/${shareId}`,
-    revokeAccess: (viewerId: string) => `/user/share/${viewerId}`
+    revokeAccess: (viewerId: string) => `/user/share/${viewerId}`,
+    updateUser: (userId: string) => `/user/update-user/${userId}`,
+    deleteUser: (userId: string) => `/user/delete-user/${userId}`
   },
   chat: {
     getConversations: "/chat",

@@ -8,6 +8,7 @@ export interface User {
   role: string;
   shareId: string;
   sharedViewers: User[];
+  assignedCoach: string[];
   active: boolean;
   createdAt: string;
   updatedAt: string;

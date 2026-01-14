@@ -1,6 +1,7 @@
 import { User } from "@/typescript/interface/user.interface";
 import axiosInstance from "../axiosInstance";
 import { endpoints } from "../endpoints";
+import { PaginatedResponse } from "@/typescript/interface/common.interface";
 
 export const fetchProfile = async (token?: string): Promise<User> => {
   const res = await axiosInstance.get(endpoints.user.getProfile, {
@@ -85,5 +86,52 @@ export const getUsersByIds = async (
 
 export const addWatchers = async (userIds: string[]) => {
   const res = await axiosInstance.post(endpoints.user.addWatchers, { userIds });
+  return res;
+};
+
+export const getUsers = async ({
+  search,
+  page
+}: {
+  search: string;
+  page: number;
+}): Promise<PaginatedResponse<User[]>> => {
+  const res = await axiosInstance.get(endpoints.user.getUsers, {
+    params: { search, page }
+  });
+  return res.data;
+};
+
+export const getAllUsers = async (): Promise<User[]> => {
+  const res = await axiosInstance.get(endpoints.user.getAllUsers);
+  return res.data;
+};
+
+export const createUser = async (body: {
+  name: string;
+  email: string;
+  role: "admin" | "manager" | "coach" | "user";
+  assignedCoach?: string[];
+}) => {
+  const res = await axiosInstance.post(endpoints.user.createUser, body);
+  return res;
+};
+
+export const updateUser = async (body: {
+  userId: string;
+  name: string;
+  email: string;
+  role: "admin" | "manager" | "coach" | "user";
+  assignedCoach?: string[];
+}) => {
+  const res = await axiosInstance.put(
+    endpoints.user.updateUser(body.userId),
+    body
+  );
+  return res;
+};
+
+export const deleteUser = async (userId: string) => {
+  const res = await axiosInstance.delete(endpoints.user.deleteUser(userId));
   return res;
 };

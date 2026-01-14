@@ -66,7 +66,12 @@ export default function Sidebar({
                   if (link.title === "Clients" && !session) return false;
                   if (
                     link.title === "Clients" &&
-                    session?.user?.role === "user"
+                    session?.user?.role !== "coach"
+                  )
+                    return false;
+                  if (
+                    link.title === "Users & permissions" &&
+                    !["admin", "manager"].includes(session?.user?.role ?? "")
                   )
                     return false;
 

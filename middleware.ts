@@ -19,7 +19,7 @@ export default withAuth(
     // 3️⃣ Role-based access control: only "coach" can access /clients/*
     if (pathname.startsWith("/clients")) {
       const role = token?.user?.role || token?.role; // adapt based on how you store it in jwt callback
-      if (role !== "coach") {
+      if (role === "user") {
         return NextResponse.redirect(new URL("/", req.url));
       }
     }

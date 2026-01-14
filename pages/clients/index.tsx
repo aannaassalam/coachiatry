@@ -134,7 +134,7 @@ function Clients() {
                 </TableRow>
               ))
             ) : (
-              <EmptyTable message="No clients found" colSpan={5} />
+              <EmptyTable message="No clients found" colSpan={4} />
             )}
           </TableBody>
         </Table>
