@@ -233,9 +233,10 @@ export const importBulkTasks = async ({
   return res.data;
 };
 
-export const assignToggle = async (taskId: string) => {
-  const res = await axiosInstance.patch(endpoints.task.assignToggle, {
-    taskId
-  });
+export const assignToggle = async (body: {
+  taskId: string;
+  coachId: string;
+}) => {
+  const res = await axiosInstance.patch(endpoints.task.assignToggle, body);
   return res;
 };

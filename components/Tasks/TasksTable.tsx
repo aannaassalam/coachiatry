@@ -21,7 +21,7 @@ import { cn } from "@/lib/utils";
 import { queryClient } from "@/pages/_app";
 import { Task } from "@/typescript/interface/task.interface";
 import { useMutation } from "@tanstack/react-query";
-import { Ellipsis, Pencil, Trash } from "lucide-react";
+import { ChevronsUpDown, Ellipsis, Pencil, Trash } from "lucide-react";
 import moment from "moment";
 import Image from "next/image";
 import {
@@ -43,6 +43,7 @@ import StatusBox from "./StatusBox";
 import { useSession } from "next-auth/react";
 import { Filter } from "@/typescript/interface/common.interface";
 import { sanitizeFilters } from "@/lib/functions/_helpers.lib";
+import { User } from "@/typescript/interface/user.interface";
 
 export const SubTasksTable = ({
   subTasks,
@@ -409,11 +410,10 @@ function TasksTable({
                         className="tracking-[-0.05px]"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <Tooltip>
-                          <TooltipTrigger asChild>
+                        <Popover>
+                          <PopoverTrigger asChild>
                             <button
-                              className="[all:unset] !flex !items-center !gap-2 disabled:opacity-70"
-                              onClick={() => assign(task._id)}
+                              className="[all:unset] !flex !items-center !gap-2 disabled:opacity-70 cursor-pointer"
                               disabled={isAssigning}
                             >
                               <SmartAvatar
@@ -428,10 +428,62 @@ function TasksTable({
                                   ? "me"
                                   : task.assignedTo?.fullName}
                               </span>
+                              <ChevronsUpDown size={14} color="#777" />
                             </button>
-                          </TooltipTrigger>
-                          <TooltipContent>Click to toggle</TooltipContent>
-                        </Tooltip>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-50">
+                            {data?.user?.assignedCoach.map((coach) => {
+                              const coachUser = coach as unknown as User;
+                              return (
+                                <button
+                                  onClick={() =>
+                                    assign({
+                                      taskId: task._id,
+                                      coachId: coachUser._id
+                                    })
+                                  }
+                                  key={coachUser._id}
+                                  className="py-2! [all:unset] !flex !items-center !gap-2 disabled:opacity-70 cursor-pointer!"
+                                >
+                                  <SmartAvatar
+                                    src={coachUser?.photo}
+                                    name={coachUser?.fullName}
+                                    key={coachUser?.updatedAt}
+                                    className="size-5"
+                                    textSize="text-[10px]"
+                                  />
+                                  <span className="font-lato font-medium text-sm text-gray-700">
+                                    {coachUser?._id === data?.user?._id
+                                      ? "me"
+                                      : coachUser?.fullName}
+                                  </span>
+                                </button>
+                              );
+                            })}
+                            {/* <button
+                              onClick={() =>
+                                assign({
+                                  taskId: task._id,
+                                  coachId: data?.user?._id!
+                                })
+                              }
+                              className="py-2! [all:unset] !flex !items-center !gap-2 disabled:opacity-70 cursor-pointer!"
+                            >
+                              <SmartAvatar
+                                src={data?.user?.photo}
+                                name={data?.user?.fullName}
+                                key={data?.user?.updatedAt}
+                                className="size-5"
+                                textSize="text-[10px]"
+                              />
+                              <span className="font-lato font-medium text-sm text-gray-700">
+                                {data?.user?._id === data?.user?._id
+                                  ? "me"
+                                  : data?.user?.fullName}
+                              </span>
+                            </button> */}
+                          </PopoverContent>
+                        </Popover>
                       </TableCell>
                       <TableCell className="font-lato text-sm text-gray-600 tracking-[-0.05px]">
                         {task.dueDate

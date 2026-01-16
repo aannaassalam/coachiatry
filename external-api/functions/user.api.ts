@@ -7,6 +7,9 @@ export const fetchProfile = async (token?: string): Promise<User> => {
   const res = await axiosInstance.get(endpoints.user.getProfile, {
     headers: {
       Authorization: `Bearer ${token}`
+    },
+    params: {
+      populate: "sharedViewers, assignedCoach"
     }
   });
   return res.data;
@@ -47,10 +50,12 @@ export const getAllWatching = async (): Promise<
   return res.data;
 };
 
-export const getMyProfile = async (): Promise<User> => {
+export const getMyProfile = async (): Promise<
+  Omit<User, "assignedCoach"> & { assignedCoach: User[] }
+> => {
   const res = await axiosInstance.get(endpoints.user.getProfile, {
     params: {
-      populate: "sharedViewers"
+      populate: "sharedViewers,assignedCoach"
     }
   });
   return res.data;
