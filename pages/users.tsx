@@ -209,6 +209,7 @@ export default function Users() {
     onSuccess: () => {
       setOpen(false);
       form.reset();
+      queryClient.invalidateQueries({ queryKey: ["total-users"] });
     },
     meta: {
       invalidateQueries: ["all-users"]
@@ -220,6 +221,7 @@ export default function Users() {
     onSuccess: () => {
       setClientId("");
       form.reset();
+      queryClient.invalidateQueries({ queryKey: ["total-users"] });
     },
     meta: {
       invalidateQueries: ["all-users"]
@@ -262,6 +264,8 @@ export default function Users() {
       });
       return { previousResponse };
     },
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["total-users"] }),
     meta: {
       invalidateQueries: ["all-users"]
     }
