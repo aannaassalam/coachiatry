@@ -510,7 +510,13 @@ export default function Users() {
                                           <FormControl>
                                             <RadioGroup
                                               {...field}
-                                              onValueChange={field.onChange}
+                                              onValueChange={(val) => {
+                                                form.setValue(
+                                                  "assignedCoach",
+                                                  []
+                                                );
+                                                field.onChange(val);
+                                              }}
                                             >
                                               {info?.user?.role === "admin" && (
                                                 <>
