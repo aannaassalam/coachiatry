@@ -109,7 +109,9 @@ export const getUsers = async ({
 }: {
   search: string;
   page: number;
-}): Promise<PaginatedResponse<User[]>> => {
+}): Promise<
+  PaginatedResponse<(Omit<User, "assignedCoach"> & { assignedCoach: User[] })[]>
+> => {
   const res = await axiosInstance.get(endpoints.user.getUsers, {
     params: { search, page }
   });

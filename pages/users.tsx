@@ -65,6 +65,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
 import { queryClient } from "./_app";
+import { Badge } from "@/components/ui/badge";
 
 const schema = yup.object().shape({
   name: yup.string().required("Name is required"),
@@ -326,17 +327,6 @@ export default function Users() {
             <Plus size={14} /> Add user
           </Button>
         </div>
-        {/* <div className="flex gap-3 max-sm:w-full max-sm:gap-1 max-sm:mt-1">
-          <Button variant="ghost">
-            <Image src={assets.icons.sort} alt="sort" width={18} height={18} />
-            Sort
-          </Button>
-          <Button variant="ghost" className="gap-1.5 font-semibold mr-2">
-            <ListFilter />
-            Filter
-          </Button>
-          <Button className="max-sm:ml-auto">Add a New Client</Button>
-        </div> */}
       </div>
       <Separator />
       <div className="mt-4 max-md:w-[95vw] max-md:overflow-auto scrollbar-hide max-[480px]:!w-[93vw]">
@@ -348,6 +338,9 @@ export default function Users() {
               </TableHead>
               <TableHead className="text-xs text-gray-500">Email</TableHead>
               <TableHead className="text-xs text-gray-500">Role</TableHead>
+              <TableHead className="text-xs text-gray-500">
+                Managed by
+              </TableHead>
               <TableHead className="text-xs text-gray-500 rounded-r-md">
                 Actions
               </TableHead>
@@ -357,27 +350,27 @@ export default function Users() {
             {isLoading ? (
               <>
                 <TableRow className="border-b-0 hover:bg-transparent">
-                  <TableCell colSpan={4} className="p-0 pt-1.5">
+                  <TableCell colSpan={5} className="p-0 pt-1.5">
                     <div className="h-17 w-full rounded-md bg-gray-200/80 animate-pulse" />
                   </TableCell>
                 </TableRow>
                 <TableRow className="border-b-0 hover:bg-transparent">
-                  <TableCell colSpan={4} className="p-0 pt-1.5">
+                  <TableCell colSpan={5} className="p-0 pt-1.5">
                     <div className="h-17 w-full rounded-md bg-gray-200/80 animate-pulse" />
                   </TableCell>
                 </TableRow>
                 <TableRow className="border-b-0 hover:bg-transparent">
-                  <TableCell colSpan={4} className="p-0 pt-1.5">
+                  <TableCell colSpan={5} className="p-0 pt-1.5">
                     <div className="h-17 w-full rounded-md bg-gray-200/80 animate-pulse" />
                   </TableCell>
                 </TableRow>
                 <TableRow className="border-b-0 hover:bg-transparent">
-                  <TableCell colSpan={4} className="p-0 pt-1.5">
+                  <TableCell colSpan={5} className="p-0 pt-1.5">
                     <div className="h-17 w-full rounded-md bg-gray-200/80 animate-pulse" />
                   </TableCell>
                 </TableRow>
                 <TableRow className="border-b-0 hover:bg-transparent">
-                  <TableCell colSpan={4} className="p-0 pt-1.5">
+                  <TableCell colSpan={5} className="p-0 pt-1.5">
                     <div className="h-17 w-full rounded-md bg-gray-200/80 animate-pulse" />
                   </TableCell>
                 </TableRow>
@@ -405,6 +398,13 @@ export default function Users() {
                     </TableCell>
                     <TableCell className="py-3.5 text-sm text-gray-600 capitalize">
                       {user.role}
+                    </TableCell>
+                    <TableCell className="py-3.5 text-sm text-gray-600 capitalize max-w-[300px] flex flex-wrap gap-1">
+                      {user.assignedCoach?.map((ac) => (
+                        <Badge variant="secondary" key={ac._id}>
+                          {ac.fullName}
+                        </Badge>
+                      ))}
                     </TableCell>
                     <TableCell className="py-3.5">
                       <Popover>
@@ -456,7 +456,9 @@ export default function Users() {
                                       | "manager"
                                       | "coach"
                                       | "user",
-                                    assignedCoach: user.assignedCoach || []
+                                    assignedCoach:
+                                      user.assignedCoach.map((ac) => ac._id) ||
+                                      []
                                   });
                                 }}
                               >

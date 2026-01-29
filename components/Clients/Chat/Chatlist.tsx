@@ -21,8 +21,8 @@ moment.updateLocale("en", {
     ww: "%dw",
     d: "1d",
     dd: "%dd",
-    M: "1m",
-    MM: "%dm",
+    M: "1M",
+    MM: "%dM",
     y: "1y",
     yy: "%dy"
   }
@@ -154,7 +154,7 @@ export default function ChatList() {
                   >
                     {_chat.lastMessage?.createdAt
                       ? moment(_chat.lastMessage?.createdAt).fromNow(true)
-                      : null}
+                      : moment(_chat?.createdAt).fromNow(true)}
                   </span>
                   {_chat.unreadCount > 0 && (
                     <span className="text-xs h-5 min-w-5 px-1 rounded-full bg-primary text-white flex items-center justify-center">
