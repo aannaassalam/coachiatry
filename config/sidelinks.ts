@@ -15,11 +15,6 @@ export default [
         href: "/clients"
       },
       {
-        icon: assets.icons.clients,
-        title: "Users & permissions",
-        href: "/users"
-      },
-      {
         icon: assets.icons.task,
         title: "my task",
         href: "/tasks"
@@ -48,6 +43,11 @@ export default [
         icon: assets.icons.settings,
         title: "settings",
         href: "/settings"
+      },
+      {
+        icon: assets.icons.clients,
+        title: "Users & permissions",
+        href: "/users"
       }
     ]
   }

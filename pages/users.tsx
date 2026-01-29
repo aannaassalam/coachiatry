@@ -71,7 +71,7 @@ const schema = yup.object().shape({
   email: yup.string().email("Invalid email").required("Email is required"),
   role: yup
     .string()
-    .oneOf(["manager", "coach", "user"], "Invalid role")
+    .oneOf(["admin", "manager", "coach", "user"], "Invalid role")
     .required("Role is required"),
   assignedCoach: yup.array().of(yup.string().required()).optional().default([])
 });
@@ -739,7 +739,13 @@ export default function Users() {
                   <FormItem>
                     <FormLabel>Role</FormLabel>
                     <FormControl>
-                      <RadioGroup {...field} onValueChange={field.onChange}>
+                      <RadioGroup
+                        {...field}
+                        onValueChange={(val) => {
+                          form.setValue("assignedCoach", []);
+                          field.onChange(val);
+                        }}
+                      >
                         {info?.user?.role === "admin" && (
                           <>
                             <div className="flex items-center gap-3">

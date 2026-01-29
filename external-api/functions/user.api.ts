@@ -74,7 +74,16 @@ export const getUserSuggestions = async (
 export const getUserById = async (
   id: string
 ): Promise<
-  Pick<User, "_id" | "fullName" | "email" | "photo" | "createdAt">
+  Pick<
+    User,
+    | "_id"
+    | "fullName"
+    | "email"
+    | "photo"
+    | "createdAt"
+    | "role"
+    | "assignedCoach"
+  >
 > => {
   const res = await axiosInstance.get(endpoints.user.userById(id));
   return res.data;

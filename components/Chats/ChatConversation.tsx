@@ -285,16 +285,10 @@ export default function ChatConversation() {
             newData = [...old.data];
           }
 
-          newData.sort((a, b) => {
-            const aCreated = a.lastMessage?.createdAt;
-            const bCreated = b.lastMessage?.createdAt;
+          const getSortTime = (chat: Conversation) =>
+            moment(chat.lastMessage?.createdAt ?? chat.createdAt).valueOf();
 
-            if (!aCreated && !bCreated) return 0;
-            if (!aCreated) return 1; // a goes to bottom
-            if (!bCreated) return -1; // b goes to bottom
-
-            return moment(bCreated).valueOf() - moment(aCreated).valueOf();
-          });
+          newData.sort((a, b) => getSortTime(b) - getSortTime(a));
 
           return { ...old, data: newData };
         }
@@ -345,11 +339,10 @@ export default function ChatConversation() {
               ...existing.filter((_, i) => i !== idx)
             ];
 
-            newList.sort(
-              (a, b) =>
-                moment(b.lastMessage?.createdAt).valueOf() -
-                moment(a.lastMessage?.createdAt).valueOf()
-            );
+            const getSortTime = (chat: Conversation) =>
+              moment(chat.lastMessage?.createdAt ?? chat.createdAt).valueOf();
+
+            newList.sort((a, b) => getSortTime(b) - getSortTime(a));
 
             return { ...old, data: newList };
           }
