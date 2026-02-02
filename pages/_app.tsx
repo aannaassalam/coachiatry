@@ -77,7 +77,7 @@ export default function CustomApp({ Component, pageProps }: AppProps) {
 
   return (
     <main className={`${archivo.variable} ${lato.variable}`}>
-      <SessionProvider session={pageProps.session}>
+      <SessionProvider session={pageProps.session} refetchOnWindowFocus>
         <NuqsAdapter>
           <QueryClientProvider client={queryClient}>
             <Toaster richColors position="bottom-left" />
