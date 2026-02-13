@@ -5,14 +5,18 @@ export default withAuth(
   function middleware(req) {
     const { pathname } = req.nextUrl;
     const token = req.nextauth.token; // contains session JWT payload
+    const frontendExpired =
+      typeof token?.frontendExpiresAt === "number" &&
+      Date.now() >= token.frontendExpiresAt;
+    const hasFrontendSession = !!token?.token && !frontendExpired;
 
     // 1️⃣ Not logged in → redirect to login
-    if (!token && !pathname.startsWith("/auth")) {
+    if (!hasFrontendSession && !pathname.startsWith("/auth")) {
       return NextResponse.redirect(new URL("/auth/login", req.url));
     }
 
     // 2️⃣ Logged in but visiting /auth/* → redirect to home
-    if (token && pathname.startsWith("/auth")) {
+    if (hasFrontendSession && pathname.startsWith("/auth")) {
       return NextResponse.redirect(new URL("/", req.url));
     }
 

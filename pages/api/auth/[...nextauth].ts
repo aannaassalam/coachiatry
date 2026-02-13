@@ -11,6 +11,12 @@ import NextAuth, { AuthOptions } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 
+const FRONTEND_SESSION_MAX_AGE_SECONDS = 7 * 24 * 60 * 60; // change this to the frontend timeout you want
+const FRONTEND_SESSION_MAX_AGE_MS = FRONTEND_SESSION_MAX_AGE_SECONDS * 1000;
+
+const isFrontendExpired = (frontendExpiresAt?: number) =>
+  typeof frontendExpiresAt === "number" && Date.now() >= frontendExpiresAt;
+
 export const authOptions: AuthOptions = {
   providers: [
     GoogleProvider({
@@ -63,10 +69,10 @@ export const authOptions: AuthOptions = {
   session: {
     strategy: "jwt",
     maxAge: 7 * 24 * 60 * 60
-    // maxAge: 3 * 60
+    // maxAge: 30
   },
   jwt: {
-    // maxAge: 3 * 60
+    // maxAge: 30
     maxAge: 7 * 24 * 60 * 60
   },
   pages: {
@@ -74,6 +80,13 @@ export const authOptions: AuthOptions = {
   },
   callbacks: {
     async jwt({ token, account, trigger, user }) {
+      if (isFrontendExpired(token.frontendExpiresAt)) {
+        token.frontendExpired = true;
+        delete token.user;
+        delete token.token;
+        return token;
+      }
+
       if (account?.provider === "google") {
         const googleIdToken = account.id_token;
 
@@ -82,6 +95,8 @@ export const authOptions: AuthOptions = {
 
           token.user = res.data.user;
           token.token = res.data.token; // Your app's JWT
+          token.frontendExpiresAt = Date.now() + FRONTEND_SESSION_MAX_AGE_MS;
+          token.frontendExpired = false;
         } catch (err) {
           console.error("Google auth backend failed:", err);
         }
@@ -91,15 +106,22 @@ export const authOptions: AuthOptions = {
         };
         token.user = rest;
         token.token = appToken;
+        token.frontendExpiresAt = Date.now() + FRONTEND_SESSION_MAX_AGE_MS;
+        token.frontendExpired = false;
       } else if (trigger === "update") {
+        if (!token.token) return token;
         const appUser = await fetchProfile(token.token);
         token.user = appUser;
       }
       return token;
     },
     async session({ session, token }) {
+      if (token.frontendExpired || !token.token) {
+        return null as any;
+      }
       session.token = token.token as string;
       session.user = token.user as User;
+      session.frontendExpiresAt = token.frontendExpiresAt;
       return session;
     }
   }

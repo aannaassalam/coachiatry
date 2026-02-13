@@ -11,6 +11,7 @@ declare module "next-auth" {
   interface Session {
     token?: string;
     user?: AppUser;
+    frontendExpiresAt?: number;
   }
 }
 
@@ -18,5 +19,7 @@ declare module "next-auth/jwt" {
   interface JWT {
     token?: string;
     user?: AppUser;
+    frontendExpiresAt?: number;
+    frontendExpired?: boolean;
   }
 }
