@@ -6,8 +6,11 @@ import {
   TableHeader,
   TableRow
 } from "@/components/ui/table";
-import { getAllDocumentsByCoach } from "@/external-api/functions/document.api";
-import { useQuery } from "@tanstack/react-query";
+import {
+  getAllDocumentsByCoach,
+  getDocument
+} from "@/external-api/functions/document.api";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Ellipsis } from "lucide-react";
 import moment from "moment";
 import { useParams } from "next/navigation";
@@ -19,6 +22,7 @@ import DocumentSheet from "./DocumentSheet";
 
 function Documents() {
   const { userId } = useParams();
+  const queryClient = useQueryClient();
   const [isOpen, setIsOpen] = useState(false);
   const [selectedDocument, setSelectedDocument] = useQueryState(
     "document",
@@ -35,6 +39,14 @@ function Documents() {
       }),
     enabled: !!userId
   });
+
+  const prefetchOnMouseEnter = (id: string) => {
+    queryClient.prefetchQuery({
+      queryKey: ["documents", id],
+      queryFn: () => getDocument(id),
+      staleTime: 5 * 60 * 1000
+    });
+  };
 
   return (
     <div className="mt-1 max-md:w-[95vw] max-md:overflow-hidden scrollbar-hide max-[480px]:!w-[93vw]">
@@ -94,6 +106,7 @@ function Documents() {
                 <TableCell
                   className="font-medium text-sm leading-5 cursor-pointer"
                   onClick={() => setSelectedDocument(document._id)}
+                  onMouseEnter={() => prefetchOnMouseEnter(document._id)}
                 >
                   {document.title}
                 </TableCell>

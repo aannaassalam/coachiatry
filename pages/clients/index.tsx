@@ -15,18 +15,28 @@ import {
 } from "@/components/ui/table";
 import { getClients } from "@/external-api/functions/coach.api";
 import AppLayout from "@/layouts/AppLayout";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Ellipsis } from "lucide-react";
 import moment from "moment";
 import { useState } from "react";
+import { getUserById } from "@/external-api/functions/user.api";
 
 function Clients() {
+  const queryClient = useQueryClient();
   const [clientId, setClientId] = useState("");
 
   const { data = [], isLoading } = useQuery({
     queryKey: ["clients"],
     queryFn: getClients
   });
+
+  const prefetchOnMouseEnter = (id: string) => {
+    queryClient.prefetchQuery({
+      queryKey: ["clientDetails", id],
+      queryFn: () => getUserById(id),
+      staleTime: 5 * 60 * 1000
+    });
+  };
 
   return (
     <AppLayout>
@@ -94,6 +104,7 @@ function Clients() {
                   <TableCell
                     className="py-3.5"
                     onClick={() => setClientId(client._id)}
+                    onMouseEnter={() => prefetchOnMouseEnter(client._id)}
                   >
                     <div className="flex items-center gap-3">
                       <SmartAvatar

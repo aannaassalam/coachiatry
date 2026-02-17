@@ -18,12 +18,13 @@ import {
 } from "@/components/ui/tooltip";
 import {
   deleteTranscription,
-  getAllTranscriptions
+  getAllTranscriptions,
+  getTranscription
 } from "@/external-api/functions/transcriptions.api";
 import AppLayout from "@/layouts/AppLayout";
 import { createPageRange } from "@/lib/functions/_helpers.lib";
 import { Transcription } from "@/typescript/interface/transcription.interface";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FileText, Trash2 } from "lucide-react";
 import moment from "moment";
 import { motion } from "motion/react";
@@ -36,8 +37,17 @@ const TranscriptionItem = ({
 }: {
   transcription: Transcription;
 }) => {
+  const queryClient = useQueryClient();
   const [page] = useQueryState("page", parseAsInteger.withDefault(1));
   const [isHovered, setIsHovered] = React.useState(false);
+
+  const prefetchOnMouseEnter = (id: string) => {
+    queryClient.prefetchQuery({
+      queryKey: ["transcriptions", id],
+      queryFn: () => getTranscription(id as string),
+      staleTime: 5 * 60 * 1000
+    });
+  };
 
   const { mutate, isPending } = useMutation({
     mutationFn: deleteTranscription,
@@ -49,7 +59,10 @@ const TranscriptionItem = ({
   return (
     <label
       key={transcription._id}
-      onMouseEnter={() => setIsHovered(true)}
+      onMouseEnter={() => {
+        setIsHovered(true);
+        prefetchOnMouseEnter(transcription._id);
+      }}
       onMouseLeave={() => setIsHovered(false)}
       className="overflow-hidden flex cursor-pointer items-center justify-between w-full rounded-lg hover:bg-gray-50 border-1 border-gray-50 px-4 py-2.5 transition-colors group"
     >

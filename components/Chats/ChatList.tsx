@@ -1,5 +1,8 @@
 // import assets from "@/json/assets";
-import { getAllConversations } from "@/external-api/functions/chat.api";
+import {
+  getAllConversations,
+  getConversation
+} from "@/external-api/functions/chat.api";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import moment from "moment";
@@ -15,6 +18,7 @@ import { Message } from "@/typescript/interface/message.interface";
 import { Button } from "../ui/button";
 import { Plus } from "lucide-react";
 import GroupModal from "./GroupModal";
+import { getMessages } from "@/external-api/functions/message.api";
 
 moment.updateLocale("en", {
   relativeTime: {
@@ -109,6 +113,20 @@ export default function ChatList() {
     };
   }, [socket, socket?.connected, room, data?.user?._id]);
 
+  const prefetchChatRoom = (room: string) => {
+    queryClient.prefetchQuery({
+      queryKey: ["conversations", room],
+      queryFn: () => getConversation(room),
+      staleTime: 5 * 60 * 1000
+    });
+    queryClient.prefetchInfiniteQuery({
+      queryKey: ["messages", room],
+      queryFn: getMessages,
+      initialPageParam: 1,
+      staleTime: 5 * 60 * 1000
+    });
+  };
+
   return (
     <div className="w-xs mr-auto bg-white pt-4 rounded-lg flex flex-col min-h-0 max-md:w-full">
       {/* Header / Content Above */}
@@ -187,6 +205,7 @@ export default function ChatList() {
                 key={_chat._id}
                 className="flex cursor-pointer items-start justify-between gap-2 py-2.5 px-3 rounded-[8px] hover:bg-gray-100 transition"
                 onClick={() => setSelectedChat(_chat._id!)}
+                onMouseEnter={() => _chat?._id && prefetchChatRoom(_chat?._id)}
               >
                 <SmartAvatar
                   src={details?.photo}

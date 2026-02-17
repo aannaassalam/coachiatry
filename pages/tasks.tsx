@@ -16,13 +16,16 @@ import {
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getAllCategories } from "@/external-api/functions/category.api";
+import { getAllStatuses } from "@/external-api/functions/status.api";
 import AppLayout from "@/layouts/AppLayout";
 import { Filter } from "@/typescript/interface/common.interface";
+import { useQueryClient } from "@tanstack/react-query";
 import { ListFilter } from "lucide-react";
 import moment from "moment";
 import { useSession } from "next-auth/react";
 import { parseAsJson, parseAsString, useQueryState } from "nuqs";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BsChevronLeft, BsChevronRight } from "react-icons/bs";
 import { IoIosShareAlt } from "react-icons/io";
 import { toast } from "sonner";
@@ -42,6 +45,7 @@ function sanitizeFilters(values: Filter[]): Filter[] {
 
 function Tasks() {
   const { data } = useSession();
+  const queryClient = useQueryClient();
   const [tab, setTab] = useQueryState("tab", parseAsString.withDefault("list"));
   const [values] = useQueryState<Filter[]>(
     "filters",
@@ -60,6 +64,19 @@ function Tasks() {
       end: moment().endOf("week").toISOString()
     })
   );
+
+  useEffect(() => {
+    queryClient.prefetchQuery({
+      queryKey: ["categories"],
+      queryFn: getAllCategories,
+      staleTime: 5 * 60 * 1000
+    });
+    queryClient.prefetchQuery({
+      queryKey: ["status"],
+      queryFn: getAllStatuses,
+      staleTime: 5 * 60 * 1000
+    });
+  }, [queryClient]);
 
   const [isOpen, setIsOpen] = useState(false);
   const validatedFilters = sanitizeFilters(values);

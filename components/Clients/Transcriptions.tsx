@@ -6,12 +6,13 @@ import {
 } from "@/components/ui/tooltip";
 import {
   deleteTranscriptionByCoach,
-  getAllTranscriptionsByCoach
+  getAllTranscriptionsByCoach,
+  getTranscription
 } from "@/external-api/functions/transcriptions.api";
 import { useDebounce } from "@/hooks/utils/useDebounce";
 import { createPageRange } from "@/lib/functions/_helpers.lib";
 import { Transcription } from "@/typescript/interface/transcription.interface";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FileText, Search, Trash2 } from "lucide-react";
 import moment from "moment";
 import { motion } from "motion/react";
@@ -38,7 +39,16 @@ const TranscriptionItem = ({
   page: number;
 }) => {
   const { userId } = useParams();
+  const queryClient = useQueryClient();
   const [isHovered, setIsHovered] = useState(false);
+
+  const prefetchOnMouseEnter = (id: string) => {
+    queryClient.prefetchQuery({
+      queryKey: ["transcriptions", id],
+      queryFn: () => getTranscription(id as string),
+      staleTime: 5 * 60 * 1000
+    });
+  };
 
   const { mutate, isPending } = useMutation({
     mutationFn: deleteTranscriptionByCoach,
@@ -50,7 +60,10 @@ const TranscriptionItem = ({
   return (
     <label
       key={transcription._id}
-      onMouseEnter={() => setIsHovered(true)}
+      onMouseEnter={() => {
+        setIsHovered(true);
+        prefetchOnMouseEnter(transcription._id);
+      }}
       onMouseLeave={() => setIsHovered(false)}
       className="overflow-hidden flex cursor-pointer items-center justify-between w-full rounded-lg hover:bg-gray-50 border-1 border-gray-50 px-4 py-2.5 transition-colors group"
     >
@@ -89,7 +102,7 @@ const TranscriptionItem = ({
       >
         <Tooltip>
           <TooltipTrigger asChild>
-            <Link href={`/transcripts/${transcription._id}`}>
+            <Link href={`/clients/${userId}/coach/${transcription._id}`}>
               <Button variant="ghost" className="px-2 hover:text-gray-700">
                 <FileText className="w-4 h-4" />
               </Button>

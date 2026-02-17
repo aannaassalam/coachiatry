@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/tooltip";
 import {
   deleteTask,
+  getTask,
   markSubtaskAsCompleted
 } from "@/external-api/functions/task.api";
 import assets from "@/json/assets";
@@ -248,6 +249,14 @@ function TasksTable({
 
   const validatedFilters = sanitizeFilters(values);
 
+  const prefetchOnMouseEnter = (id: string) => {
+    queryClient.prefetchQuery({
+      queryKey: ["task", id],
+      queryFn: () => getTask(id),
+      staleTime: 5 * 60 * 1000
+    });
+  };
+
   const { mutate, isPending } = useMutation({
     mutationFn: deleteTask,
     onMutate: async (id) => {
@@ -322,6 +331,7 @@ function TasksTable({
                         setSelectedTask(task._id);
                         setIsOpen(true);
                       }}
+                      onMouseEnter={() => prefetchOnMouseEnter(task._id)}
                     >
                       <TableCell
                         className={cn(

@@ -21,19 +21,21 @@ import {
   TableRow
 } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getAllCategories } from "@/external-api/functions/category.api";
 import {
   deleteDocument,
-  getAllDocuments
+  getAllDocuments,
+  getDocument
 } from "@/external-api/functions/document.api";
 import AppLayout from "@/layouts/AppLayout";
 import { Document } from "@/typescript/interface/document.interface";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Ellipsis, Trash } from "lucide-react";
 import moment from "moment";
 import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import { parseAsArrayOf, parseAsString, useQueryState } from "nuqs";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export const DocumentsTable = ({
   documents,
@@ -45,6 +47,15 @@ export const DocumentsTable = ({
   isLoading: boolean;
 }) => {
   const { data } = useSession();
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    queryClient.prefetchQuery({
+      queryKey: ["categories"],
+      queryFn: getAllCategories,
+      staleTime: 5 * 60 * 1000
+    });
+  }, [queryClient]);
 
   const { mutate, isPending } = useMutation({
     mutationFn: deleteDocument,
@@ -52,6 +63,14 @@ export const DocumentsTable = ({
       invalidateQueries: ["documents"]
     }
   });
+
+  const prefetchOnMouseEnter = (id: string) => {
+    queryClient.prefetchQuery({
+      queryKey: ["documents", id],
+      queryFn: () => getDocument(id),
+      staleTime: 5 * 60 * 1000
+    });
+  };
 
   return (
     <div className="mt-5 max-md:w-[95vw] max-md:overflow-auto scrollbar-hide max-[480px]:!w-[93vw]">
@@ -111,6 +130,7 @@ export const DocumentsTable = ({
                   <TableCell
                     className="font-medium text-sm leading-5 cursor-pointer pl-4"
                     onClick={() => setSelectedDocument(document)}
+                    onMouseEnter={() => prefetchOnMouseEnter(document._id)}
                   >
                     {document.title}
                   </TableCell>

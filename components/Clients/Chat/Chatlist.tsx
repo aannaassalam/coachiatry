@@ -1,8 +1,12 @@
 // import assets from "@/json/assets";
 import { SmartAvatar } from "@/components/ui/smart-avatar";
-import { getAllConversationsByCoach } from "@/external-api/functions/chat.api";
+import {
+  getAllConversationsByCoach,
+  getConversation
+} from "@/external-api/functions/chat.api";
+import { getMessages } from "@/external-api/functions/message.api";
 import { cn } from "@/lib/utils";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import moment from "moment";
 import { useParams } from "next/navigation";
 import { parseAsString, useQueryState } from "nuqs";
@@ -34,11 +38,26 @@ export default function ChatList() {
     parseAsString.withDefault("")
   );
   const { userId } = useParams();
+  const queryClient = useQueryClient();
 
   const { data: chats, isLoading } = useQuery({
     queryKey: ["conversations", userId],
     queryFn: () => getAllConversationsByCoach({ userId: userId as string })
   });
+
+  const prefetchChatRoom = (room: string) => {
+    queryClient.prefetchQuery({
+      queryKey: ["conversations", room],
+      queryFn: () => getConversation(room),
+      staleTime: 5 * 60 * 1000
+    });
+    queryClient.prefetchInfiniteQuery({
+      queryKey: ["messages", room],
+      queryFn: getMessages,
+      initialPageParam: 1,
+      staleTime: 5 * 60 * 1000
+    });
+  };
 
   return (
     <div className="w-xs mr-auto bg-white pt-4 rounded-lg flex flex-col min-h-0 max-md:w-full">
@@ -107,6 +126,7 @@ export default function ChatList() {
                 key={_chat._id}
                 className="flex cursor-pointer items-start justify-between gap-2 py-2.5 px-3 rounded-[8px] hover:bg-gray-100 transition"
                 onClick={() => setSelectedChat(_chat._id!)}
+                onMouseEnter={() => prefetchChatRoom(_chat._id!)}
               >
                 <SmartAvatar
                   src={details?.photo}

@@ -1,6 +1,7 @@
 import {
   deleteTask,
   getAllTasks,
+  getTask,
   moveToStatus
 } from "@/external-api/functions/task.api";
 import assets from "@/json/assets";
@@ -80,6 +81,14 @@ const TaskCard = ({
   onEdit: () => void;
   onDeleteLoading: boolean;
 }) => {
+  const prefetchOnMouseEnter = (id: string) => {
+    queryClient.prefetchQuery({
+      queryKey: ["task", id],
+      queryFn: () => getTask(id),
+      staleTime: 5 * 60 * 1000
+    });
+  };
+
   const { mutate, isPending } = useMutation({
     mutationFn: moveToStatus,
     onMutate: async ({ task_id, status }) => {
@@ -114,7 +123,10 @@ const TaskCard = ({
         }
       />
       <div className="flex flex-col gap-1 flex-1">
-        <p className="font-medium font-lato flex justify-between items-start">
+        <p
+          className="font-medium font-lato flex justify-between items-start"
+          onMouseEnter={() => prefetchOnMouseEnter(task._id)}
+        >
           {task.title}
           <Popover>
             <PopoverTrigger asChild>

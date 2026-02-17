@@ -155,7 +155,6 @@ export default function TextMessage({
                 : "https://coachiatry.s3.us-east-1.amazonaws.com/Logo+Mark+(1).png"
             }
             name={isDeletable ? sender?.fullName : "Coachiatry"}
-            key={sender?.updatedAt ?? "Coachiatry"}
             className="size-8"
           />
         )}

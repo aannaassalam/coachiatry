@@ -6,16 +6,23 @@ import Loader from "@/components/Loader";
 import { Button } from "@/components/ui/button";
 import { SmartAvatar } from "@/components/ui/smart-avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getAllCategoriesByCoach } from "@/external-api/functions/category.api";
+import { getAllConversationsByCoach } from "@/external-api/functions/chat.api";
+import { getAllDocumentsByCoach } from "@/external-api/functions/document.api";
+import { getAllStatusesByCoach } from "@/external-api/functions/status.api";
+import { getAllTasksByCoach } from "@/external-api/functions/task.api";
+import { getAllTranscriptionsByCoach } from "@/external-api/functions/transcriptions.api";
 import { getUserById } from "@/external-api/functions/user.api";
 import assets from "@/json/assets";
 import AppLayout from "@/layouts/AppLayout";
 import { User } from "@/typescript/interface/user.interface";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import moment from "moment";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { parseAsString, useQueryState } from "nuqs";
+import { useEffect } from "react";
 
 const ClientInfo = ({
   details
@@ -88,8 +95,10 @@ const ClientInfo = ({
     </div>
   );
 };
+
 function ClientDetails() {
   const { userId } = useParams();
+  const queryClient = useQueryClient();
   const [tab, setTab] = useQueryState(
     "tab",
     parseAsString.withDefault("transcriptions")
@@ -99,6 +108,66 @@ function ClientDetails() {
     queryKey: ["clientDetails", userId],
     queryFn: () => getUserById(userId as string)
   });
+
+  useEffect(() => {
+    queryClient.prefetchQuery({
+      queryKey: ["status", userId],
+      queryFn: () => getAllStatusesByCoach(userId as string),
+      staleTime: 5 * 60 * 1000
+    });
+    queryClient.prefetchQuery({
+      queryKey: ["categories", userId],
+      queryFn: () => getAllCategoriesByCoach(userId as string),
+      staleTime: 5 * 60 * 1000
+    });
+  }, [queryClient]);
+
+  const prefetchDocumentsOnMouseEnter = () => {
+    queryClient.prefetchQuery({
+      queryKey: ["documents", userId],
+      queryFn: () =>
+        getAllDocumentsByCoach({
+          sort: "latest",
+          tab: "all",
+          userId: userId as string
+        }),
+      staleTime: 5 * 60 * 1000
+    });
+  };
+
+  const prefetchTranscriptionsOnMouseEnter = () => {
+    queryClient.prefetchQuery({
+      queryKey: ["transcriptions", 1, userId, ""],
+      queryFn: () =>
+        getAllTranscriptionsByCoach({
+          page: 1,
+          userId: userId as string,
+          search: ""
+        }),
+      staleTime: 5 * 60 * 1000
+    });
+  };
+
+  const prefetchChatsOnMouseEnter = () => {
+    queryClient.prefetchQuery({
+      queryKey: ["conversations", userId],
+      queryFn: () => getAllConversationsByCoach({ userId: userId as string }),
+      staleTime: 5 * 60 * 1000
+    });
+  };
+
+  const prefetchTasksOnMouseEnter = () => {
+    queryClient.prefetchQuery({
+      queryKey: ["tasks", "", [], userId],
+      queryFn: () =>
+        getAllTasksByCoach({
+          sort: "",
+          filter: [],
+          userId: userId as string
+        }),
+      staleTime: 5 * 60 * 1000
+    });
+  };
 
   if (isLoading) return <Loader />;
 
@@ -128,24 +197,28 @@ function ClientDetails() {
           <TabsTrigger
             value="transcriptions"
             className="py-3.5 px-6 text-lg leading-5 data-[state=active]:bg-white cursor-pointer font-semibold text-gray-500 data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:border-0 rounded-none border-b-gray-300 data-[state=active]:border-b-2 data-[state=active]:border-primary"
+            onMouseEnter={prefetchTranscriptionsOnMouseEnter}
           >
             Transcriptions
           </TabsTrigger>
           <TabsTrigger
             value="documents"
             className="py-3.5 px-6 text-lg leading-5 data-[state=active]:bg-white cursor-pointer font-semibold text-gray-500 data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:border-0 rounded-none border-b-gray-300 data-[state=active]:border-b-2 data-[state=active]:border-primary"
+            onMouseEnter={prefetchDocumentsOnMouseEnter}
           >
             Documents
           </TabsTrigger>
           <TabsTrigger
             value="chat"
             className="py-3.5 px-6 text-lg leading-5 data-[state=active]:bg-white cursor-pointer font-semibold text-gray-500 data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:border-0 rounded-none border-b-gray-300 data-[state=active]:border-b-2 data-[state=active]:border-primary"
+            onMouseEnter={prefetchChatsOnMouseEnter}
           >
             Chat
           </TabsTrigger>
           <TabsTrigger
             value="task"
             className="py-3.5 px-6 text-lg leading-5 data-[state=active]:bg-white cursor-pointer font-semibold text-gray-500 data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:border-0 rounded-none border-b-gray-300 data-[state=active]:border-b-2 data-[state=active]:border-primary"
+            onMouseEnter={prefetchTasksOnMouseEnter}
           >
             Task
           </TabsTrigger>
