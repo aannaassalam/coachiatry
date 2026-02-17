@@ -67,11 +67,11 @@ export default function Login() {
 
   const onGoogleLogin = async () => {
     setIsLoading(true);
-    const result = await signIn("google", { redirect: false });
+    const result = await signIn("google", {
+      callbackUrl: local_callback || "/"
+    });
     if (result?.error) {
-      toast.error(result?.error);
-    } else {
-      router.push(local_callback || "/");
+      toast.error(result.error);
     }
     setIsLoading(false);
   };

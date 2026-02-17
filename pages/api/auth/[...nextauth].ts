@@ -89,9 +89,12 @@ export const authOptions: AuthOptions = {
 
       if (account?.provider === "google") {
         const googleIdToken = account.id_token;
+        if (!googleIdToken) {
+          throw new Error("Google id_token missing from provider response");
+        }
 
         try {
-          const res = await googleAuth(googleIdToken!);
+          const res = await googleAuth(googleIdToken);
 
           token.user = res.data.user;
           token.token = res.data.token; // Your app's JWT
@@ -99,6 +102,7 @@ export const authOptions: AuthOptions = {
           token.frontendExpired = false;
         } catch (err) {
           console.error("Google auth backend failed:", err);
+          throw new Error("Google authentication failed");
         }
       } else if (user?.token) {
         const { token: appToken, ...rest } = user as User & {
@@ -117,7 +121,10 @@ export const authOptions: AuthOptions = {
     },
     async session({ session, token }) {
       if (token.frontendExpired || !token.token) {
-        return null as any;
+        session.user = undefined;
+        session.token = undefined;
+        session.frontendExpiresAt = token.frontendExpiresAt;
+        return session;
       }
       session.token = token.token as string;
       session.user = token.user as User;
