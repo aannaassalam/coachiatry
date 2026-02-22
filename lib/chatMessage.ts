@@ -26,7 +26,7 @@ export const getStableMessageKey = (
   // Deterministic fallback to avoid random re-keys.
   const fallback = msg.createdAt
     ? `${msg.createdAt}-${msg.content ?? ""}`.slice(0, 64)
-    : msg.content ?? "unknown";
+    : (msg.content ?? "unknown");
 
   const stable = primary ?? fallback;
   mapRef.current.set(stable, stable);

@@ -3,8 +3,14 @@ import { useMemo, useCallback } from "react";
 import moment from "moment";
 import { getMessages } from "@/external-api/functions/message.api";
 import { ChatConversation as Conversation } from "@/typescript/interface/chat.interface";
-import { Message, MessageStatus } from "@/typescript/interface/message.interface";
-import { InfiniteData, PaginatedResponse } from "@/typescript/interface/common.interface";
+import {
+  Message,
+  MessageStatus
+} from "@/typescript/interface/message.interface";
+import {
+  InfiniteData,
+  PaginatedResponse
+} from "@/typescript/interface/common.interface";
 
 export const useChatMessages = (room: string) => {
   const queryClient = useQueryClient();
@@ -59,7 +65,9 @@ export const useChatMessages = (room: string) => {
         }
 
         const newPages = old.pages.map((page: any, idx: number) =>
-          idx === 0 ? { ...page, data: [optimisticMessage, ...page.data] } : page
+          idx === 0
+            ? { ...page, data: [optimisticMessage, ...page.data] }
+            : page
         );
 
         return { ...old, pages: newPages };
@@ -107,7 +115,10 @@ export const useChatMessages = (room: string) => {
 
             if (tempIdx > -1) {
               const newData = [...page.data];
-              newData[tempIdx] = { ...msg, status: "sent" as MessageStatus } as Message;
+              newData[tempIdx] = {
+                ...msg,
+                status: "sent" as MessageStatus
+              } as Message;
               return { ...page, data: newData };
             }
             return page;
@@ -134,7 +145,10 @@ export const useChatMessages = (room: string) => {
 
           return {
             ...page,
-            data: [{ ...(msg as Message), status: "sent" as MessageStatus }, ...page.data]
+            data: [
+              { ...(msg as Message), status: "sent" as MessageStatus },
+              ...page.data
+            ]
           };
         });
 
@@ -215,7 +229,10 @@ export const useChatMessages = (room: string) => {
             unreadCount: 0
           } as Conversation;
 
-          const newList = [updatedConv, ...existing.filter((_, i) => i !== idx)];
+          const newList = [
+            updatedConv,
+            ...existing.filter((_, i) => i !== idx)
+          ];
 
           const getSortTime = (chat: Conversation) =>
             moment(chat.lastMessage?.createdAt ?? chat.createdAt).valueOf();

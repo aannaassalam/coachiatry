@@ -20,7 +20,7 @@ import { Reply } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { parseAsString, useQueryState } from "nuqs";
-import React from "react";
+import React, { useCallback } from "react";
 import EmojiPicker from "../EmojiPicker";
 
 type TextMessageProps = {
@@ -42,12 +42,37 @@ export default function TextMessage({
 }: TextMessageProps) {
   const { data } = useSession();
   const socket = useSocket();
-  const isUser = isDeletable
-    ? sender?._id === data?.user?._id || sender === data?.user?._id
-    : false;
+  const isUser =
+    isDeletable &&
+    (sender?._id === data?.user?._id || sender === data?.user?._id);
   const reactions = message.reactions ?? [];
 
   const [room] = useQueryState("room", parseAsString.withDefault(""));
+
+  const optimisticUpdate = useCallback(
+    (
+      updater: (reactions: MessageReaction[] | undefined) => MessageReaction[]
+    ) => {
+      queryClient.setQueryData<InfiniteData<PaginatedResponse<Message[]>>>(
+        ["messages", room],
+        (old) => {
+          if (!old) return old;
+
+          const updatedPages = old.pages.map((page) => ({
+            ...page,
+            data: page.data.map((m) =>
+              m._id !== message._id
+                ? m
+                : { ...m, reactions: updater(m.reactions) }
+            )
+          }));
+
+          return { ...old, pages: updatedPages };
+        }
+      );
+    },
+    [room, message._id]
+  );
 
   const handleReaction = (emoji: string) => {
     socket?.emit("add_reaction", {
@@ -56,53 +81,25 @@ export default function TextMessage({
       emoji
     });
 
-    // ✅ Optimistic update for infinite query
-    queryClient.setQueryData<InfiniteData<PaginatedResponse<Message[]>>>(
-      ["messages", room],
-      (old) => {
-        if (!old) return old;
+    optimisticUpdate((prev) => {
+      const hasSame = prev?.some(
+        (r) => r.user === data?.user?._id && r.emoji === emoji
+      );
 
-        const updatedPages = old.pages.map((page) => {
-          return {
-            ...page,
-            data: page.data.map((m) => {
-              if (m._id !== message._id) return m;
-
-              const hasSame = m.reactions?.some(
-                (r: MessageReaction) =>
-                  r.user === data?.user?._id && r.emoji === emoji
-              );
-
-              let newReactions: MessageReaction[];
-
-              if (hasSame) {
-                // toggle off
-                newReactions =
-                  m.reactions?.filter(
-                    (r: MessageReaction) =>
-                      !(r.user === data?.user?._id && r.emoji === emoji)
-                  ) ?? [];
-              } else {
-                // replace old reaction if exists
-                newReactions =
-                  m.reactions?.filter(
-                    (r: MessageReaction) => r.user !== data?.user?._id
-                  ) ?? [];
-                newReactions.push({
-                  user: data?.user?._id,
-                  emoji,
-                  reactedAt: new Date().toISOString()
-                });
-              }
-
-              return { ...m, reactions: newReactions };
-            })
-          };
-        });
-
-        return { ...old, pages: updatedPages };
+      if (hasSame) {
+        return (
+          prev?.filter(
+            (r) => !(r.user === data?.user?._id && r.emoji === emoji)
+          ) ?? []
+        );
       }
-    );
+
+      const filtered = prev?.filter((r) => r.user !== data?.user?._id) ?? [];
+      return [
+        ...filtered,
+        { user: data?.user?._id, emoji, reactedAt: new Date().toISOString() }
+      ];
+    });
   };
 
   const handleRemoveReaction = () => {
@@ -111,31 +108,8 @@ export default function TextMessage({
       userId: data?.user?._id
     });
 
-    // ✅ Optimistic update for infinite query
-    queryClient.setQueryData<InfiniteData<PaginatedResponse<Message[]>>>(
-      ["messages", room],
-      (old) => {
-        if (!old) return old;
-
-        const updatedPages = old.pages.map((page) => {
-          return {
-            ...page,
-            data: page.data.map((m) => {
-              if (m._id !== message._id) return m;
-
-              // remove all reactions from this user
-              const newReactions =
-                m.reactions?.filter(
-                  (r: MessageReaction) => r.user !== data?.user?._id
-                ) ?? [];
-
-              return { ...m, reactions: newReactions };
-            })
-          };
-        });
-
-        return { ...old, pages: updatedPages };
-      }
+    optimisticUpdate(
+      (prev) => prev?.filter((r) => r.user !== data?.user?._id) ?? []
     );
   };
 

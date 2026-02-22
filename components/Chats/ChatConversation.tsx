@@ -2,24 +2,27 @@
 
 "use client";
 
-import { parseAsString, useQueryState } from "nuqs";
-import { useEffect, useRef, useState } from "react";
-import { useSession } from "next-auth/react";
-import { useSocket } from "@/lib/socketContext";
-import { cn } from "@/lib/utils";
-import { Message, MessageStatus } from "@/typescript/interface/message.interface";
-import ChatInput from "./ChatInput";
-import ChatUploadWithPreview from "./ChatUpload";
-import { ChatHeader } from "./ChatHeader";
-import { MessageList } from "./MessageList";
-import { TypingIndicator } from "./TypingIndicator";
-import { ScrollToBottomButton } from "./ScrollToBottomButton";
 import { useChatMessages } from "@/hooks/useChatMessages";
-import { useConversationDetails } from "@/hooks/useConversationDetails";
 import { useChatScroll } from "@/hooks/useChatScroll";
 import { useChatSocket } from "@/hooks/useChatSocket";
 import { useChatUploadManager } from "@/hooks/useChatUploadManager";
+import { useConversationDetails } from "@/hooks/useConversationDetails";
 import { getStableMessageKey } from "@/lib/chatMessage";
+import { useSocket } from "@/lib/socketContext";
+import { cn } from "@/lib/utils";
+import {
+  Message,
+  MessageStatus
+} from "@/typescript/interface/message.interface";
+import { useSession } from "next-auth/react";
+import { parseAsString, useQueryState } from "nuqs";
+import { useEffect, useRef, useState } from "react";
+import { ChatHeader } from "./ChatHeader";
+import ChatInput from "./ChatInput";
+import ChatUploadWithPreview from "./ChatUpload";
+import { MessageList } from "./MessageList";
+import { ScrollToBottomButton } from "./ScrollToBottomButton";
+import { TypingIndicator } from "./TypingIndicator";
 
 export default function ChatConversation() {
   const { data } = useSession();
@@ -115,7 +118,14 @@ export default function ChatConversation() {
 
     observer.observe(topRef.current);
     return () => observer.disconnect();
-  }, [fetchNextPage, hasNextPage, room, allMessages.length]);
+  }, [
+    fetchNextPage,
+    hasNextPage,
+    room,
+    allMessages.length,
+    containerRef,
+    topRef
+  ]);
 
   useEffect(() => {
     if (containerRef.current) {
@@ -231,19 +241,24 @@ export default function ChatConversation() {
         friendStatus={friendStatus}
         onBack={() => setSelectedChat("")}
         canManageGroup={
-          conversation?.members.find((_mem) => _mem.user._id === data?.user?._id)
-            ?.role === "owner"
+          conversation?.members.find(
+            (_mem) => _mem.user._id === data?.user?._id
+          )?.role === "owner"
         }
       />
 
       <div
         ref={containerRef}
-        className={cn("flex-1 min-h-0 overflow-y-auto p-4 bg-gray-50 relative", {
-          "p-0": chatDragShow
-        })}
+        className={cn(
+          "flex-1 min-h-0 overflow-y-auto p-4 bg-gray-50 relative",
+          {
+            "p-0": chatDragShow
+          }
+        )}
         onScroll={() => {
           if (!containerRef.current) return;
-          const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
+          const { scrollTop, scrollHeight, clientHeight } =
+            containerRef.current;
           setIsAtBottom(scrollHeight - scrollTop - clientHeight < 50);
         }}
         onDragOver={(e) => {

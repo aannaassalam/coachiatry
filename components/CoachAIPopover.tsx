@@ -6,10 +6,14 @@ import {
 } from "@/external-api/functions/document.api";
 import { importBulkTasks } from "@/external-api/functions/task.api";
 import { cn } from "@/lib/utils";
+import { PopoverClose } from "@radix-ui/react-popover";
 import { useMutation } from "@tanstack/react-query";
+import { X } from "lucide-react";
+import moment from "moment";
 import { useSession } from "next-auth/react";
+import { useParams } from "next/navigation";
 import { useRouter } from "next/router";
-import { useEffect, useRef, useState } from "react";
+import { JSX, useEffect, useMemo, useRef, useState } from "react";
 import { FaFire } from "react-icons/fa6";
 import { HiLightningBolt } from "react-icons/hi";
 import { IoArrowUp } from "react-icons/io5";
@@ -18,10 +22,6 @@ import { RiDvdAiFill } from "./RiDvdAiFill";
 import { Button } from "./ui/button";
 import { Checkbox } from "./ui/checkbox";
 import { SmartAvatar } from "./ui/smart-avatar";
-import moment from "moment";
-import { useParams } from "next/navigation";
-import { PopoverClose } from "@radix-ui/react-popover";
-import { X } from "lucide-react";
 
 type DocumentInfo = {
   isDocumentRendered: boolean;
@@ -338,7 +338,6 @@ export default function CoachAI({
     isTaskAdded: false,
     selectedTasks: []
   });
-  const route = useRouter();
 
   const resize = () => {
     const el = textareaRef.current;
@@ -404,15 +403,42 @@ export default function CoachAI({
     }
   };
 
+  const suggestedActions = useMemo<
+    {
+      label: string;
+      icon: JSX.Element;
+      action: "create_tasks" | "create_document" | "summarize";
+    }[]
+  >(
+    () => [
+      {
+        label: "Generate a Task",
+        icon: <LuFileText className="size-5 text-[#777878]" />,
+        action: "create_tasks" as const
+      },
+      {
+        label: "Create a doc",
+        icon: <HiLightningBolt className="size-5 text-[#777878]" />,
+        action: "create_document" as const
+      },
+      {
+        label: "Summarize",
+        icon: <FaFire className="size-5 text-[#777878]" />,
+        action: "summarize" as const
+      }
+    ],
+    []
+  );
+
   return (
     <div
       className={cn(
-        "flex flex-col w-[400px] h-[600px] mx-auto rounded-2xl shadow-lg border border-gray-200 bg-white overflow-hidden max-[480px]:w-[95vw]",
-        {
-          "w-[450px] h-[650px] max-sm:h-[96vh] max-sm:w-[96vw]":
-            size === "large",
-          "max-md:relative max-md:left-[-70%]": route.pathname.includes("chat")
-        }
+        "flex flex-col mx-auto rounded-2xl shadow-lg border border-gray-200 bg-white overflow-hidden",
+        "w-full h-[72vh] max-h-[640px] max-w-[520px]",
+        "sm:w-[420px] sm:h-[600px] sm:max-h-[640px]",
+        "md:w-[460px] md:h-[640px]",
+        "max-sm:w-[94vw] max-sm:h-[85vh] max-sm:max-w-[94vw]",
+        size === "large" && "max-w-[560px] h-[78vh] max-sm:w-[96vw]"
       )}
     >
       {/* Header */}
@@ -430,7 +456,7 @@ export default function CoachAI({
       </div>
 
       {/* Body */}
-      <div className="flex-1 flex flex-col pt-6 p-5 overflow-y-auto">
+      <div className="flex-1 flex flex-col pt-6 p-5 overflow-y-auto max-h-[calc(100%-160px)] max-md:max-h-[calc(100%-140px)] max-sm:max-h-[calc(100%-130px)]">
         <div className="flex items-start gap-2 mb-6">
           <RiDvdAiFill className="size-6 text-black mt-0.5" />
           <div className="flex-1">
@@ -445,50 +471,23 @@ export default function CoachAI({
                   Suggested
                 </p>
                 <div className="flex flex-col gap-2">
-                  <button
-                    className="flex items-center gap-2 px-3 py-2 rounded-md border border-gray-300 hover:bg-gray-100 transition text-gray-700 text-sm font-medium"
-                    onClick={() =>
-                      mutate({
-                        action: "create_tasks",
-                        id,
-                        session_id: session,
-                        page,
-                        user: userId as string
-                      })
-                    }
-                  >
-                    <LuFileText className="size-5 text-[#777878]" /> Generate a
-                    Task
-                  </button>
-                  <button
-                    className="flex items-center gap-2 px-3 py-2 rounded-md border border-gray-300 hover:bg-gray-100 transition text-gray-700 text-sm font-medium"
-                    onClick={() =>
-                      mutate({
-                        action: "create_document",
-                        id,
-                        session_id: session,
-                        page,
-                        user: userId as string
-                      })
-                    }
-                  >
-                    <HiLightningBolt className="size-5 text-[#777878]" /> Create
-                    a doc
-                  </button>
-                  <button
-                    className="flex items-center gap-2 px-3 py-2 rounded-md border border-gray-300 hover:bg-gray-100 transition text-gray-700 text-sm font-medium"
-                    onClick={() =>
-                      mutate({
-                        action: "summarize",
-                        id,
-                        session_id: session,
-                        page,
-                        user: userId as string
-                      })
-                    }
-                  >
-                    <FaFire className="size-5 text-[#777878]" /> Summarize
-                  </button>
+                  {suggestedActions.map((item) => (
+                    <button
+                      key={item.action}
+                      className="flex items-center gap-2 px-3 py-2 rounded-md border border-gray-300 hover:bg-gray-100 transition text-gray-700 text-sm font-medium"
+                      onClick={() =>
+                        mutate({
+                          action: item.action,
+                          id,
+                          session_id: session,
+                          page,
+                          user: userId as string
+                        })
+                      }
+                    >
+                      {item.icon} {item.label}
+                    </button>
+                  ))}
                 </div>
               </>
             )}

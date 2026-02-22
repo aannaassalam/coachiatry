@@ -6,7 +6,10 @@ import { ChatConversation as Conversation } from "@/typescript/interface/chat.in
 
 export type SocketHandlers = {
   onNewMessage: (msg: Message) => void;
-  onReactionUpdate: (messageId: string, reactions: Message["reactions"]) => void;
+  onReactionUpdate: (
+    messageId: string,
+    reactions: Message["reactions"]
+  ) => void;
   onSeenBulk: (payload: { chatId: string; userId: string }) => void;
 };
 
@@ -17,16 +20,29 @@ type Props = {
   handlers: SocketHandlers;
 };
 
-export const useChatSocket = ({ room, conversation, friendId, handlers }: Props) => {
+export const useChatSocket = ({
+  room,
+  conversation,
+  friendId,
+  handlers
+}: Props) => {
   const socket = useSocket();
   const { data } = useSession();
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
-  const [friendStatus, setFriendStatus] = useState<"online" | "offline">("offline");
+  const [friendStatus, setFriendStatus] = useState<"online" | "offline">(
+    "offline"
+  );
 
   // presence (direct chats only)
   useEffect(() => {
     if (!socket || conversation?.type === "group") return;
-    const handleStatusUpdate = ({ userId, status }: { userId: string; status: "online" | "offline" }) => {
+    const handleStatusUpdate = ({
+      userId,
+      status
+    }: {
+      userId: string;
+      status: "online" | "offline";
+    }) => {
       if (userId === friendId) setFriendStatus(status);
     };
 
@@ -53,7 +69,13 @@ export const useChatSocket = ({ room, conversation, friendId, handlers }: Props)
       handlers.onNewMessage(msg);
     };
 
-    const handleReaction = ({ messageId, reactions }: { messageId: string; reactions: Message["reactions"] }) => {
+    const handleReaction = ({
+      messageId,
+      reactions
+    }: {
+      messageId: string;
+      reactions: Message["reactions"];
+    }) => {
       handlers.onReactionUpdate(messageId, reactions);
     };
 
@@ -67,7 +89,13 @@ export const useChatSocket = ({ room, conversation, friendId, handlers }: Props)
       setTypingUsers((prev) => prev.filter((id) => id !== userId));
     };
 
-    const handleSeenBulk = ({ chatId, userId }: { chatId: string; userId: string }) => {
+    const handleSeenBulk = ({
+      chatId,
+      userId
+    }: {
+      chatId: string;
+      userId: string;
+    }) => {
       if (chatId !== room) return;
       handlers.onSeenBulk({ chatId, userId });
     };

@@ -11,17 +11,14 @@ import { useSocket } from "@/lib/socketContext";
 import { cn } from "@/lib/utils";
 import { queryClient } from "@/pages/_app";
 import { PaginatedResponse } from "@/typescript/interface/common.interface";
-import {
-  Message,
-  MessageReaction
-} from "@/typescript/interface/message.interface";
+import { Message, MessageReaction } from "@/typescript/interface/message.interface";
 import { User } from "@/typescript/interface/user.interface";
 import { InfiniteData } from "@tanstack/react-query";
 import { Play, Reply } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { parseAsString, useQueryState } from "nuqs";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import EmojiPicker from "../EmojiPicker";
 import UploadProgressOverlay from "../UploadProgress";
 import ImageSlider from "../ImageSlider";
@@ -50,6 +47,27 @@ export default function VideoMessage({
 
   const [room] = useQueryState("room", parseAsString.withDefault(""));
 
+  const optimisticUpdate = useCallback(
+    (updater: (prev: MessageReaction[] | undefined) => MessageReaction[]) => {
+      queryClient.setQueryData<InfiniteData<PaginatedResponse<Message[]>>>(
+        ["messages", room],
+        (old) => {
+          if (!old) return old;
+          const updatedPages = old.pages.map((page) => ({
+            ...page,
+            data: page.data.map((m) =>
+              m._id !== message._id
+                ? m
+                : { ...m, reactions: updater(m.reactions) }
+            )
+          }));
+          return { ...old, pages: updatedPages };
+        }
+      );
+    },
+    [room, message._id]
+  );
+
   const handleReaction = (emoji: string) => {
     socket?.emit("add_reaction", {
       messageId: message._id,
@@ -57,53 +75,23 @@ export default function VideoMessage({
       emoji
     });
 
-    // ✅ Optimistic update for infinite query
-    queryClient.setQueryData<InfiniteData<PaginatedResponse<Message[]>>>(
-      ["messages", room],
-      (old) => {
-        if (!old) return old;
-
-        const updatedPages = old.pages.map((page) => {
-          return {
-            ...page,
-            data: page.data.map((m) => {
-              if (m._id !== message._id) return m;
-
-              const hasSame = m.reactions?.some(
-                (r: MessageReaction) =>
-                  r.user === data?.user?._id && r.emoji === emoji
-              );
-
-              let newReactions: MessageReaction[];
-
-              if (hasSame) {
-                // toggle off
-                newReactions =
-                  m.reactions?.filter(
-                    (r: MessageReaction) =>
-                      !(r.user === data?.user?._id && r.emoji === emoji)
-                  ) ?? [];
-              } else {
-                // replace old reaction if exists
-                newReactions =
-                  m.reactions?.filter(
-                    (r: MessageReaction) => r.user !== data?.user?._id
-                  ) ?? [];
-                newReactions.push({
-                  user: data?.user?._id,
-                  emoji,
-                  reactedAt: new Date().toISOString()
-                });
-              }
-
-              return { ...m, reactions: newReactions };
-            })
-          };
-        });
-
-        return { ...old, pages: updatedPages };
+    optimisticUpdate((prev) => {
+      const hasSame = prev?.some(
+        (r) => r.user === data?.user?._id && r.emoji === emoji
+      );
+      if (hasSame) {
+        return (
+          prev?.filter(
+            (r) => !(r.user === data?.user?._id && r.emoji === emoji)
+          ) ?? []
+        );
       }
-    );
+      const filtered = prev?.filter((r) => r.user !== data?.user?._id) ?? [];
+      return [
+        ...filtered,
+        { user: data?.user?._id, emoji, reactedAt: new Date().toISOString() }
+      ];
+    });
   };
 
   const handleRemoveReaction = () => {
@@ -112,31 +100,8 @@ export default function VideoMessage({
       userId: data?.user?._id
     });
 
-    // ✅ Optimistic update for infinite query
-    queryClient.setQueryData<InfiniteData<PaginatedResponse<Message[]>>>(
-      ["messages", room],
-      (old) => {
-        if (!old) return old;
-
-        const updatedPages = old.pages.map((page) => {
-          return {
-            ...page,
-            data: page.data.map((m) => {
-              if (m._id !== message._id) return m;
-
-              // remove all reactions from this user
-              const newReactions =
-                m.reactions?.filter(
-                  (r: MessageReaction) => r.user !== data?.user?._id
-                ) ?? [];
-
-              return { ...m, reactions: newReactions };
-            })
-          };
-        });
-
-        return { ...old, pages: updatedPages };
-      }
+    optimisticUpdate(
+      (prev) => prev?.filter((r) => r.user !== data?.user?._id) ?? []
     );
   };
 

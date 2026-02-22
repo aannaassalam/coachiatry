@@ -463,14 +463,16 @@ export default function DocumentSheet({
                           Coach AI
                         </button>
                       </PopoverTrigger>
-                      <PopoverContent
-                        className="border-none shadow-none bg-transparent"
-                        side="top"
-                        align="end"
-                      >
-                        <CoachAI id={documentId} page="document" />
-                      </PopoverContent>
-                    </Popover>
+                    <PopoverContent
+                      className="border-none shadow-none bg-transparent px-0 sm:px-2 w-[90vw] max-w-[520px]"
+                      side="top"
+                      align="center"
+                      collisionPadding={16}
+                      sideOffset={8}
+                    >
+                      <CoachAI id={documentId} page="document" />
+                    </PopoverContent>
+                  </Popover>
                   </>
                 )}
               {isEditing ? (

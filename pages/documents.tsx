@@ -39,11 +39,11 @@ import { useEffect, useState } from "react";
 
 export const DocumentsTable = ({
   documents,
-  setSelectedDocument,
+  onSelectDocument,
   isLoading
 }: {
   documents: Document[];
-  setSelectedDocument: (doc: Document) => void;
+  onSelectDocument: (doc: Document) => void;
   isLoading: boolean;
 }) => {
   const { data } = useSession();
@@ -129,7 +129,7 @@ export const DocumentsTable = ({
                 <TableRow key={document._id}>
                   <TableCell
                     className="font-medium text-sm leading-5 cursor-pointer pl-4"
-                    onClick={() => setSelectedDocument(document)}
+                    onClick={() => onSelectDocument(document)}
                     onMouseEnter={() => prefetchOnMouseEnter(document._id)}
                   >
                     {document.title}
@@ -230,13 +230,24 @@ export default function Documents() {
     queryFn: () => getAllDocuments({ sort: sort.join(","), tab })
   });
 
+  // Open sheet if document is pre-selected via URL
+  useEffect(() => {
+    if (selectedDocument) {
+      setIsOpen(true);
+    }
+  }, [selectedDocument]);
+
   return (
     <AppLayout>
       <DocumentSheet
-        open={!!selectedDocument || isOpen}
-        onOpenChange={() => {
-          setSelectedDocument(null);
-          setIsOpen(false);
+        open={isOpen}
+        onOpenChange={(open) => {
+          setIsOpen(open);
+          if (!open) {
+            setTimeout(() => {
+              setSelectedDocument(null);
+            }, 350);
+          }
         }}
         documentId={selectedDocument}
       />
@@ -282,8 +293,9 @@ export default function Documents() {
             <div>
               <DocumentsTable
                 documents={data.data}
-                setSelectedDocument={(doc: Document) => {
+                onSelectDocument={(doc: Document) => {
                   setSelectedDocument(doc._id);
+                  setIsOpen(true);
                 }}
                 isLoading={isLoading || isFetching}
               />

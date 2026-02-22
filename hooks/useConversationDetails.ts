@@ -12,7 +12,9 @@ type UseConversationDetailsReturn = {
   isLoading: boolean;
 };
 
-export const useConversationDetails = (room: string): UseConversationDetailsReturn => {
+export const useConversationDetails = (
+  room: string
+): UseConversationDetailsReturn => {
   const { data: session } = useSession();
 
   const { data: conversation, isLoading } = useQuery({
@@ -26,8 +28,14 @@ export const useConversationDetails = (room: string): UseConversationDetailsRetu
   );
 
   const details: Details = {
-    photo: conversation?.type === "group" ? conversation.groupPhoto : friend?.user.photo,
-    name: conversation?.type === "group" ? conversation?.name : friend?.user.fullName
+    photo:
+      conversation?.type === "group"
+        ? conversation.groupPhoto
+        : friend?.user.photo,
+    name:
+      conversation?.type === "group"
+        ? conversation?.name
+        : friend?.user.fullName
   };
 
   return {

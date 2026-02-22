@@ -119,21 +119,14 @@ export function GlobalSearch() {
             </div>
           </PopoverTrigger>
           <PopoverContent
-            className="border-none shadow-none bg-transparent max-sm:hidden"
+            className="border-none shadow-none bg-transparent px-0 sm:px-2 w-[90vw] max-w-[520px]"
             side="bottom"
             align="center"
-            collisionPadding={180}
-          >
-            <CoachAI size="large" />
-          </PopoverContent>
-          {/* <PopoverContent
-            className="border-none shadow-none bg-transparent sm:hidden"
-            side="bottom"
-            align="center"
-            collisionPadding={40}
+            collisionPadding={12}
+            sideOffset={10}
           >
             <CoachAI size="small" />
-          </PopoverContent> */}
+          </PopoverContent>
         </Popover>
       </div>
 

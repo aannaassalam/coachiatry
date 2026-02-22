@@ -2,7 +2,6 @@ import { cn } from "@/lib/utils";
 import { Message } from "@/typescript/interface/message.interface";
 import { User } from "@/typescript/interface/user.interface";
 import { useSession } from "next-auth/react";
-import React from "react";
 import FileMessage from "./MessageContent/FileMessage";
 import ImageMessage from "./MessageContent/ImageMessge";
 import TextMessage from "./MessageContent/TextMessage";
@@ -26,60 +25,52 @@ export default function ChatMessage({
   isDeletable
 }: ChatMessageProps) {
   const { data } = useSession();
-  const isUser = isDeletable
-    ? sender?._id === data?.user?._id || sender === data?.user?._id
-    : false;
+  const isUser =
+    isDeletable &&
+    (sender?._id === data?.user?._id || sender === data?.user?._id);
   const reactions = message.reactions ?? [];
 
   const renderMessageContent = () => {
-    switch (message.type) {
-      case "text":
-        return (
-          <TextMessage
-            sender={sender}
-            setReplyingTo={setReplyingTo}
-            showAvatar={showAvatar}
-            message={message}
-            isGroup={isGroup}
-            isDeletable={isDeletable}
-          />
-        );
-      case "image":
-        return (
-          <ImageMessage
-            sender={sender}
-            setReplyingTo={setReplyingTo}
-            showAvatar={showAvatar}
-            message={message}
-            overallProgress={message.overallProgress}
-            isGroup={isGroup}
-          />
-        );
-      case "video":
-        return (
-          <VideoMessage
-            sender={sender}
-            setReplyingTo={setReplyingTo}
-            showAvatar={showAvatar}
-            message={message}
-            overallProgress={message.overallProgress}
-            isGroup={isGroup}
-          />
-        );
-      case "file":
-        return (
-          <FileMessage
-            sender={sender}
-            setReplyingTo={setReplyingTo}
-            showAvatar={showAvatar}
-            message={message}
-            overallProgress={message.overallProgress}
-            isGroup={isGroup}
-          />
-        );
-      default:
-        return null;
+    const sharedProps = {
+      sender,
+      setReplyingTo,
+      showAvatar,
+      message,
+      isGroup
+    };
+
+    if (message.type === "text") {
+      return <TextMessage {...sharedProps} isDeletable={isDeletable} />;
     }
+
+    if (message.type === "image") {
+      return (
+        <ImageMessage
+          {...sharedProps}
+          overallProgress={message.overallProgress}
+        />
+      );
+    }
+
+    if (message.type === "video") {
+      return (
+        <VideoMessage
+          {...sharedProps}
+          overallProgress={message.overallProgress}
+        />
+      );
+    }
+
+    if (message.type === "file") {
+      return (
+        <FileMessage
+          {...sharedProps}
+          overallProgress={message.overallProgress}
+        />
+      );
+    }
+
+    return null;
   };
 
   return (

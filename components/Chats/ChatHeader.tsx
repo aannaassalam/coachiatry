@@ -60,19 +60,21 @@ export const ChatHeader = ({
           </div>
         </div>
       )}
-      {conversation?.type === "group" && canManageGroup && conversation.isDeletable && (
-        <GroupModal
-          data={{
-            name: conversation.name,
-            members: conversation.members.map((_mem) => _mem.user._id),
-            groupPhoto: conversation.groupPhoto
-          }}
-        >
-          <Button variant="ghost" size="sm" className="hover:bg-secondary">
-            <Ellipsis className="text-gray-500" />
-          </Button>
-        </GroupModal>
-      )}
+      {conversation?.type === "group" &&
+        canManageGroup &&
+        conversation.isDeletable && (
+          <GroupModal
+            data={{
+              name: conversation.name,
+              members: conversation.members.map((_mem) => _mem.user._id),
+              groupPhoto: conversation.groupPhoto
+            }}
+          >
+            <Button variant="ghost" size="sm" className="hover:bg-secondary">
+              <Ellipsis className="text-gray-500" />
+            </Button>
+          </GroupModal>
+        )}
     </div>
   );
 };

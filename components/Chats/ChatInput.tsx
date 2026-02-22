@@ -202,10 +202,11 @@ const InputButtons = ({
           </Button>
         </PopoverTrigger>
         <PopoverContent
-          className="border-none shadow-none bg-transparent max-md:!translate-x-0"
+          className="border-none shadow-none bg-transparent w-[90vw] max-w-[520px] px-0 sm:px-2"
           side="bottom"
           align="center"
-          collisionPadding={180}
+          collisionPadding={16}
+          sideOffset={10}
         >
           <CoachAI size="small" id={room} page="chat" />
         </PopoverContent>

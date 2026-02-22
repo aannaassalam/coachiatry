@@ -9,7 +9,9 @@ export const getAllConversations = async (
 ): Promise<PaginatedResponse<ChatConversation[]>> => {
   const res = await axiosInstance.get(endpoints.chat.getConversations, {
     params: { ...filters, limit: 100 },
-    headers: options?.token ? { Authorization: `Bearer ${options.token}` } : undefined
+    headers: options?.token
+      ? { Authorization: `Bearer ${options.token}` }
+      : undefined
   });
   return res.data;
 };
