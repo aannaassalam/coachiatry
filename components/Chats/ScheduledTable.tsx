@@ -91,7 +91,7 @@ function ScheduledTable() {
             </>
           ) : !!data?.data.length ? (
             data.data.map((message, index) => {
-              const friend = message.chat.members.find(
+              const friend = message.chat?.members.find(
                 (_member) => _member?.user?._id !== message.sender?._id
               );
               return (
@@ -107,7 +107,7 @@ function ScheduledTable() {
                     {message.content}
                   </TableCell>
                   <TableCell className="font-medium py-4 text-gray-700 text-sm leading-6 max-w-[300px] whitespace-normal">
-                    {message.chat.type === "group"
+                    {message.chat?.type === "group"
                       ? message.chat.name
                       : friend?.user?.fullName}
                   </TableCell>

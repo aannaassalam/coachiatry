@@ -251,6 +251,12 @@ function TasksTable({
 
   const validatedFilters = sanitizeFilters(values);
 
+  useEffect(() => {
+    if (selectedTask) {
+      setIsOpen(true);
+    }
+  }, [selectedTask]);
+
   const prefetchOnMouseEnter = (id: string) => {
     queryClient.prefetchQuery({
       queryKey: ["task", id],

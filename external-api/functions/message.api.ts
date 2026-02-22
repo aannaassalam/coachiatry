@@ -48,14 +48,17 @@ export const editScheduleMessage = async (body: {
 };
 
 export const getScheduleMessages = async ({
-  page = 1
+  page = 1,
+  token
 }: {
   page: number;
+  token?: string;
 }): Promise<
   PaginatedResponse<(Omit<Message, "chat"> & { chat: ChatConversation })[]>
 > => {
   const res = await axiosInstance.get(endpoints.messages.getScheduleMessages, {
-    params: { page, limit: 10, populate: "chat.member.user" }
+    params: { page, limit: 10, populate: "chat.member.user" },
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined
   });
   return res.data;
 };

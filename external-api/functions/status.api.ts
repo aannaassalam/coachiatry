@@ -8,6 +8,13 @@ export const getAllStatuses = async (): Promise<Status[]> => {
   return res.data;
 };
 
+export const getAllStatusesWithToken = async (token?: string): Promise<Status[]> => {
+  const res = await axiosInstance.get(endpoints.status.getAll, {
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined
+  });
+  return res.data;
+};
+
 export const addStatus = async (body: {
   title: string;
   color: {

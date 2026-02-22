@@ -16,7 +16,7 @@ export default [
       },
       {
         icon: assets.icons.task,
-        title: "my task",
+        title: "my tasks",
         href: "/tasks"
       },
       {

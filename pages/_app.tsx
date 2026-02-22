@@ -2,6 +2,7 @@ import { checkWindow } from "@/lib/functions/_helpers.lib";
 import { archivo, lato } from "@/services/fonts";
 import "@/styles/globals.css";
 import {
+  HydrationBoundary,
   MutationCache,
   QueryClient,
   QueryClientProvider,
@@ -84,8 +85,10 @@ export default function CustomApp({ Component, pageProps }: AppProps) {
       >
         <NuqsAdapter>
           <QueryClientProvider client={queryClient}>
-            <Toaster richColors position="bottom-left" />
-            <Component {...pageProps} />
+            <HydrationBoundary state={pageProps.dehydratedState}>
+              <Toaster richColors position="bottom-left" />
+              <Component {...pageProps} />
+            </HydrationBoundary>
           </QueryClientProvider>
         </NuqsAdapter>
       </SessionProvider>

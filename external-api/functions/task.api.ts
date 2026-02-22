@@ -192,13 +192,15 @@ export const getAllSharedTasks = async ({
   sort,
   filter = [],
   startDate,
-  endDate
+  endDate,
+  token
 }: {
   shareId: string;
   sort?: string;
   filter?: Filter[];
   startDate?: string;
   endDate?: string;
+  token?: string;
 }): Promise<Task[]> => {
   const filterQuery = buildFilterQuery(filter);
 
@@ -209,7 +211,8 @@ export const getAllSharedTasks = async ({
       ...filterQuery,
       dueDate:
         startDate && endDate ? { gte: startDate, lte: endDate } : undefined
-    }
+    },
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined
   });
   return res.data;
 };

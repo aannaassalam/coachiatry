@@ -2,7 +2,6 @@ import ScheduledTable from "@/components/Chats/ScheduledTable";
 import { Separator } from "@/components/ui/separator";
 import AppLayout from "@/layouts/AppLayout";
 import Link from "next/link";
-import React from "react";
 
 function ScheduledMessages() {
   return (

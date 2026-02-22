@@ -51,7 +51,8 @@ export default function ChatList() {
 
   const { data: chats, isLoading } = useQuery({
     queryKey: ["conversations"],
-    queryFn: () => getAllConversations()
+    queryFn: () => getAllConversations(),
+    refetchOnMount: true
   });
 
   useEffect(() => {

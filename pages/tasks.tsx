@@ -65,6 +65,9 @@ function Tasks() {
     })
   );
 
+  const [isOpen, setIsOpen] = useState(false);
+  const validatedFilters = sanitizeFilters(values);
+
   useEffect(() => {
     queryClient.prefetchQuery({
       queryKey: ["categories"],
@@ -77,9 +80,6 @@ function Tasks() {
       staleTime: 5 * 60 * 1000
     });
   }, [queryClient]);
-
-  const [isOpen, setIsOpen] = useState(false);
-  const validatedFilters = sanitizeFilters(values);
 
   const goPrevWeek = () => {
     setDates((prev) => ({

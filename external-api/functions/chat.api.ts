@@ -4,10 +4,12 @@ import { endpoints } from "../endpoints";
 import { ChatConversation } from "@/typescript/interface/chat.interface";
 
 export const getAllConversations = async (
-  filters?: Record<string, any>
+  filters?: Record<string, any>,
+  options?: { token?: string }
 ): Promise<PaginatedResponse<ChatConversation[]>> => {
   const res = await axiosInstance.get(endpoints.chat.getConversations, {
-    params: { ...filters, limit: 100 }
+    params: { ...filters, limit: 100 },
+    headers: options?.token ? { Authorization: `Bearer ${options.token}` } : undefined
   });
   return res.data;
 };

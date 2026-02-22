@@ -120,7 +120,7 @@ function ClientDetails() {
       queryFn: () => getAllCategoriesByCoach(userId as string),
       staleTime: 5 * 60 * 1000
     });
-  }, [queryClient]);
+  }, [queryClient, userId]);
 
   const prefetchDocumentsOnMouseEnter = () => {
     queryClient.prefetchQuery({

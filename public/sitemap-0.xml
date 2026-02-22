@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
-<url><loc>https://google.com</loc><lastmod>2026-02-17T20:37:05.218Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
-<url><loc>https://google.com/auth/forgot-password</loc><lastmod>2026-02-17T20:37:05.218Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
-<url><loc>https://google.com/auth/login</loc><lastmod>2026-02-17T20:37:05.218Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
-<url><loc>https://google.com/auth/register</loc><lastmod>2026-02-17T20:37:05.218Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
-<url><loc>https://google.com/auth/verification</loc><lastmod>2026-02-17T20:37:05.218Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
-<url><loc>https://google.com/chat</loc><lastmod>2026-02-17T20:37:05.218Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
-<url><loc>https://google.com/chat/scheduled-messages</loc><lastmod>2026-02-17T20:37:05.218Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
-<url><loc>https://google.com/clients</loc><lastmod>2026-02-17T20:37:05.218Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
-<url><loc>https://google.com/documents</loc><lastmod>2026-02-17T20:37:05.218Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
-<url><loc>https://google.com/settings</loc><lastmod>2026-02-17T20:37:05.218Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
-<url><loc>https://google.com/tasks</loc><lastmod>2026-02-17T20:37:05.218Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
-<url><loc>https://google.com/transcripts</loc><lastmod>2026-02-17T20:37:05.218Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
-<url><loc>https://google.com/users</loc><lastmod>2026-02-17T20:37:05.218Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+<url><loc>https://google.com</loc><lastmod>2026-02-22T14:08:39.950Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+<url><loc>https://google.com/auth/forgot-password</loc><lastmod>2026-02-22T14:08:39.951Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+<url><loc>https://google.com/auth/login</loc><lastmod>2026-02-22T14:08:39.951Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+<url><loc>https://google.com/auth/register</loc><lastmod>2026-02-22T14:08:39.951Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+<url><loc>https://google.com/auth/verification</loc><lastmod>2026-02-22T14:08:39.951Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+<url><loc>https://google.com/chat</loc><lastmod>2026-02-22T14:08:39.951Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+<url><loc>https://google.com/chat/scheduled-messages</loc><lastmod>2026-02-22T14:08:39.951Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+<url><loc>https://google.com/clients</loc><lastmod>2026-02-22T14:08:39.951Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+<url><loc>https://google.com/documents</loc><lastmod>2026-02-22T14:08:39.951Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+<url><loc>https://google.com/settings</loc><lastmod>2026-02-22T14:08:39.951Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+<url><loc>https://google.com/tasks</loc><lastmod>2026-02-22T14:08:39.951Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+<url><loc>https://google.com/transcripts</loc><lastmod>2026-02-22T14:08:39.951Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+<url><loc>https://google.com/users</loc><lastmod>2026-02-22T14:08:39.951Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
 </urlset>
