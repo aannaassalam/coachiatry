@@ -1,5 +1,8 @@
 // import assets from "@/json/assets";
-import { getAllConversations, getConversation } from "@/external-api/functions/chat.api";
+import {
+  getAllConversations,
+  getConversation
+} from "@/external-api/functions/chat.api";
 import { getMessages } from "@/external-api/functions/message.api";
 import { useSocket } from "@/lib/socketContext";
 import { cn } from "@/lib/utils";
@@ -72,7 +75,8 @@ export default function ChatList() {
           if (idx === -1) return old;
 
           const current = existing[idx];
-          const isMyMessage = update.lastMessage?.sender?._id === data?.user?._id;
+          const isMyMessage =
+            update.lastMessage?.sender?._id === data?.user?._id;
           const isCurrentRoom = room === update.chatId;
 
           const updatedConv: ChatConversation = {
@@ -86,7 +90,10 @@ export default function ChatList() {
             updatedConv.unreadCount = (current.unreadCount || 0) + 1;
           }
 
-          const newList = [updatedConv, ...existing.filter((_, i) => i !== idx)];
+          const newList = [
+            updatedConv,
+            ...existing.filter((_, i) => i !== idx)
+          ];
 
           newList.sort(
             (a, b) =>
@@ -164,7 +171,10 @@ export default function ChatList() {
             const details =
               chat.type === "group"
                 ? { photo: chat.groupPhoto, name: chat.name }
-                : { photo: chatUser?.user.photo, name: chatUser?.user.fullName };
+                : {
+                    photo: chatUser?.user.photo,
+                    name: chatUser?.user.fullName
+                  };
 
             const renderLastMessage = () => {
               const last = chat.lastMessage;
@@ -195,7 +205,11 @@ export default function ChatList() {
                 onClick={() => setSelectedChat(chat._id!)}
                 onMouseEnter={() => chat?._id && prefetchChatRoom(chat._id)}
               >
-                <SmartAvatar src={details.photo} name={details.name} className="size-11" />
+                <SmartAvatar
+                  src={details.photo}
+                  name={details.name}
+                  className="size-11"
+                />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center">
                     <span

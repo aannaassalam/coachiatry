@@ -430,6 +430,21 @@ export default function CoachAI({
     []
   );
 
+  const chatWindows = useMemo(
+    () => ["last 2 days", "last 7 days", "last 2 weeks", "last month"],
+    []
+  );
+
+  const handleChatWindowSelect = (range: string) => {
+    mutate({
+      query: range,
+      id,
+      session_id: session,
+      page,
+      user: userId as string
+    });
+  };
+
   return (
     <div
       className={cn(
@@ -465,7 +480,7 @@ export default function CoachAI({
             </p>
 
             {/* Suggested actions */}
-            {chats.length === 0 && (
+            {chats.length === 0 && page !== "chat" && (
               <>
                 <p className="text-sm text-primary font-medium mb-2">
                   Suggested
@@ -486,6 +501,27 @@ export default function CoachAI({
                       }
                     >
                       {item.icon} {item.label}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {/* Chat windows for chat page */}
+            {page === "chat" && chats.length === 0 && (
+              <>
+                <p className="text-sm text-primary font-medium mb-2">
+                  Choose a chat window
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {chatWindows.map((range) => (
+                    <button
+                      key={range}
+                      className="px-3 py-2 rounded-md border border-gray-300 hover:bg-gray-100 transition text-gray-700 text-sm font-medium capitalize"
+                      onClick={() => handleChatWindowSelect(range)}
+                      disabled={isPending}
+                    >
+                      {range}
                     </button>
                   ))}
                 </div>
@@ -535,42 +571,59 @@ export default function CoachAI({
       </div>
 
       {/* Chat Input */}
-      <div className="border-t bg-white p-3 flex items-center gap-2">
-        <div
-          className={cn(
-            "w-full flex border border-gray-300 p-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500",
-            "rounded-3xl"
-          )}
-        >
-          <textarea
-            ref={textareaRef}
-            placeholder="Ask anything..."
-            className="flex-1 px-3 overflow-y-auto [scrollbar-gutter:stable] focus:outline-0 self-center resize-none"
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            rows={1}
-            style={{
-              height,
-              maxHeight,
-              overflowY: height === `${maxHeight}px` ? "auto" : "hidden"
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                handleSend();
-              }
-            }}
-            disabled={isPending}
-          />
-          <button
-            className="p-2 bg-[#F8F8F8] border border-[#DFDFDF] text-[#7E8986] rounded-full text-xl self-end"
-            onClick={handleSend}
-            disabled={isPending}
+      {page !== "chat" && (
+        <div className="border-t bg-white p-3 flex items-center gap-2">
+          <div
+            className={cn(
+              "w-full flex border border-gray-300 p-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500",
+              "rounded-3xl"
+            )}
           >
-            <IoArrowUp />
-          </button>
+            <textarea
+              ref={textareaRef}
+              placeholder="Ask anything..."
+              className="flex-1 px-3 overflow-y-auto [scrollbar-gutter:stable] focus:outline-0 self-center resize-none"
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+              rows={1}
+              style={{
+                height,
+                maxHeight,
+                overflowY: height === `${maxHeight}px` ? "auto" : "hidden"
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSend();
+                }
+              }}
+              disabled={isPending}
+            />
+            <button
+              className="p-2 bg-[#F8F8F8] border border-[#DFDFDF] text-[#7E8986] rounded-full text-xl self-end"
+              onClick={handleSend}
+              disabled={isPending}
+            >
+              <IoArrowUp />
+            </button>
+          </div>
         </div>
-      </div>
+      )}
+      {/* {page === "chat" && (
+        <div className="border-t bg-white p-3 flex flex-wrap gap-2">
+          {chatWindows.map((range) => (
+            <button
+              key={range}
+              className="flex-1 min-w-[120px] px-3 py-2 rounded-md border border-gray-300 hover:bg-gray-100 transition text-gray-700 text-sm font-medium"
+              onClick={() => handleChatWindowSelect(range)}
+              disabled={isPending}
+            >
+              {range}
+            </button>
+          ))}
+        </div>
+  )
+} */}
     </div>
   );
 }

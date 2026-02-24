@@ -11,7 +11,10 @@ import { useSocket } from "@/lib/socketContext";
 import { cn } from "@/lib/utils";
 import { queryClient } from "@/pages/_app";
 import { PaginatedResponse } from "@/typescript/interface/common.interface";
-import { Message, MessageReaction } from "@/typescript/interface/message.interface";
+import {
+  Message,
+  MessageReaction
+} from "@/typescript/interface/message.interface";
 import { User } from "@/typescript/interface/user.interface";
 import { InfiniteData } from "@tanstack/react-query";
 import { Reply } from "lucide-react";
