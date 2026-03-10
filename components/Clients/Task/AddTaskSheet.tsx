@@ -587,6 +587,9 @@ export default function AddTaskSheet({
                 </div>
               </form>
             </Form>
+            <p className="mt-auto text-sm text-gray-500 font-lato">
+              Created on: {moment(data?.createdAt).format("LLL")}
+            </p>
           </div>
         )}
         {!disabledAll && !isLoading && (
