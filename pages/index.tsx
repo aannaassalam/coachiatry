@@ -139,8 +139,7 @@ export default function Home() {
         queryKey: ["tasks"],
         queryFn: () =>
           getAllTasks({
-            startDate: moment().startOf("month").toISOString(),
-            endDate: moment().endOf("month").toISOString()
+            sort: "-createdAt"
           })
       },
       {
@@ -165,15 +164,10 @@ export default function Home() {
         <h1 className="text-2xl leading-7 tracking-[-3%] font-semibold text-gray-900 mb-2">
           👋 Hey, {data?.user?.fullName.split(" ").shift()}
         </h1>
-        <p className="flex items-center gap-2 text-sm leading-5 text-gray-800">
-          {moment().startOf("month").format("MMMM DD")} -{" "}
-          {moment().endOf("month").format("MMMM DD")}
-          {/* <Image
-            src={assets.icons.info}
-            alt="Info icon"
-            width={20}
-            height={20}
-          /> */}
+        <p className="flex items-center gap-2 text-sm leading-5 text-gray-500">
+          This is a preview of your dashboard where you can get a quick glance
+          at your tasks, messages, and documents. Click on any section to
+          explore more!
         </p>
       </div>
       <div className="grid grid-cols-2 grid-rows-2 gap-5 flex-1 max-md:grid-cols-1">

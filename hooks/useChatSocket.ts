@@ -55,12 +55,18 @@ export const useChatSocket = ({
   useEffect(() => {
     if (!socket || !room) return;
 
-    socket.emit("join_room", {
-      chatId: room,
-      userId: data?.user?._id,
-      friendId,
-      isGroup: conversation?.type === "group"
-    });
+    const joinRoom = () => {
+      socket.emit("join_room", {
+        chatId: room,
+        userId: data?.user?._id,
+        friendId,
+        isGroup: conversation?.type === "group"
+      });
+    };
+
+    // Join on mount and rejoin on reconnection (new server socket = lost rooms)
+    joinRoom();
+    socket.on("connect", joinRoom);
 
     socket.emit("mark_seen", { chatId: room, userId: data?.user?._id });
 
@@ -107,6 +113,7 @@ export const useChatSocket = ({
     socket.on("message_seen_update_bulk", handleSeenBulk);
 
     return () => {
+      socket.off("connect", joinRoom);
       socket.emit("leave_room", { chatId: room, userId: data?.user?._id });
       socket.off("new_message", handleNewMessage);
       socket.off("reaction_updated", handleReaction);

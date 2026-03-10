@@ -58,7 +58,7 @@ export default function ChatList() {
   });
 
   useEffect(() => {
-    if (!socket || socket.connected === false) return;
+    if (!socket) return;
 
     const handleConversationUpdated = (update: {
       chatId: string;
@@ -110,7 +110,7 @@ export default function ChatList() {
     return () => {
       socket.off("conversation_updated", handleConversationUpdated);
     };
-  }, [socket, socket?.connected, room, data?.user?._id]);
+  }, [socket, room, data?.user?._id]);
 
   const prefetchChatRoom = useCallback((chatId: string) => {
     if (!chatId) return;

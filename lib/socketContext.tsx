@@ -26,8 +26,9 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
         query: { userId: data.user._id },
         transports: ["websocket"],
         reconnection: true,
-        reconnectionAttempts: 5,
-        reconnectionDelay: 1000
+        reconnectionAttempts: Infinity,
+        reconnectionDelay: 1000,
+        reconnectionDelayMax: 10000
       });
 
       setSocket(s);
