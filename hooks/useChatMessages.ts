@@ -72,6 +72,33 @@ export const useChatMessages = (room: string) => {
 
         return { ...old, pages: newPages };
       });
+
+      // Optimistically update conversation list so it reflects the new message immediately
+      queryClient.setQueryData<PaginatedResponse<Conversation[]>>(
+        ["conversations"],
+        (old) => {
+          if (!old) return old;
+
+          const idx = old.data.findIndex((c) => c._id === room);
+          if (idx === -1) return old;
+
+          const updatedConv = {
+            ...old.data[idx],
+            lastMessage: optimisticMessage,
+            updatedAt: optimisticMessage.createdAt ?? new Date().toISOString()
+          } as Conversation;
+
+          const newData = [...old.data];
+          newData[idx] = updatedConv;
+
+          const getSortTime = (chat: Conversation) =>
+            moment(chat.lastMessage?.createdAt ?? chat.createdAt).valueOf();
+
+          newData.sort((a, b) => getSortTime(b) - getSortTime(a));
+
+          return { ...old, data: newData };
+        }
+      );
     },
     [queryClient, room]
   );
