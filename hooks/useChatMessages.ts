@@ -12,6 +12,26 @@ import {
   PaginatedResponse
 } from "@/typescript/interface/common.interface";
 
+type ConversationInfiniteData = InfiniteData<
+  PaginatedResponse<Conversation[]>
+>;
+
+const updateConversationPages = (
+  old: ConversationInfiniteData | undefined,
+  updater: (chats: Conversation[]) => Conversation[]
+): ConversationInfiniteData | undefined => {
+  if (!old?.pages?.length) return old;
+  const allChats = old.pages.flatMap((p) => p.data);
+  const updated = updater(allChats);
+  return {
+    ...old,
+    pages: [
+      { ...old.pages[0], data: updated },
+      ...old.pages.slice(1).map((p) => ({ ...p, data: [] as Conversation[] }))
+    ]
+  };
+};
+
 export const useChatMessages = (room: string) => {
   const queryClient = useQueryClient();
 
@@ -74,30 +94,31 @@ export const useChatMessages = (room: string) => {
       });
 
       // Optimistically update conversation list so it reflects the new message immediately
-      queryClient.setQueryData<PaginatedResponse<Conversation[]>>(
-        ["conversations"],
-        (old) => {
-          if (!old) return old;
+      queryClient.setQueriesData<ConversationInfiniteData>(
+        { queryKey: ["conversations"] },
+        (old) =>
+          updateConversationPages(old, (chats) => {
+            const idx = chats.findIndex((c) => c._id === room);
+            if (idx === -1) return chats;
 
-          const idx = old.data.findIndex((c) => c._id === room);
-          if (idx === -1) return old;
+            const updatedConv = {
+              ...chats[idx],
+              lastMessage: optimisticMessage,
+              updatedAt:
+                optimisticMessage.createdAt ?? new Date().toISOString()
+            } as Conversation;
 
-          const updatedConv = {
-            ...old.data[idx],
-            lastMessage: optimisticMessage,
-            updatedAt: optimisticMessage.createdAt ?? new Date().toISOString()
-          } as Conversation;
+            const newData = [...chats];
+            newData[idx] = updatedConv;
 
-          const newData = [...old.data];
-          newData[idx] = updatedConv;
+            const getSortTime = (chat: Conversation) =>
+              moment(
+                chat.lastMessage?.createdAt ?? chat.createdAt
+              ).valueOf();
 
-          const getSortTime = (chat: Conversation) =>
-            moment(chat.lastMessage?.createdAt ?? chat.createdAt).valueOf();
-
-          newData.sort((a, b) => getSortTime(b) - getSortTime(a));
-
-          return { ...old, data: newData };
-        }
+            newData.sort((a, b) => getSortTime(b) - getSortTime(a));
+            return newData;
+          })
       );
     },
     [queryClient, room]
@@ -183,38 +204,42 @@ export const useChatMessages = (room: string) => {
       });
 
       // Update conversation list preview
-      queryClient.setQueryData<PaginatedResponse<Conversation[]>>(
-        ["conversations"],
-        (old) => {
-          if (!old) return old;
+      queryClient.setQueriesData<ConversationInfiniteData>(
+        { queryKey: ["conversations"] },
+        (old) =>
+          updateConversationPages(old, (chats) => {
+            const idx = chats.findIndex((c) => c._id === msg.chat);
+            let newData: Conversation[];
 
-          const idx = old.data.findIndex((c) => c._id === msg.chat);
-          let newData: Conversation[];
+            if (idx > -1) {
+              const updatedConv = {
+                ...chats[idx],
+                lastMessage: msg,
+                updatedAt: msg.updatedAt ?? new Date().toISOString()
+              } as Conversation;
 
-          if (idx > -1) {
-            const updatedConv = {
-              ...old.data[idx],
-              lastMessage: msg,
-              updatedAt: msg.updatedAt ?? new Date().toISOString()
-            } as Conversation;
+              if (
+                msg.sender?._id !== currentUserId &&
+                msg.chat !== activeRoom
+              ) {
+                updatedConv.unreadCount =
+                  (updatedConv.unreadCount || 0) + 1;
+              }
 
-            if (msg.sender?._id !== currentUserId && msg.chat !== activeRoom) {
-              updatedConv.unreadCount = (updatedConv.unreadCount || 0) + 1;
+              newData = [...chats];
+              newData[idx] = updatedConv;
+            } else {
+              newData = [...chats];
             }
 
-            newData = [...old.data];
-            newData[idx] = updatedConv;
-          } else {
-            newData = [...old.data];
-          }
+            const getSortTime = (chat: Conversation) =>
+              moment(
+                chat.lastMessage?.createdAt ?? chat.createdAt
+              ).valueOf();
 
-          const getSortTime = (chat: Conversation) =>
-            moment(chat.lastMessage?.createdAt ?? chat.createdAt).valueOf();
-
-          newData.sort((a, b) => getSortTime(b) - getSortTime(a));
-
-          return { ...old, data: newData };
-        }
+            newData.sort((a, b) => getSortTime(b) - getSortTime(a));
+            return newData;
+          })
       );
     },
     [queryClient, room]
@@ -243,31 +268,31 @@ export const useChatMessages = (room: string) => {
     (chatId: string, userId: string, currentUserId?: string) => {
       if (userId !== currentUserId) return;
 
-      queryClient.setQueryData<PaginatedResponse<Conversation[]>>(
-        ["conversations"],
-        (old) => {
-          if (!old) return old;
-          const existing = [...old.data];
-          const idx = existing.findIndex((c) => c._id === chatId);
-          if (idx === -1) return old;
+      queryClient.setQueriesData<ConversationInfiniteData>(
+        { queryKey: ["conversations"] },
+        (old) =>
+          updateConversationPages(old, (chats) => {
+            const idx = chats.findIndex((c) => c._id === chatId);
+            if (idx === -1) return chats;
 
-          const updatedConv = {
-            ...existing[idx],
-            unreadCount: 0
-          } as Conversation;
+            const updatedConv = {
+              ...chats[idx],
+              unreadCount: 0
+            } as Conversation;
 
-          const newList = [
-            updatedConv,
-            ...existing.filter((_, i) => i !== idx)
-          ];
+            const newList = [
+              updatedConv,
+              ...chats.filter((_, i) => i !== idx)
+            ];
 
-          const getSortTime = (chat: Conversation) =>
-            moment(chat.lastMessage?.createdAt ?? chat.createdAt).valueOf();
+            const getSortTime = (chat: Conversation) =>
+              moment(
+                chat.lastMessage?.createdAt ?? chat.createdAt
+              ).valueOf();
 
-          newList.sort((a, b) => getSortTime(b) - getSortTime(a));
-
-          return { ...old, data: newList };
-        }
+            newList.sort((a, b) => getSortTime(b) - getSortTime(a));
+            return newList;
+          })
       );
     },
     [queryClient]

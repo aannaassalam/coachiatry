@@ -10,6 +10,7 @@ import { useSocket } from "@/lib/socketContext";
 import { cn } from "@/lib/utils";
 import { queryClient } from "@/pages/_app";
 import { PaginatedResponse } from "@/typescript/interface/common.interface";
+import moment from "moment";
 import {
   Message,
   MessageReaction
@@ -208,7 +209,19 @@ export default function TextMessage({
                 </div>
               </div>
             )}
-          <p className="wrap-break-word">{message.content}</p>
+          <p className="wrap-break-word">
+            {message.content}
+            <span
+              className={cn(
+                "text-[10px] float-right mt-1.5 ml-2 select-none leading-none",
+                isUser ? "text-white/60" : "text-gray-400"
+              )}
+            >
+              {message.createdAt
+                ? moment(message.createdAt).format("h:mm A")
+                : ""}
+            </span>
+          </p>
           {reactions.length > 0 && (
             <div
               className={cn(
