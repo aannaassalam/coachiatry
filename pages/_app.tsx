@@ -1,4 +1,7 @@
+import FloatingChat from "@/components/FloatingChat/FloatingChat";
+import { FloatingChatProvider } from "@/lib/floatingChatContext";
 import { checkWindow } from "@/lib/functions/_helpers.lib";
+import { SocketProvider } from "@/lib/socketContext";
 import { archivo, lato } from "@/services/fonts";
 import "@/styles/globals.css";
 import {
@@ -86,8 +89,13 @@ export default function CustomApp({ Component, pageProps }: AppProps) {
         <NuqsAdapter>
           <QueryClientProvider client={queryClient}>
             <HydrationBoundary state={pageProps.dehydratedState}>
-              <Toaster richColors position="bottom-left" />
-              <Component {...pageProps} />
+              <SocketProvider>
+                <FloatingChatProvider>
+                  <Toaster richColors position="bottom-left" />
+                  <Component {...pageProps} />
+                  <FloatingChat />
+                </FloatingChatProvider>
+              </SocketProvider>
             </HydrationBoundary>
           </QueryClientProvider>
         </NuqsAdapter>

@@ -12,9 +12,7 @@ import {
   PaginatedResponse
 } from "@/typescript/interface/common.interface";
 
-type ConversationInfiniteData = InfiniteData<
-  PaginatedResponse<Conversation[]>
->;
+type ConversationInfiniteData = InfiniteData<PaginatedResponse<Conversation[]>>;
 
 const updateConversationPages = (
   old: ConversationInfiniteData | undefined,
@@ -104,17 +102,14 @@ export const useChatMessages = (room: string) => {
             const updatedConv = {
               ...chats[idx],
               lastMessage: optimisticMessage,
-              updatedAt:
-                optimisticMessage.createdAt ?? new Date().toISOString()
+              updatedAt: optimisticMessage.createdAt ?? new Date().toISOString()
             } as Conversation;
 
             const newData = [...chats];
             newData[idx] = updatedConv;
 
             const getSortTime = (chat: Conversation) =>
-              moment(
-                chat.lastMessage?.createdAt ?? chat.createdAt
-              ).valueOf();
+              moment(chat.lastMessage?.createdAt ?? chat.createdAt).valueOf();
 
             newData.sort((a, b) => getSortTime(b) - getSortTime(a));
             return newData;
@@ -222,8 +217,7 @@ export const useChatMessages = (room: string) => {
                 msg.sender?._id !== currentUserId &&
                 msg.chat !== activeRoom
               ) {
-                updatedConv.unreadCount =
-                  (updatedConv.unreadCount || 0) + 1;
+                updatedConv.unreadCount = (updatedConv.unreadCount || 0) + 1;
               }
 
               newData = [...chats];
@@ -233,9 +227,7 @@ export const useChatMessages = (room: string) => {
             }
 
             const getSortTime = (chat: Conversation) =>
-              moment(
-                chat.lastMessage?.createdAt ?? chat.createdAt
-              ).valueOf();
+              moment(chat.lastMessage?.createdAt ?? chat.createdAt).valueOf();
 
             newData.sort((a, b) => getSortTime(b) - getSortTime(a));
             return newData;
@@ -280,15 +272,10 @@ export const useChatMessages = (room: string) => {
               unreadCount: 0
             } as Conversation;
 
-            const newList = [
-              updatedConv,
-              ...chats.filter((_, i) => i !== idx)
-            ];
+            const newList = [updatedConv, ...chats.filter((_, i) => i !== idx)];
 
             const getSortTime = (chat: Conversation) =>
-              moment(
-                chat.lastMessage?.createdAt ?? chat.createdAt
-              ).valueOf();
+              moment(chat.lastMessage?.createdAt ?? chat.createdAt).valueOf();
 
             newList.sort((a, b) => getSortTime(b) - getSortTime(a));
             return newList;
