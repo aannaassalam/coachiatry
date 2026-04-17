@@ -72,13 +72,15 @@ export default function FloatingChatPanel() {
       dragElastic={0}
       dragConstraints={{ left: -maxOffset, right: 0 }}
       onDragEnd={handleDragEnd}
+      initial={false}
       animate={{ height: isCollapsed ? COLLAPSED_HEIGHT : EXPANDED_HEIGHT }}
       transition={{ type: "spring", stiffness: 260, damping: 28 }}
       style={{
         x,
         width: PANEL_WIDTH,
         right: EDGE_PADDING,
-        bottom: 0
+        bottom: 0,
+        height: isCollapsed ? COLLAPSED_HEIGHT : EXPANDED_HEIGHT
       }}
       className="fixed z-50 flex flex-col overflow-hidden bg-white border border-gray-200 rounded-t-xl shadow-2xl"
     >

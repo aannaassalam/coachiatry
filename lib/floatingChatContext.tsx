@@ -35,7 +35,9 @@ const DEFAULT_STATE: FloatingChatState = {
   offsetX: 0
 };
 
-const FloatingChatContext = createContext<FloatingChatContextValue | null>(null);
+const FloatingChatContext = createContext<FloatingChatContextValue | null>(
+  null
+);
 
 const readStoredState = (): FloatingChatState => {
   if (typeof window === "undefined") return DEFAULT_STATE;

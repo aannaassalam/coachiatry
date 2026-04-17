@@ -93,7 +93,14 @@ export default function FloatingChatWindow({ roomId }: Props) {
     );
     observer.observe(topRef.current);
     return () => observer.disconnect();
-  }, [fetchNextPage, hasNextPage, roomId, allMessages.length, containerRef, topRef]);
+  }, [
+    fetchNextPage,
+    hasNextPage,
+    roomId,
+    allMessages.length,
+    containerRef,
+    topRef
+  ]);
 
   const handleSend = async (text: string, incomingFiles: File[]) => {
     if (!data?.user?._id || !socket) return;

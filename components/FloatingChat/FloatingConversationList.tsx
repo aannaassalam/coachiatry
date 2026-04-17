@@ -142,9 +142,12 @@ export default function FloatingConversationList() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
                       <span
-                        className={cn("text-xs font-medium text-gray-900 truncate", {
-                          "font-bold": chat.unreadCount > 0
-                        })}
+                        className={cn(
+                          "text-xs font-medium text-gray-900 truncate",
+                          {
+                            "font-bold": chat.unreadCount > 0
+                          }
+                        )}
                       >
                         {details.name}
                       </span>
@@ -156,10 +159,9 @@ export default function FloatingConversationList() {
                     </div>
                     <div className="flex items-center justify-between gap-2">
                       <p
-                        className={cn(
-                          "text-[11px] text-gray-500 truncate",
-                          { "font-semibold text-gray-800": chat.unreadCount > 0 }
-                        )}
+                        className={cn("text-[11px] text-gray-500 truncate", {
+                          "font-semibold text-gray-800": chat.unreadCount > 0
+                        })}
                       >
                         {renderLastMessage(chat)}
                       </p>
