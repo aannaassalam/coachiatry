@@ -95,3 +95,22 @@ export const accessSharedDocument = async (
   const res = await axiosInstance.get(endpoints.document.shared(shareId));
   return res.data;
 };
+
+/**
+ * Looks up the caller's own documents (full shareId included) so we can
+ * detect when a "share" link belongs to the visitor — the share endpoint
+ * rejects the owner with "Invalid share link", which we don't want to show
+ * them.
+ */
+export const findOwnedDocumentByShareId = async (
+  shareId: string
+): Promise<Pick<Document, "_id" | "shareId"> | null> => {
+  const res = await axiosInstance.get(endpoints.document.getAll, {
+    params: { tab: "all", limit: 1000 }
+  });
+  const docs: Document[] = res.data?.data ?? [];
+  return (docs.find((d) => d.shareId === shareId) ?? null) as Pick<
+    Document,
+    "_id" | "shareId"
+  > | null;
+};

@@ -1,7 +1,9 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { RefObject } from "react";
+import moment from "moment";
+import { Fragment, RefObject } from "react";
 import { ChatConversation as Conversation } from "@/typescript/interface/chat.interface";
 import { Message } from "@/typescript/interface/message.interface";
+import { formatChatDayLabel } from "@/lib/functions/_helpers.lib";
 import ChatMessage from "./ChatMessage";
 
 export type MessageListProps = {
@@ -93,22 +95,44 @@ export const MessageList = ({
               (!previous || previous.sender?._id !== msg.sender?._id)
             : true;
 
+          const msgDay = moment(msg.createdAt).startOf("day");
+          const prevDay = previous
+            ? moment(previous.createdAt).startOf("day")
+            : null;
+          const showDayDivider =
+            msgDay.isValid() && (!prevDay || !msgDay.isSame(prevDay));
+          const dayIso = msgDay.isValid() ? msgDay.toISOString() : "";
+
           return (
-            <motion.div
-              key={getKey(msg)}
-              initial={false}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.18, ease: "easeOut" }}
-            >
-              <ChatMessage
-                sender={msg.sender}
-                message={msg}
-                showAvatar={showAvatar}
-                setReplyingTo={conversation?.isDeletable ? onReply : () => null}
-                isGroup={conversation?.type === "group"}
-                isDeletable={conversation?.isDeletable}
-              />
-            </motion.div>
+            <Fragment key={getKey(msg)}>
+              {showDayDivider && (
+                <div
+                  data-day-divider="true"
+                  data-day-iso={dayIso}
+                  className="flex justify-center my-3"
+                >
+                  <span className="px-3 py-1 bg-white border border-gray-200 text-gray-600 text-[11px] rounded-full shadow-xs">
+                    {formatChatDayLabel(msg.createdAt)}
+                  </span>
+                </div>
+              )}
+              <motion.div
+                initial={false}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.18, ease: "easeOut" }}
+              >
+                <ChatMessage
+                  sender={msg.sender}
+                  message={msg}
+                  showAvatar={showAvatar}
+                  setReplyingTo={
+                    conversation?.isDeletable ? onReply : () => null
+                  }
+                  isGroup={conversation?.type === "group"}
+                  isDeletable={conversation?.isDeletable}
+                />
+              </motion.div>
+            </Fragment>
           );
         })
       )}

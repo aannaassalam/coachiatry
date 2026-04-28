@@ -18,12 +18,12 @@ import {
   markSubtaskAsCompleted
 } from "@/external-api/functions/task.api";
 import assets from "@/json/assets";
+import { formatDateOrEmpty } from "@/lib/functions/_helpers.lib";
 import { cn } from "@/lib/utils";
 import { queryClient } from "@/pages/_app";
 import { Task } from "@/typescript/interface/task.interface";
 import { useMutation } from "@tanstack/react-query";
 import { ChevronsUpDown, Ellipsis, Pencil, Trash } from "lucide-react";
-import moment from "moment";
 import Image from "next/image";
 import {
   parseAsArrayOf,
@@ -229,6 +229,7 @@ function TasksTable({
   const { data } = useSession();
   const [openTasksIndex, setOpenTasksIndex] = useState<string[]>([]);
   const [statusBoxIndex, setStatusBoxIndex] = useState<string | null>(null);
+  const [openAssignFor, setOpenAssignFor] = useState<string | null>(null);
   const [selectedTask, setSelectedTask] = useQueryState(
     "task",
     parseAsString.withDefault("")
@@ -291,6 +292,30 @@ function TasksTable({
 
   const { mutate: assign, isPending: isAssigning } = useMutation({
     mutationFn: assignToggle,
+    onMutate: async ({ taskId, coachId }) => {
+      const tasksKey = ["tasks", sort, validatedFilters];
+      await queryClient.cancelQueries({ queryKey: tasksKey });
+      const previous = queryClient.getQueryData<Task[]>(tasksKey);
+      const nextCoach = data?.user?.assignedCoach.find(
+        (c) => (c as unknown as User)._id === coachId
+      ) as unknown as User | undefined;
+      if (nextCoach) {
+        queryClient.setQueryData<Task[]>(tasksKey, (old) =>
+          old?.map((t) =>
+            t._id === taskId ? { ...t, assignedTo: nextCoach } : t
+          )
+        );
+      }
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(
+          ["tasks", sort, validatedFilters],
+          context.previous
+        );
+      }
+    },
     meta: {
       invalidateQueries: ["tasks"]
     }
@@ -406,7 +431,7 @@ function TasksTable({
                                   );
                                 }}
                               >
-                                <div className="h-3.5 w-3.5 rounded-full border-1 border-white bg-transparent" />
+                                <div className="size-3.5 rounded-full border-1 border-white bg-transparent" />
                               </div>
                             </PopoverTrigger>
                             <PopoverContent
@@ -426,11 +451,23 @@ function TasksTable({
                         className="tracking-[-0.05px]"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <Popover>
+                        <Popover
+                          open={
+                            data?.user?.role === "admin"
+                              ? false
+                              : openAssignFor === task._id
+                          }
+                          onOpenChange={(open) => {
+                            if (data?.user?.role === "admin") return;
+                            setOpenAssignFor(open ? task._id : null);
+                          }}
+                        >
                           <PopoverTrigger asChild>
                             <button
-                              className="[all:unset] !flex !items-center !gap-2 disabled:opacity-70 cursor-pointer"
-                              disabled={isAssigning}
+                              className="[all:unset] !flex !items-center !gap-2 disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
+                              disabled={
+                                isAssigning || data?.user?.role === "admin"
+                              }
                             >
                               <SmartAvatar
                                 src={task?.assignedTo?.photo}
@@ -452,12 +489,13 @@ function TasksTable({
                               const coachUser = coach as unknown as User;
                               return (
                                 <button
-                                  onClick={() =>
+                                  onClick={() => {
                                     assign({
                                       taskId: task._id,
                                       coachId: coachUser._id
-                                    })
-                                  }
+                                    });
+                                    setOpenAssignFor(null);
+                                  }}
                                   key={coachUser._id}
                                   className="py-2! [all:unset] !flex !items-center !gap-2 disabled:opacity-70 cursor-pointer!"
                                 >
@@ -502,9 +540,7 @@ function TasksTable({
                         </Popover>
                       </TableCell>
                       <TableCell className="font-lato text-sm text-gray-600 tracking-[-0.05px]">
-                        {task.dueDate
-                          ? moment(task.dueDate).format("DD-MM-YYYY")
-                          : "-"}
+                        {formatDateOrEmpty(task.dueDate, "DD-MM-YYYY") || "-"}
                       </TableCell>
                       <TableCell className="tracking-[-0.05px]">
                         <Badge

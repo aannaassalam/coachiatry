@@ -1,4 +1,7 @@
-import { accessSharedDocument } from "@/external-api/functions/document.api";
+import {
+  accessSharedDocument,
+  findOwnedDocumentByShareId
+} from "@/external-api/functions/document.api";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import { useQuery } from "@tanstack/react-query";
 import { GetServerSideProps } from "next";
@@ -26,18 +29,34 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 export default function Index() {
   const { shareId } = useParams();
   const router = useRouter();
+  const shareIdStr = shareId?.toString() ?? "";
+
+  // Owner check first — the /share endpoint rejects the document owner with
+  // "Invalid share link", so we look the shareId up in the visitor's own
+  // documents and short-circuit to the in-app document viewer if it's theirs.
+  const { data: owned, isLoading: ownedLoading } = useQuery({
+    queryKey: ["owned-doc-by-share", shareIdStr],
+    queryFn: () => findOwnedDocumentByShareId(shareIdStr),
+    enabled: !!shareIdStr
+  });
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["share", shareId],
-    queryFn: () => accessSharedDocument(shareId?.toString() ?? ""),
-    enabled: !!shareId
+    queryKey: ["share", shareIdStr],
+    queryFn: () => accessSharedDocument(shareIdStr),
+    enabled: !!shareIdStr && !ownedLoading && !owned
   });
 
   useEffect(() => {
+    if (owned) {
+      router.replace(`/documents?document=${owned._id}`);
+      return;
+    }
     if (data) {
       router.replace(`/documents?document=${data._id}`);
     }
-  }, [data, router]);
+  }, [owned, data, router]);
+
+  if (ownedLoading || owned) return null;
 
   return (
     <div className="h-screen flex items-center justify-center">

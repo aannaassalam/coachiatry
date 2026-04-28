@@ -7,9 +7,9 @@ import {
   TableRow
 } from "@/components/ui/table";
 import assets from "@/json/assets";
+import { formatDateOrEmpty } from "@/lib/functions/_helpers.lib";
 import { cn } from "@/lib/utils";
 import { Task } from "@/typescript/interface/task.interface";
-import moment from "moment";
 import Image from "next/image";
 import React, { useState } from "react";
 import { Badge } from "../../ui/badge";
@@ -190,9 +190,7 @@ function SharedTasksTable({
                         </div>
                       </TableCell>
                       <TableCell className="font-lato text-sm text-gray-600 tracking-[-0.05px]">
-                        {task.dueDate
-                          ? moment(task.dueDate).format("DD-MM-YYYY")
-                          : "-"}
+                        {formatDateOrEmpty(task.dueDate, "DD-MM-YYYY") || "-"}
                       </TableCell>
                       <TableCell className="tracking-[-0.05px]">
                         <Badge

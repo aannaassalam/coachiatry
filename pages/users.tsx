@@ -61,7 +61,7 @@ import { useMutation, useQueries } from "@tanstack/react-query";
 import { Ellipsis, Pencil, Plus, Search, Trash } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
 import { queryClient } from "./_app";
@@ -85,13 +85,17 @@ export function getAssignableUsersForDropdown(params: {
 }) {
   const { allUsers, creatorId, creatorRole, targetRole } = params;
 
+  // The acting user can never manage themselves; exclude their own profile
+  // from any "Managed by" candidates regardless of role pairing.
+  const excludeSelf = (u: User) => u._id !== creatorId;
+
   // ✅ Manager being created => assignable: admins
   if (targetRole === "manager") {
     return {
       requiresAssignment: true,
       autoAssigned: false,
       options: allUsers
-        .filter((u) => u.role === "admin")
+        .filter((u) => u.role === "admin" && excludeSelf(u))
         .map((u) => ({ label: u.fullName, value: u._id }))
     };
   }
@@ -114,7 +118,7 @@ export function getAssignableUsersForDropdown(params: {
         requiresAssignment: true,
         autoAssigned: false,
         options: allUsers
-          .filter((u) => u.role === "manager")
+          .filter((u) => u.role === "manager" && excludeSelf(u))
           .map((u) => ({ label: u.fullName, value: u._id }))
       };
     }
@@ -141,7 +145,7 @@ export function getAssignableUsersForDropdown(params: {
         requiresAssignment: true,
         autoAssigned: false,
         options: allUsers
-          .filter((u) => u.role === "coach")
+          .filter((u) => u.role === "coach" && excludeSelf(u))
           .map((u) => ({ label: u.fullName, value: u._id }))
       };
     }
@@ -155,6 +159,7 @@ export function getAssignableUsersForDropdown(params: {
           .filter(
             (u) =>
               u.role === "coach" &&
+              excludeSelf(u) &&
               Array.isArray(u.assignedCoach) &&
               u.assignedCoach.includes(creatorId)
           )
@@ -283,13 +288,30 @@ export default function Users() {
     disabled: isPending || isEditing
   });
 
+  const watchedRole = form.watch("role");
+
   const { autoAssigned, options, requiresAssignment } =
     getAssignableUsersForDropdown({
       allUsers: allUsers,
       creatorId: info?.user?._id || "",
       creatorRole: info?.user?.role as "admin" | "manager" | "coach",
-      targetRole: form.watch("role")
+      targetRole: watchedRole
     });
+
+  // Hard guard: any time the role changes (radio click, form.reset on edit
+  // open, programmatic setValue, etc.) wipe assignedCoach so stale managers
+  // from a previous role can't sneak through and the admin starts with an
+  // empty selection that's valid for the new role.
+  const previousRoleRef = useRef<string | undefined>(watchedRole);
+  useEffect(() => {
+    if (
+      previousRoleRef.current !== undefined &&
+      previousRoleRef.current !== watchedRole
+    ) {
+      form.setValue("assignedCoach", [], { shouldDirty: true });
+    }
+    previousRoleRef.current = watchedRole;
+  }, [watchedRole, form]);
 
   const goToPage = (p: number) => {
     if (p < 1 || (data?.meta.totalPages && p > data?.meta.totalPages)) return;
@@ -298,12 +320,23 @@ export default function Users() {
 
   const pageNumbers = createPageRange(1, data?.meta?.totalPages ?? 0, page);
 
+  // Drop any assignedCoach ids that aren't valid for the currently-selected
+  // role. Belt-and-braces against the form state being out of sync with the
+  // role's allowed options at submit time.
+  const sanitizeAssignedCoach = (data: yup.InferType<typeof schema>) => {
+    const validIds = new Set(options.map((o) => o.value));
+    return {
+      ...data,
+      assignedCoach: (data.assignedCoach ?? []).filter((id) => validIds.has(id))
+    };
+  };
+
   const onSubmit = (data: yup.InferType<typeof schema>) => {
-    mutate(data);
+    mutate(sanitizeAssignedCoach(data));
   };
 
   const onEdit = (data: yup.InferType<typeof schema>) => {
-    edit({ userId: clientId, ...data });
+    edit({ userId: clientId, ...sanitizeAssignedCoach(data) });
   };
 
   return (

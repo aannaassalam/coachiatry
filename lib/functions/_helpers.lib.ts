@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Filter } from "@/typescript/interface/common.interface";
+import moment from "moment";
 import { parseCookies, setCookie } from "nookies";
 /**
  * Check if the window object exists.
@@ -56,6 +57,54 @@ export function sanitizeFilters(values: Filter[]): Filter[] {
   return values.filter(
     (f) => f.selectedKey && f.selectedOperator && f.selectedValue
   );
+}
+
+/**
+ * Compact relative time for chat lists. Within the current week shows short
+ * notations ("3s", "5m", "2h", "4d"); anything older falls back to an
+ * absolute date so the list stays readable without ambiguous short tokens.
+ * Independent of moment's global locale.
+ */
+export function formatChatTime(date?: string | Date | null): string {
+  if (!date) return "";
+  const m = moment(date);
+  if (!m.isValid()) return "";
+  const now = moment();
+  const seconds = now.diff(m, "seconds");
+  if (seconds < 60) return `${Math.max(seconds, 0)}s`;
+  const minutes = now.diff(m, "minutes");
+  if (minutes < 60) return `${minutes}m`;
+  const hours = now.diff(m, "hours");
+  if (hours < 24) return `${hours}h`;
+  const days = now.diff(m, "days");
+  if (days < 7) return `${days}d`;
+  return m.format("DD/MM/YY");
+}
+
+export function formatDateOrEmpty(
+  date?: string | Date | null,
+  fmt: string = "D MMM, YYYY"
+): string {
+  if (!date) return "";
+  const m = moment(date);
+  if (!m.isValid()) return "";
+  return m.format(fmt);
+}
+
+/**
+ * WhatsApp-style day label for chat date separators.
+ * Today / Yesterday / weekday name within last 7 days / full date otherwise.
+ */
+export function formatChatDayLabel(date?: string | Date | null): string {
+  if (!date) return "";
+  const m = moment(date).startOf("day");
+  if (!m.isValid()) return "";
+  const today = moment().startOf("day");
+  const diff = today.diff(m, "days");
+  if (diff === 0) return "Today";
+  if (diff === 1) return "Yesterday";
+  if (diff > 1 && diff < 7) return m.format("dddd");
+  return m.format("MMMM D, YYYY");
 }
 
 export function getInitials(fullName?: string): string {

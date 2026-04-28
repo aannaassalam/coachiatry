@@ -4,6 +4,7 @@ import {
 } from "@/external-api/functions/chat.api";
 import { getMessages } from "@/external-api/functions/message.api";
 import { useDebounce } from "@/hooks/utils/useDebounce";
+import { formatChatTime } from "@/lib/functions/_helpers.lib";
 import { useSocket } from "@/lib/socketContext";
 import { cn } from "@/lib/utils";
 import { queryClient } from "@/pages/_app";
@@ -20,27 +21,6 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { SmartAvatar } from "../ui/smart-avatar";
 import GroupModal from "./GroupModal";
-
-moment.updateLocale("en", {
-  relativeTime: {
-    future: "in %s",
-    past: "%s",
-    s: "%ds",
-    ss: "%ds",
-    m: "1m",
-    mm: "%dm",
-    h: "1h",
-    hh: "%dh",
-    w: "1w",
-    ww: "%dw",
-    d: "1d",
-    dd: "%dd",
-    M: "1M",
-    MM: "%dM",
-    y: "1y",
-    yy: "%dy"
-  }
-});
 
 const skeletons = Array.from({ length: 5 });
 
@@ -148,6 +128,55 @@ export default function ChatList() {
       fetchNextPage();
     }
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  const clearUnreadOptimistic = useCallback((chatId: string) => {
+    // The ["conversations", ...] key family covers infinite lists, the
+    // dashboard's flat PaginatedResponse, and single-conversation lookups.
+    // Branch on shape so we only patch what we actually understand.
+    queryClient.setQueriesData<unknown>(
+      { queryKey: ["conversations"] },
+      (old: unknown) => {
+        if (!old || typeof old !== "object") return old;
+
+        const infinite = old as {
+          pages?: PaginatedResponse<ChatConversation[]>[];
+        };
+        if (Array.isArray(infinite.pages)) {
+          let changed = false;
+          const pages = infinite.pages.map((page) => ({
+            ...page,
+            data: page.data.map((c) => {
+              if (c._id === chatId && (c.unreadCount ?? 0) > 0) {
+                changed = true;
+                return { ...c, unreadCount: 0 };
+              }
+              return c;
+            })
+          }));
+          return changed ? { ...infinite, pages } : old;
+        }
+
+        const flat = old as PaginatedResponse<ChatConversation[]>;
+        if (Array.isArray(flat.data)) {
+          let changed = false;
+          const data = flat.data.map((c) => {
+            if (c._id === chatId && (c.unreadCount ?? 0) > 0) {
+              changed = true;
+              return { ...c, unreadCount: 0 };
+            }
+            return c;
+          });
+          return changed ? { ...flat, data } : old;
+        }
+
+        const single = old as ChatConversation;
+        if (single._id === chatId && (single.unreadCount ?? 0) > 0) {
+          return { ...single, unreadCount: 0 };
+        }
+        return old;
+      }
+    );
+  }, []);
 
   const prefetchChatRoom = useCallback((chatId: string) => {
     if (!chatId) return;
@@ -258,7 +287,11 @@ export default function ChatList() {
                 <li
                   key={chat._id}
                   className="flex cursor-pointer items-start justify-between gap-2 py-2.5 px-3 rounded-[8px] hover:bg-gray-100 transition"
-                  onClick={() => setSelectedChat(chat._id!)}
+                  onClick={() => {
+                    if (!chat._id) return;
+                    clearUnreadOptimistic(chat._id);
+                    setSelectedChat(chat._id);
+                  }}
                   onMouseEnter={() => chat?._id && prefetchChatRoom(chat._id)}
                 >
                   <SmartAvatar
@@ -290,9 +323,9 @@ export default function ChatList() {
                         "font-semibold": chat.unreadCount > 0
                       })}
                     >
-                      {chat.lastMessage?.createdAt
-                        ? moment(chat.lastMessage?.createdAt).fromNow(true)
-                        : moment(chat?.createdAt).fromNow(true)}
+                      {formatChatTime(
+                        chat.lastMessage?.createdAt ?? chat?.createdAt
+                      )}
                     </span>
                     {chat.unreadCount > 0 && (
                       <span className="text-xs h-5 min-w-5 px-1 rounded-full bg-primary text-white flex items-center justify-center">

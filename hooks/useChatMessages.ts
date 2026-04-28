@@ -1,5 +1,5 @@
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
-import { useMemo, useCallback } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import moment from "moment";
 import { getMessages } from "@/external-api/functions/message.api";
 import { ChatConversation as Conversation } from "@/typescript/interface/chat.interface";
@@ -284,6 +284,23 @@ export const useChatMessages = (room: string) => {
     },
     [queryClient]
   );
+
+  // Optimistically zero the unread badge as soon as a room opens so the badge
+  // disappears before the server confirms the seen-bulk event.
+  useEffect(() => {
+    if (!room) return;
+    queryClient.setQueriesData<ConversationInfiniteData>(
+      { queryKey: ["conversations"] },
+      (old) =>
+        updateConversationPages(old, (chats) => {
+          const idx = chats.findIndex((c) => c._id === room);
+          if (idx === -1 || (chats[idx].unreadCount ?? 0) === 0) return chats;
+          const next = chats.slice();
+          next[idx] = { ...next[idx], unreadCount: 0 };
+          return next;
+        })
+    );
+  }, [room, queryClient]);
 
   return {
     messagesData,

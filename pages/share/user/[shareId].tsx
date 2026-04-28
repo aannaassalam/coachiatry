@@ -4,6 +4,7 @@ import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import { useQuery } from "@tanstack/react-query";
 import { GetServerSideProps } from "next";
 import { getServerSession } from "next-auth";
+import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
@@ -27,19 +28,39 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 export default function Index() {
   const { shareId } = useParams();
   const router = useRouter();
+  const { data: session, status } = useSession();
+
+  // The link owner is the user whose own shareId matches the URL — they shouldn't
+  // be granted view access to themselves; just send them to their tasks page.
+  const isOwner =
+    !!session?.user?.shareId &&
+    !!shareId &&
+    session.user.shareId === shareId.toString();
+
+  // Hold the UI blank until we know whether the visitor is the owner. Avoids
+  // a brief flash of "loading…" / error text on the way to /tasks for someone
+  // opening their own shared link.
+  const sessionResolving = status === "loading";
+  const skipUi = sessionResolving || isOwner;
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["share", shareId],
     queryFn: () => shareViewAccessToWatchers(shareId?.toString() ?? ""),
-    enabled: !!shareId
+    enabled: !!shareId && !sessionResolving && !isOwner
   });
 
   useEffect(() => {
+    if (isOwner) {
+      router.replace("/tasks");
+      return;
+    }
     if (data) {
       queryClient.invalidateQueries({ queryKey: ["conversations"] });
       router.replace(`/shared-tasks/${data.shareId}`);
     }
-  }, [data, router]);
+  }, [data, isOwner, router]);
+
+  if (skipUi) return null;
 
   return (
     <div className="h-screen flex items-center justify-center">

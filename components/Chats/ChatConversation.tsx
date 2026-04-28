@@ -8,6 +8,7 @@ import { useChatSocket } from "@/hooks/useChatSocket";
 import { useChatUploadManager } from "@/hooks/useChatUploadManager";
 import { useConversationDetails } from "@/hooks/useConversationDetails";
 import { getStableMessageKey } from "@/lib/chatMessage";
+import { formatChatDayLabel } from "@/lib/functions/_helpers.lib";
 import { useSocket } from "@/lib/socketContext";
 import { cn } from "@/lib/utils";
 import {
@@ -16,7 +17,7 @@ import {
 } from "@/typescript/interface/message.interface";
 import { useSession } from "next-auth/react";
 import { parseAsString, useQueryState } from "nuqs";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ChatHeader } from "./ChatHeader";
 import ChatInput from "./ChatInput";
 import ChatUploadWithPreview from "./ChatUpload";
@@ -35,6 +36,9 @@ export default function ChatConversation() {
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const [chatDragShow, setChatDragShow] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
+  const [stickyDay, setStickyDay] = useState<string | null>(null);
+  const [stickyVisible, setStickyVisible] = useState(false);
+  const stickyFadeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const messageKeyMap = useRef<Map<string, string>>(new Map());
 
   const {
@@ -132,6 +136,38 @@ export default function ChatConversation() {
       containerRef.current.style.overflow = chatDragShow ? "hidden" : "auto";
     }
   }, [containerRef, chatDragShow]);
+
+  const updateStickyDay = useCallback(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const cTop = container.getBoundingClientRect().top;
+    const dividers =
+      container.querySelectorAll<HTMLDivElement>("[data-day-divider]");
+    if (!dividers.length) {
+      setStickyDay(null);
+      return;
+    }
+    let topDay: string | null = dividers[0].getAttribute("data-day-iso");
+    for (const d of Array.from(dividers)) {
+      const r = d.getBoundingClientRect();
+      if (r.top - cTop <= 16) {
+        topDay = d.getAttribute("data-day-iso");
+      } else {
+        break;
+      }
+    }
+    if (topDay) setStickyDay(topDay);
+  }, [containerRef]);
+
+  useEffect(() => {
+    updateStickyDay();
+  }, [allMessages, updateStickyDay]);
+
+  useEffect(() => {
+    return () => {
+      if (stickyFadeTimer.current) clearTimeout(stickyFadeTimer.current);
+    };
+  }, []);
 
   const handleUpload = (newFiles: File[]) => setFiles(newFiles);
 
@@ -250,7 +286,7 @@ export default function ChatConversation() {
       <div
         ref={containerRef}
         className={cn(
-          "flex-1 min-h-0 overflow-y-auto p-4 bg-gray-50 relative",
+          "flex-1 min-h-0 overflow-y-auto p-4 bg-gray-50 relative flex flex-col",
           {
             "p-0": chatDragShow
           }
@@ -260,24 +296,48 @@ export default function ChatConversation() {
           const { scrollTop, scrollHeight, clientHeight } =
             containerRef.current;
           setIsAtBottom(scrollHeight - scrollTop - clientHeight < 50);
+          updateStickyDay();
+          setStickyVisible(true);
+          if (stickyFadeTimer.current) clearTimeout(stickyFadeTimer.current);
+          stickyFadeTimer.current = setTimeout(
+            () => setStickyVisible(false),
+            2500
+          );
         }}
         onDragOver={(e) => {
           if (e.dataTransfer.types.includes("Files")) setChatDragShow(true);
         }}
         onDragEnd={() => setChatDragShow(false)}
       >
-        <MessageList
-          messages={allMessages}
-          isLoading={isMessageLoading}
-          isFetchingNextPage={isFetchingNextPage}
-          topRef={topRef}
-          conversation={conversation}
-          currentUserId={data?.user?._id}
-          onReply={setReplyingTo}
-          getKey={(msg) => getStableMessageKey(messageKeyMap, msg)}
-        />
-
-        <div ref={bottomRef} />
+        {stickyDay && (
+          <div
+            className={cn(
+              "sticky top-2 z-10 flex justify-center pointer-events-none transition-opacity duration-300",
+              stickyVisible ? "opacity-100" : "opacity-0"
+            )}
+          >
+            <span className="px-3 py-1 bg-white border border-gray-200 text-gray-700 text-[11px] rounded-full shadow-sm">
+              {formatChatDayLabel(stickyDay)}
+            </span>
+          </div>
+        )}
+        {/* mt-auto pushes the message stream against the bottom of the
+            scroll container so empty / short chats start at the bottom (like
+            WhatsApp). Once content overflows, mt-auto collapses and the
+            stream scrolls normally. */}
+        <div className="mt-auto">
+          <MessageList
+            messages={allMessages}
+            isLoading={isMessageLoading}
+            isFetchingNextPage={isFetchingNextPage}
+            topRef={topRef}
+            conversation={conversation}
+            currentUserId={data?.user?._id}
+            onReply={setReplyingTo}
+            getKey={(msg) => getStableMessageKey(messageKeyMap, msg)}
+          />
+          <div ref={bottomRef} />
+        </div>
         {chatDragShow && conversation?.isDeletable && (
           <ChatUploadWithPreview
             files={files}

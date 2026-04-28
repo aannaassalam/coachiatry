@@ -17,6 +17,30 @@ const FRONTEND_SESSION_MAX_AGE_MS = FRONTEND_SESSION_MAX_AGE_SECONDS * 1000;
 const isFrontendExpired = (frontendExpiresAt?: number) =>
   typeof frontendExpiresAt === "number" && Date.now() >= frontendExpiresAt;
 
+// Trim populated relations that bloat the JWT. `sharedViewers` is only read
+// via getMyProfile() in settings, never from useSession(). For
+// `assignedCoach` we keep only the fields the UI actually consumes (avatar,
+// name, id) so the cookie stays under the 4 KB chunk warning.
+type SlimCoach = Pick<User, "_id" | "fullName" | "photo" | "updatedAt">;
+const slimUserForToken = (raw: any): any => {
+  if (!raw || typeof raw !== "object") return raw;
+  const rest = { ...raw };
+  delete rest.sharedViewers;
+  if (Array.isArray(rest.assignedCoach)) {
+    rest.assignedCoach = rest.assignedCoach.map((c: any): SlimCoach | string =>
+      typeof c === "string"
+        ? c
+        : {
+            _id: c._id,
+            fullName: c.fullName,
+            photo: c.photo,
+            updatedAt: c.updatedAt
+          }
+    );
+  }
+  return rest;
+};
+
 export const authOptions: AuthOptions = {
   providers: [
     GoogleProvider({
@@ -96,7 +120,7 @@ export const authOptions: AuthOptions = {
         try {
           const res = await googleAuth(googleIdToken);
 
-          token.user = res.data.user;
+          token.user = slimUserForToken(res.data.user);
           token.token = res.data.token; // Your app's JWT
           token.frontendExpiresAt = Date.now() + FRONTEND_SESSION_MAX_AGE_MS;
           token.frontendExpired = false;
@@ -108,14 +132,14 @@ export const authOptions: AuthOptions = {
         const { token: appToken, ...rest } = user as User & {
           token: string;
         };
-        token.user = rest;
+        token.user = slimUserForToken(rest);
         token.token = appToken;
         token.frontendExpiresAt = Date.now() + FRONTEND_SESSION_MAX_AGE_MS;
         token.frontendExpired = false;
       } else if (trigger === "update") {
         if (!token.token) return token;
         const appUser = await fetchProfile(token.token);
-        token.user = appUser;
+        token.user = slimUserForToken(appUser);
       }
       return token;
     },

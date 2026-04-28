@@ -6,35 +6,17 @@ import { getAllStatuses } from "@/external-api/functions/status.api";
 import { getAllTasks } from "@/external-api/functions/task.api";
 import assets from "@/json/assets";
 import AppLayout from "@/layouts/AppLayout";
-import { getInitials } from "@/lib/functions/_helpers.lib";
+import {
+  formatChatTime,
+  formatDateOrEmpty,
+  getInitials
+} from "@/lib/functions/_helpers.lib";
 import { Task } from "@/typescript/interface/task.interface";
 import { useQueries } from "@tanstack/react-query";
-import moment from "moment";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
-
-moment.updateLocale("en", {
-  relativeTime: {
-    future: "in %s",
-    past: "%s",
-    s: "%ds",
-    ss: "%ds",
-    m: "1m",
-    mm: "%dm",
-    h: "1h",
-    hh: "%dh",
-    w: "1w",
-    ww: "%dw",
-    d: "1d",
-    dd: "%dd",
-    M: "1m",
-    MM: "%dm",
-    y: "1y",
-    yy: "%dy"
-  }
-});
 
 const TaskBox = ({
   title,
@@ -80,15 +62,20 @@ const TaskBox = ({
           onClick={() => router.push("/tasks")}
         >
           {tasks.map((task, index) => (
-            <div className="p-4 pb-3 flex flex-row gap-3" key={index}>
+            <div
+              className="p-4 pb-3 flex flex-row gap-3 cursor-pointer"
+              key={index}
+            >
               {/* <Checkbox checked={task.isDone} /> */}
               <div className="flex flex-col space-y-2 flex-1">
                 <p className="font-medium text-sm leading-4 text-gray-900">
                   {task.title}
                 </p>
-                <span className="text-xs leading-4.5 text-gray-700">
-                  {moment(task.dueDate).format("D MMM, YYYY")}
-                </span>
+                {formatDateOrEmpty(task.dueDate) && (
+                  <span className="text-xs leading-4.5 text-gray-700">
+                    {formatDateOrEmpty(task.dueDate)}
+                  </span>
+                )}
                 {/* <Badge
                   className="rounded-sm text-sm leading-4"
                   style={{
@@ -323,7 +310,9 @@ export default function Home() {
                         </p>
                       </div>
                       <span className="text-gray-500 font-medium text-xs leading-4 shrink-0 ml-3">
-                        {moment(msg.lastMessage?.createdAt).fromNow(true)}
+                        {formatChatTime(
+                          msg.lastMessage?.createdAt || msg.createdAt
+                        )}
                       </span>
                     </div>
                   </Link>
@@ -396,9 +385,11 @@ export default function Home() {
                       <p className="font-semibold text-sm leading-5 text-gray-900 line-clamp-1">
                         {doc.title}
                       </p>
-                      <p className="text-sm leading-5 text-gray-600">
-                        Updated: {moment(doc.updatedAt).format("D MMM, YYYY")}
-                      </p>
+                      {formatDateOrEmpty(doc.updatedAt) && (
+                        <p className="text-sm leading-5 text-gray-600">
+                          Updated: {formatDateOrEmpty(doc.updatedAt)}
+                        </p>
+                      )}
                     </div>
                     <Badge
                       className="rounded-full py-0.5 px-2 flex items-center gap-1.5 font-archivo font-medium text-xs leading-4.5"
