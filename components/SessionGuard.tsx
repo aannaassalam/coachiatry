@@ -5,9 +5,16 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 
 export function SessionGuard({ children }: { children: React.ReactNode }) {
-  const { status, update } = useSession();
+  const { data, status, update } = useSession();
   const router = useRouter();
   const refreshedOnceRef = useRef(false);
+  // Once we've successfully resolved the session at least once we should keep
+  // the UI rendered even while next-auth refetches in the background — the
+  // data is still valid, and blanking the screen on each route change /
+  // refetchInterval tick is what users perceive as a "blank screen between
+  // pages."
+  const hasResolvedRef = useRef(false);
+  if (data) hasResolvedRef.current = true;
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -24,7 +31,10 @@ export function SessionGuard({ children }: { children: React.ReactNode }) {
     }
   }, [status, router, update]);
 
-  if (status === "loading") return null;
+  // Only block render on the very first session resolve. After that, every
+  // transient "loading" (from update(), refetchInterval, focus refetch)
+  // keeps showing children to avoid the navigation flash.
+  if (status === "loading" && !hasResolvedRef.current) return null;
 
   return <>{children}</>;
 }
