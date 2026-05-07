@@ -11,18 +11,21 @@ import { queryClient } from "@/pages/_app";
 import { Filter } from "@/typescript/interface/common.interface";
 import { Task } from "@/typescript/interface/task.interface";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Ellipsis, Pencil, Plus, Trash } from "lucide-react";
+import { ChevronDown, Ellipsis, Pencil, Plus, Trash } from "lucide-react";
 import moment from "moment";
 import Image from "next/image";
 import { parseAsJson, useQueryState } from "nuqs";
-import { useState } from "react";
 import DeleteDialog from "../DeleteDialog";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger
+} from "../ui/collapsible";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { SmartAvatar } from "../ui/smart-avatar";
-import AddTaskSheet from "./AddTaskSheet";
 import PriorityFlag from "./PriorityFlag";
 
 const days = [
@@ -74,12 +77,15 @@ const TaskCard = ({
   task,
   onDelete,
   onEdit,
-  onDeleteLoading
+  onDeleteLoading,
+  dimmed = false
 }: {
   task: Task;
   onDelete: () => void;
   onEdit: () => void;
   onDeleteLoading: boolean;
+  /** Render completed tasks faded with a strikethrough title. */
+  dimmed?: boolean;
 }) => {
   const prefetchOnMouseEnter = (id: string) => {
     queryClient.prefetchQuery({
@@ -111,7 +117,12 @@ const TaskCard = ({
   });
 
   return (
-    <div className="bg-white rounded-[8px] p-3.5 flex items-start overflow-hidden transition-all duration-200 group border-1 hover:border-primary/30">
+    <div
+      className={cn(
+        "bg-white rounded-[8px] p-3.5 flex items-start overflow-hidden transition-all duration-200 group border-1 hover:border-primary/30",
+        dimmed && "opacity-60"
+      )}
+    >
       <Checkbox
         className={cn(
           "w-4 h-4 mr-4 -ml-8 transition-all duration-200 mt-1 group-hover:ml-0 cursor-pointer"
@@ -124,7 +135,10 @@ const TaskCard = ({
       />
       <div className="flex flex-col gap-1 flex-1">
         <p
-          className="font-medium font-lato flex justify-between items-start"
+          className={cn(
+            "font-medium font-lato flex justify-between items-start",
+            dimmed && "line-through text-gray-500"
+          )}
           onMouseEnter={() => prefetchOnMouseEnter(task._id)}
         >
           {task.title}
@@ -195,11 +209,13 @@ const TaskCard = ({
   );
 };
 
-function WeekView() {
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [selectDueDate, setSelectedDueDate] = useState<string>("");
-  const [isOpen, setIsOpen] = useState(false);
-
+function WeekView({
+  onAddTask,
+  onEditTask
+}: {
+  onAddTask: (dueDate?: string) => void;
+  onEditTask: (taskId: string) => void;
+}) {
   const [values] = useQueryState<Filter[]>(
     "filters",
     parseAsJson<Filter[]>((v) =>
@@ -246,6 +262,10 @@ function WeekView() {
             moment(dates.start).add(index, "day").format("DD/MM/YYYY") ===
             moment(_task.dueDate).format("DD/MM/YYYY")
         );
+        const pendingTasks =
+          taskForDay?.filter((t) => t.status?.title !== "Completed") ?? [];
+        const completedTasks =
+          taskForDay?.filter((t) => t.status?.title === "Completed") ?? [];
         return (
           <div
             className="p-3 bg-gray-100 rounded-[12px] flex flex-col gap-2.5 w-[312px] flex-shrink-0 max-sm:w-full"
@@ -269,12 +289,11 @@ function WeekView() {
             <Button
               variant="ghost"
               className="w-full bg-white hover:bg-white text-gray-500 group"
-              onClick={() => {
-                setIsOpen(true);
-                setSelectedDueDate(
+              onClick={() =>
+                onAddTask(
                   moment(dates.start).add(index, "day").format("YYYY-MM-DD")
-                );
-              }}
+                )
+              }
             >
               <Plus className="text-gray-500 group-hover:text-black" />
               Add Task
@@ -287,34 +306,50 @@ function WeekView() {
                 <div className="w-full h-30.5 bg-gray-200/70 animate-pulse rounded-md" />
               </>
             ) : (
-              taskForDay?.map((task) => (
-                <TaskCard
-                  task={task}
-                  key={task._id}
-                  onDelete={() => mutate(task._id)}
-                  onDeleteLoading={isPending}
-                  onEdit={() => {
-                    setSelectedTask(task);
-                    setIsOpen(true);
-                  }}
-                />
-              ))
+              <>
+                {pendingTasks.map((task) => (
+                  <TaskCard
+                    task={task}
+                    key={task._id}
+                    onDelete={() => mutate(task._id)}
+                    onDeleteLoading={isPending}
+                    onEdit={() => onEditTask(task._id)}
+                  />
+                ))}
+                {completedTasks.length > 0 && (
+                  <Collapsible>
+                    <CollapsibleTrigger className="group w-full flex items-center gap-2 text-xs font-medium text-gray-600 px-1 py-2 hover:text-gray-900 cursor-pointer">
+                      <ChevronDown
+                        size={14}
+                        className="transition-transform duration-200 group-data-[state=closed]:-rotate-90"
+                      />
+                      <span>Completed</span>
+                      <Badge
+                        variant="counter"
+                        className="bg-gray-400 text-white"
+                      >
+                        {completedTasks.length}
+                      </Badge>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="flex flex-col gap-2.5 pt-2 data-[state=closed]:animate-slideUp data-[state=open]:animate-slideDown">
+                      {completedTasks.map((task) => (
+                        <TaskCard
+                          task={task}
+                          key={task._id}
+                          onDelete={() => mutate(task._id)}
+                          onDeleteLoading={isPending}
+                          onEdit={() => onEditTask(task._id)}
+                          dimmed
+                        />
+                      ))}
+                    </CollapsibleContent>
+                  </Collapsible>
+                )}
+              </>
             )}
           </div>
         );
       })}
-      <AddTaskSheet
-        open={isOpen}
-        onOpenChange={(toggle) => {
-          setIsOpen(toggle);
-          setTimeout(() => {
-            setSelectedTask(null);
-          }, 200);
-        }}
-        selectedTask={selectedTask?._id}
-        editing={!!selectedTask}
-        predefinedDueDate={selectDueDate}
-      />
     </div>
   );
 }

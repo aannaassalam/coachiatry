@@ -1,4 +1,5 @@
 import DeleteDialog from "@/components/DeleteDialog";
+import PageTitle from "@/components/Seo/PageTitle";
 import { Button } from "@/components/ui/button";
 import {
   Pagination,
@@ -139,6 +140,7 @@ function Transcripts() {
 
   return (
     <AppLayout>
+      <PageTitle title="Transcripts" />
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl leading-7 tracking-[-3%] font-semibold text-gray-900 mb-2 max-sm:text-xl max-sm:mb-0">
           Transcriptions

@@ -1,4 +1,5 @@
 import MultiSelectUsers from "@/components/MultiSelectUsers";
+import PageTitle from "@/components/Seo/PageTitle";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -140,6 +141,7 @@ export default function Settings() {
 
   return (
     <AppLayout>
+      <PageTitle title="Settings" />
       <div className="space-y-5">
         <h1 className="font-semibold text-gray-900 text-2xl leading-7 tracking-[-3%] max-sm:mb-4">
           Settings

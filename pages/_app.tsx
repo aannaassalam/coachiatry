@@ -1,4 +1,5 @@
 import FloatingChat from "@/components/FloatingChat/FloatingChat";
+import PageTitle from "@/components/Seo/PageTitle";
 import { FloatingChatProvider } from "@/lib/floatingChatContext";
 import { checkWindow } from "@/lib/functions/_helpers.lib";
 import { SocketProvider } from "@/lib/socketContext";
@@ -81,6 +82,8 @@ export default function CustomApp({ Component, pageProps }: AppProps) {
 
   return (
     <main className={`${archivo.variable} ${lato.variable}`}>
+      {/* Brand fallback for any page that doesn't render its own PageTitle. */}
+      <PageTitle />
       <SessionProvider
         session={pageProps.session}
         refetchOnWindowFocus

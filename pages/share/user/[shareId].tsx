@@ -1,3 +1,4 @@
+import PageTitle from "@/components/Seo/PageTitle";
 import { shareViewAccessToWatchers } from "@/external-api/functions/user.api";
 import { queryClient } from "@/pages/_app";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
@@ -64,6 +65,7 @@ export default function Index() {
 
   return (
     <div className="h-screen flex items-center justify-center">
+      <PageTitle title="Shared Tasks" />
       {isLoading ? (
         <div className="w-10 h-10 border-4 border-gray-700 border-t-transparent rounded-full animate-spin"></div>
       ) : data ? (

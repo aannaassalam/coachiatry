@@ -1,4 +1,5 @@
 import ScheduledTable from "@/components/Chats/ScheduledTable";
+import PageTitle from "@/components/Seo/PageTitle";
 import { Separator } from "@/components/ui/separator";
 import AppLayout from "@/layouts/AppLayout";
 import Link from "next/link";
@@ -6,6 +7,7 @@ import Link from "next/link";
 function ScheduledMessages() {
   return (
     <AppLayout>
+      <PageTitle title="Scheduled Messages" />
       <div className="mb-4 flex items-center justify-between">
         <div className="flex gap-2 items-center ">
           <Link

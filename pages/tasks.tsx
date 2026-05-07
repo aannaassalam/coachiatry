@@ -1,3 +1,4 @@
+import PageTitle from "@/components/Seo/PageTitle";
 import AddTaskSheet from "@/components/Tasks/AddTaskSheet";
 import FilterBox from "@/components/Tasks/FilterBox";
 import ListView from "@/components/Tasks/ListView";
@@ -25,7 +26,7 @@ import { ListFilter } from "lucide-react";
 import moment from "moment";
 import { useSession } from "next-auth/react";
 import { parseAsJson, parseAsString, useQueryState } from "nuqs";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { BsChevronLeft, BsChevronRight } from "react-icons/bs";
 import { IoIosShareAlt } from "react-icons/io";
 import { toast } from "sonner";
@@ -66,6 +67,57 @@ function Tasks() {
   );
 
   const [isOpen, setIsOpen] = useState(false);
+  // The single source of truth for the AddTaskSheet on the tasks page. Lifted
+  // here so list / week tabs and the page header all drive ONE sheet — having
+  // multiple AddTaskSheet mounts (one per tab + one per page) caused stacked
+  // sheets to open on top of each other when the user combined actions.
+  const [selectedTask, setSelectedTask] = useQueryState(
+    "task",
+    parseAsString.withDefault("")
+  );
+  const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
+  const [selectedDueDate, setSelectedDueDate] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (selectedTask) setIsOpen(true);
+  }, [selectedTask]);
+
+  const openAddTask = useCallback(
+    (opts?: { statusId?: string; dueDate?: string }) => {
+      setSelectedStatus(opts?.statusId ?? null);
+      setSelectedDueDate(opts?.dueDate ?? null);
+      setIsOpen(true);
+    },
+    []
+  );
+
+  // const handleAddFromList = useCallback(
+  //   (statusId?: string) => openAddTask({ statusId }),
+  //   [openAddTask]
+  // );
+
+  // const handleAddFromWeek = useCallback(
+  //   (dueDate?: string) => openAddTask({ dueDate }),
+  //   [openAddTask]
+  // );
+
+  // const handleEditTask = useCallback(
+  //   (taskId: string) => setSelectedTask(taskId),
+  //   [setSelectedTask]
+  // );
+
+  // const handleSheetOpenChange = useCallback(
+  //   (toggle: boolean) => {
+  //     setIsOpen(toggle);
+  //     if (!toggle) {
+  //       setSelectedTask(null);
+  //       setSelectedStatus(null);
+  //       setSelectedDueDate(null);
+  //     }
+  //   },
+  //   [setSelectedTask]
+  // );
+
   const validatedFilters = sanitizeFilters(values);
 
   useEffect(() => {
@@ -96,6 +148,7 @@ function Tasks() {
   };
   return (
     <AppLayout>
+      <PageTitle title="Tasks" />
       {/* header */}
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl leading-7 tracking-[-3%] font-semibold text-gray-900 mb-2 max-sm:mb-0">
@@ -137,7 +190,7 @@ function Tasks() {
               </div>
             </DialogContent>
           </Dialog>
-          <Button onClick={() => setIsOpen(true)}>New Task</Button>
+          <Button onClick={() => openAddTask()}>New Task</Button>
         </div>
       </div>
       <Tabs
@@ -248,18 +301,35 @@ function Tasks() {
 
           <Separator />
           <TabsContent value="list">
-            <ListView />
+            <ListView onAddTask={(statusId) => openAddTask({ statusId })} />
           </TabsContent>
           <TabsContent
             value="week"
             className="w-full weekContainer max-lg:!max-w-[93vw]"
           >
-            <WeekView />
+            <WeekView
+              onAddTask={(dueDate) => openAddTask({ dueDate })}
+              onEditTask={(taskId) => setSelectedTask(taskId)}
+            />
           </TabsContent>
         </div>
       </Tabs>
 
-      <AddTaskSheet open={isOpen} onOpenChange={setIsOpen} />
+      <AddTaskSheet
+        open={isOpen}
+        onOpenChange={(toggle) => {
+          setIsOpen(toggle);
+          if (!toggle) {
+            setSelectedTask(null);
+            setSelectedStatus(null);
+            setSelectedDueDate(null);
+          }
+        }}
+        selectedTask={selectedTask}
+        editing={!!selectedTask}
+        predefinedStatus={selectedStatus}
+        predefinedDueDate={selectedDueDate}
+      />
     </AppLayout>
   );
 }

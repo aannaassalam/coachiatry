@@ -1,5 +1,6 @@
 "use client";
 
+import PageTitle from "@/components/Seo/PageTitle";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
@@ -52,6 +53,7 @@ export default function ResetPassword() {
 
   return (
     <AuthLayout className="flex items-center justify-center">
+      <PageTitle title="Reset Password" />
       <Card className="w-full max-w-lg py-9 max-sm:max-w-[95%]">
         <CardHeader className="text-center">
           <h1 className="font-semibold text-[32px] leading-10 tracking-[-3%] text-primary-text">

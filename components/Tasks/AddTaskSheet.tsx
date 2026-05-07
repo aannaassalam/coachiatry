@@ -2,10 +2,10 @@
 
 import { cn } from "@/lib/utils";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { CalendarIcon, Loader2, X } from "lucide-react";
+import { CalendarIcon, X } from "lucide-react";
 import moment from "moment";
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useEffect, useState } from "react";
+import { Resolver, useForm } from "react-hook-form";
 import * as yup from "yup";
 import { Button } from "../ui/button";
 import { Combobox } from "../ui/combobox";
@@ -28,6 +28,7 @@ import {
   SheetHeader,
   SheetTitle
 } from "../ui/sheet";
+import { Skeleton } from "../ui/skeleton";
 import { Textarea } from "../ui/textarea";
 import SubtaskList from "./AddSubTasks";
 
@@ -40,11 +41,11 @@ import { useMutation, useQueries } from "@tanstack/react-query";
 
 const schema = yup.object().shape({
   title: yup.string().required("Title is required"),
-  description: yup.string().required("Description is required"),
-  priority: yup.string().required("Priority is required"),
-  category: yup.string().required("Category is required"),
-  dueDate: yup.date().required("Due date is required"),
-  status: yup.string().required("Status is required"),
+  description: yup.string().default(""),
+  priority: yup.string().default("low"),
+  category: yup.string(),
+  dueDate: yup.date(),
+  status: yup.string(),
   frequency: yup.string().default(""),
   minutesDuration: yup.string().default(""),
   hoursDuration: yup.string().default(""),
@@ -84,6 +85,34 @@ export default function AddTaskSheet({
   predefinedDueDate?: string | null;
   disabledAll?: boolean;
 }) {
+  // Snapshot the inputs that drive the sheet's identity (edit vs add, which
+  // task to load, which status to preselect) at the moment the sheet opens.
+  // The parent clears these synchronously on close — without freezing them
+  // here, the title would flip from "Edit Task" → "Add New Task" for the
+  // duration of the slide-out animation, the data query would re-fire, and
+  // re-renders during animation would cause the visible lag.
+  const [snapshot, setSnapshot] = useState({
+    selectedTask: selectedTask ?? "",
+    editing: !!editing,
+    predefinedStatus: predefinedStatus ?? null,
+    predefinedDueDate: predefinedDueDate ?? null
+  });
+
+  useEffect(() => {
+    if (!open) return;
+    setSnapshot({
+      selectedTask: selectedTask ?? "",
+      editing: !!editing,
+      predefinedStatus: predefinedStatus ?? null,
+      predefinedDueDate: predefinedDueDate ?? null
+    });
+  }, [open, selectedTask, editing, predefinedStatus, predefinedDueDate]);
+
+  const effectiveSelectedTask = snapshot.selectedTask;
+  const effectiveEditing = snapshot.editing;
+  const effectivePredefinedStatus = snapshot.predefinedStatus;
+  const effectivePredefinedDueDate = snapshot.predefinedDueDate;
+
   const [
     { data, isLoading },
     { data: categories, isLoading: isCategoryLoading, isFetching },
@@ -91,9 +120,9 @@ export default function AddTaskSheet({
   ] = useQueries({
     queries: [
       {
-        queryKey: ["task", selectedTask],
-        queryFn: () => getTask(selectedTask as string),
-        enabled: !!selectedTask
+        queryKey: ["task", effectiveSelectedTask],
+        queryFn: () => getTask(effectiveSelectedTask),
+        enabled: !!effectiveSelectedTask
       },
       {
         queryKey: ["categories"],
@@ -146,15 +175,22 @@ export default function AddTaskSheet({
         subtasks: []
       });
       onOpenChange(false);
-      queryClient.invalidateQueries({ queryKey: ["task", selectedTask] });
+      queryClient.invalidateQueries({
+        queryKey: ["task", effectiveSelectedTask]
+      });
     },
     meta: {
       invalidateQueries: ["tasks"]
     }
   });
 
-  const form = useForm<yup.InferType<typeof schema>>({
-    resolver: yupResolver(schema),
+  // @hookform/resolvers v5 + yup's mix of optional and defaulted fields in
+  // this schema produces a Resolver<input> that doesn't match useForm's
+  // expected Resolver<output>. Cast through to keep the typed form API while
+  // the resolver still validates against the same yup schema at runtime.
+  type TaskFormData = yup.InferType<typeof schema>;
+  const form = useForm<TaskFormData>({
+    resolver: yupResolver(schema) as unknown as Resolver<TaskFormData>,
     defaultValues: {
       title: "",
       description: "",
@@ -170,15 +206,64 @@ export default function AddTaskSheet({
     }
   });
 
+  // Single source of truth for seeding the form. When the sheet is open we
+  // either populate from the loaded task (edit) or reset to defaults (add).
+  // Previously this was split across two useEffects: an open-effect that
+  // reset to empty + Todo, and a separate data-effect that filled in task
+  // data. On the second open of the same task, react-query returned cached
+  // `data` (no change) so the data-effect's deps were stable and it never
+  // re-ran — leaving the form stuck on the empty reset. Collapsing them here
+  // ensures every transition to open=true re-applies the correct values.
   useEffect(() => {
+    if (!open) return;
+    if (effectiveEditing) {
+      // Wait for the task data to land before populating; if it isn't here
+      // yet the data-arrival pass below (same effect, different deps tick)
+      // will fire once it does.
+      if (!data) return;
+      form.reset(
+        {
+          title: data.title,
+          description: data.description,
+          priority: data.priority,
+          category: data.category._id,
+          dueDate: data.dueDate ? new Date(data.dueDate) : undefined,
+          status: data.status._id,
+          frequency: data.frequency || "",
+          minutesDuration: data.taskDuration
+            ? (data.taskDuration % 60).toString().padStart(2, "0")
+            : "",
+          hoursDuration: data.taskDuration
+            ? Math.floor(data.taskDuration / 60)
+                .toString()
+                .padStart(2, "0")
+            : "",
+          remindBefore: data.remindBefore
+            ? data.remindBefore.toString().padStart(2, "0")
+            : "",
+          subtasks: data.subtasks as Subtask[]
+        },
+        { keepDirty: false }
+      );
+      return;
+    }
+    // Add mode: prefer matching status / category _ids; fall back to the
+    // literal labels so the form still has a sensible value before those
+    // queries resolve.
+    const todoStatus =
+      statuses?.find((s) => s.title === "To do")?._id ?? "To do";
+    const healthCategory =
+      categories?.find((c) => c.title === "Health")?._id ?? "Health";
     form.reset(
       {
         title: "",
         description: "",
         priority: "low",
-        category: "",
-        dueDate: predefinedDueDate ? new Date(predefinedDueDate) : undefined,
-        status: predefinedStatus ?? "",
+        category: healthCategory,
+        dueDate: effectivePredefinedDueDate
+          ? new Date(effectivePredefinedDueDate)
+          : undefined,
+        status: effectivePredefinedStatus ?? todoStatus,
         frequency: "",
         minutesDuration: "",
         hoursDuration: "",
@@ -187,11 +272,30 @@ export default function AddTaskSheet({
       },
       { keepDirty: false }
     );
-  }, [predefinedStatus, predefinedDueDate, form]);
+  }, [
+    open,
+    data,
+    effectiveEditing,
+    effectivePredefinedStatus,
+    effectivePredefinedDueDate,
+    statuses,
+    categories,
+    form
+  ]);
 
   const onSubmit = (data: yup.InferType<typeof schema>) => {
+    // The schema marks priority/status as optional, but the API contract
+    // (TaskBody) requires both. Coerce to safe defaults at submit time so
+    // partial form states still round-trip cleanly.
+    const todoStatusId =
+      statuses?.find((s) => s.title === "Todo")?._id ?? "Todo";
+    const healthCategory =
+      categories?.find((c) => c.title === "Health")?._id ?? "Health";
     const finalData = {
       ...data,
+      priority: data.priority || "low",
+      status: data.status || todoStatusId,
+      category: data.category ?? healthCategory,
       remindBefore: data.remindBefore ? parseInt(data.remindBefore) : undefined,
       taskDuration: data.hoursDuration
         ? data.minutesDuration
@@ -203,41 +307,12 @@ export default function AddTaskSheet({
       frequency:
         data.frequency === "" || !data.frequency ? undefined : data.frequency
     };
-    if (selectedTask && editing) {
-      editMutate({ task_id: selectedTask, data: finalData });
+    if (effectiveSelectedTask && effectiveEditing) {
+      editMutate({ task_id: effectiveSelectedTask, data: finalData });
     } else {
       mutate(finalData);
     }
   };
-
-  useEffect(() => {
-    if (data && editing) {
-      form.reset(
-        {
-          title: data?.title,
-          description: data?.description,
-          priority: data?.priority,
-          category: data?.category._id,
-          dueDate: data?.dueDate ? new Date(data?.dueDate) : undefined,
-          status: data?.status._id,
-          frequency: data?.frequency || "",
-          minutesDuration: data?.taskDuration
-            ? (data?.taskDuration % 60).toString().padStart(2, "0")
-            : "",
-          hoursDuration: data?.taskDuration
-            ? Math.floor(data?.taskDuration / 60)
-                .toString()
-                .padStart(2, "0")
-            : "",
-          remindBefore: data?.remindBefore
-            ? data?.remindBefore.toString().padStart(2, "0")
-            : "",
-          subtasks: data?.subtasks as Subtask[]
-        },
-        { keepDirty: false }
-      );
-    }
-  }, [data, form, editing]);
 
   const dropDownOptions = {
     priority: [
@@ -270,16 +345,48 @@ export default function AddTaskSheet({
       <SheetContent className="lg:max-w-2xl gap-0 max-lg:!max-w-full max-lg:!w-full">
         <SheetHeader className="border-b p-6 max-sm:p-4 flex-row items-center justify-between">
           <SheetTitle className="font-archivo font-semibold text-xl text-gray-900">
-            {disabledAll ? "View Task" : editing ? "Edit Task" : "Add New Task"}
+            {disabledAll
+              ? "View Task"
+              : effectiveEditing
+                ? "Edit Task"
+                : "Add New Task"}
           </SheetTitle>
           <SheetClose className="cursor-pointer">
             <X />
           </SheetClose>
         </SheetHeader>
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center flex-1 text-gray-500">
-            <Loader2 className="h-6 w-6 animate-spin mb-2" />
-            <p className="text-sm">Fetching details...</p>
+          <div className="flex-1 p-6 py-4 inline-flex flex-col overflow-auto max-sm:p-4">
+            <div className="space-y-5">
+              <div className="space-y-4">
+                {/* Title */}
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-20 bg-gray-200" />
+                  <Skeleton className="h-9 w-full bg-gray-200" />
+                </div>
+                {/* Description */}
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-32 bg-gray-200" />
+                  <Skeleton className="h-32 w-full bg-gray-200" />
+                </div>
+                {/* Subtasks */}
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-24 bg-gray-200" />
+                  <Skeleton className="h-9 w-full bg-gray-200" />
+                  <Skeleton className="h-9 w-full bg-gray-200" />
+                </div>
+                {/* Two-column metadata grid */}
+                <div className="grid grid-cols-2 gap-3 pt-4 mt-4 border-t border-gray-100 max-sm:grid-cols-1 max-sm:gap-2">
+                  {Array.from({ length: 6 }).map((_, idx) => (
+                    <div key={idx} className="space-y-2">
+                      <Skeleton className="h-3.5 w-20 bg-gray-200" />
+                      <Skeleton className="h-9 w-full bg-gray-200" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <Skeleton className="h-4 w-48 mt-auto bg-gray-200" />
           </div>
         ) : (
           <div className="flex-1 p-6 py-4 inline-flex flex-col overflow-auto max-sm:p-4">

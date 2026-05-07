@@ -22,13 +22,14 @@ import {
   CollapsibleContent,
   CollapsibleTrigger
 } from "../ui/collapsible";
-import AddTaskSheet from "./AddTaskSheet";
 import TasksTable from "./TasksTable";
 
-function ListView() {
+function ListView({
+  onAddTask
+}: {
+  onAddTask: (statusId?: string) => void;
+}) {
   const [openIndexes, setOpenIndexes] = useState<number[]>([0]);
-  const [isOpen, setIsOpen] = useState(false);
-  const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
 
   const [sort] = useQueryState(
     "sort",
@@ -151,10 +152,7 @@ function ListView() {
                   variant="ghost"
                   className="text-gray-400 text-[12px] self-end"
                   size="sm"
-                  onClick={() => {
-                    setIsOpen(true);
-                    setSelectedStatus(_status?._id as string);
-                  }}
+                  onClick={() => onAddTask(_status?._id)}
                 >
                   <Image
                     src={assets.icons.plus}
@@ -172,19 +170,12 @@ function ListView() {
                     []
                   }
                   isLoading={isLoading}
+                  onAddTask={onAddTask}
                 />
               </CollapsibleContent>
             </Collapsible>
           ))
       )}
-      <AddTaskSheet
-        open={isOpen}
-        onOpenChange={(toggle) => {
-          setIsOpen(toggle);
-          setSelectedStatus(null);
-        }}
-        predefinedStatus={selectedStatus}
-      />
     </div>
   );
 }

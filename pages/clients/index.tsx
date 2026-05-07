@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
 import ProfileModal from "@/components/Clients/ProfileModal";
+import PageTitle from "@/components/Seo/PageTitle";
 import EmptyTable from "@/components/Table/EmptyTable";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { SmartAvatar } from "@/components/ui/smart-avatar";
@@ -40,6 +41,7 @@ function Clients() {
 
   return (
     <AppLayout>
+      <PageTitle title="Clients" />
       <div className="mb-4 flex items-center justify-between max-sm:flex-col max-sm:items-start max-sm:mb-2">
         <h1 className="text-2xl leading-7 tracking-[-3%] font-semibold text-gray-900 mb-2">
           All Clients

@@ -3,6 +3,7 @@ import Documents from "@/components/Clients/Documents";
 import Tasks from "@/components/Clients/Task";
 import Transcriptions from "@/components/Clients/Transcriptions";
 import Loader from "@/components/Loader";
+import PageTitle from "@/components/Seo/PageTitle";
 import { Button } from "@/components/ui/button";
 import { SmartAvatar } from "@/components/ui/smart-avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -173,6 +174,7 @@ function ClientDetails() {
 
   return (
     <AppLayout>
+      <PageTitle title={data?.fullName ?? "Client"} />
       <div className="mb-4 flex items-center justify-between">
         <div className="flex gap-2 items-center ">
           <Link

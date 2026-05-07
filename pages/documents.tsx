@@ -2,6 +2,7 @@ const DocumentSheet = dynamic(() => import("@/components/DocumentSheet"), {
   ssr: false
 });
 import DeleteDialog from "@/components/DeleteDialog";
+import PageTitle from "@/components/Seo/PageTitle";
 import EmptyTable from "@/components/Table/EmptyTable";
 import { RenderTableSortingIcon } from "@/components/Tasks/TasksTable";
 import { Badge } from "@/components/ui/badge";
@@ -239,6 +240,7 @@ export default function Documents() {
 
   return (
     <AppLayout>
+      <PageTitle title="Documents" />
       <DocumentSheet
         open={isOpen}
         onOpenChange={(open) => {

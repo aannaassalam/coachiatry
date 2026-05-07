@@ -29,12 +29,12 @@ export interface Task {
 
 export interface TaskBody {
   title: string;
-  description: string;
+  description?: string;
   subtasks?: Omit<Subtask, "_id">[];
-  category: string;
-  priority: string;
-  dueDate: Date;
-  status: string;
+  category?: string;
+  priority?: string;
+  dueDate?: Date;
+  status?: string;
   taskDuration?: number;
   frequency?: string | undefined;
   remindBefore?: number;

@@ -1,5 +1,6 @@
 "use client";
 
+import PageTitle from "@/components/Seo/PageTitle";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -78,6 +79,7 @@ export default function Login() {
 
   return (
     <AuthLayout className="flex items-center justify-center">
+      <PageTitle title="Login" />
       <Card
         className="w-full max-w-lg max-sm:max-w-[95%] py-9"
         key="login-card"

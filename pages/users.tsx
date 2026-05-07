@@ -1,4 +1,5 @@
 import DeleteDialog from "@/components/DeleteDialog";
+import PageTitle from "@/components/Seo/PageTitle";
 import EmptyTable from "@/components/Table/EmptyTable";
 import { Button } from "@/components/ui/button";
 import {
@@ -341,6 +342,7 @@ export default function Users() {
 
   return (
     <AppLayout>
+      <PageTitle title="Users & Permissions" />
       <div className="mb-4 flex items-center justify-between max-sm:flex-col max-sm:items-start max-sm:mb-2">
         <h1 className="text-2xl leading-7 tracking-[-3%] font-semibold text-gray-900 mb-2">
           Users and Permissions

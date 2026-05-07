@@ -1,3 +1,4 @@
+import PageTitle from "@/components/Seo/PageTitle";
 import FilterBox from "@/components/Tasks/FilterBox";
 import SharedListView from "@/components/Tasks/Shared/SharedListView";
 import SharedWeekView from "@/components/Tasks/Shared/SharedWeekView";
@@ -66,6 +67,7 @@ function SharedTasks() {
   };
   return (
     <AppLayout>
+      <PageTitle title="Shared Tasks" />
       {/* header */}
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl leading-7 tracking-[-3%] font-semibold text-gray-900 mb-2 max-sm:mb-0">

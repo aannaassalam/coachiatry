@@ -1,6 +1,7 @@
 import ChatConversation from "@/components/Chats/ChatConversation";
 import ChatList from "@/components/Chats/ChatList";
 import ScheduledTable from "@/components/Chats/ScheduledTable";
+import PageTitle from "@/components/Seo/PageTitle";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AppLayout from "@/layouts/AppLayout";
@@ -15,6 +16,9 @@ function Chat() {
 
   return (
     <AppLayout isPaddingBottom={false}>
+      <PageTitle
+        title={tab === "scheduled" ? "Scheduled Messages" : "Messages"}
+      />
       <div className="flex justify-between items-center mb-2 max-sm:gap-2">
         <div className="flex items-center justify-between gap-5 ">
           <h1 className="font-semibold text-gray-900 text-2xl leading-7 tracking-[-3%] max-sm:text-xl">

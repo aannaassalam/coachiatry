@@ -1,3 +1,4 @@
+import PageTitle from "@/components/Seo/PageTitle";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { getAllConversations } from "@/external-api/functions/chat.api";
@@ -147,6 +148,7 @@ export default function Home() {
 
   return (
     <AppLayout>
+      <PageTitle title="Dashboard" />
       <div className="mb-4">
         <h1 className="text-2xl leading-7 tracking-[-3%] font-semibold text-gray-900 mb-2">
           👋 Hey, {data?.user?.fullName.split(" ").shift()}

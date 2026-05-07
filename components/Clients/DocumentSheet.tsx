@@ -276,7 +276,7 @@ export default function DocumentSheet({
                   <div>
                     <h2
                       className={cn(
-                        "font-medium text-2xl leading-7 tracking-[-3%] text-gray-900 mt-2",
+                        "font-medium text-2xl leading-7 tracking-[-3%] text-gray-900 mt-2 p-1",
                         {
                           "border border-red-400": errorState.field === "title"
                         }

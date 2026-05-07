@@ -38,7 +38,6 @@ import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { SmartAvatar } from "../ui/smart-avatar";
-import AddTaskSheet from "./AddTaskSheet";
 import PriorityFlag from "./PriorityFlag";
 import StatusBox from "./StatusBox";
 import { useSession } from "next-auth/react";
@@ -221,21 +220,22 @@ export const RenderTableSortingIcon = ({ name }: { name: string }) => {
 
 function TasksTable({
   tasks,
-  isLoading
+  isLoading,
+  onAddTask
 }: {
   tasks: Task[];
   isLoading: boolean;
+  /** Lifted up to pages/tasks.tsx so there's a single shared AddTaskSheet. */
+  onAddTask?: (statusId?: string) => void;
 }) {
   const { data } = useSession();
   const [openTasksIndex, setOpenTasksIndex] = useState<string[]>([]);
   const [statusBoxIndex, setStatusBoxIndex] = useState<string | null>(null);
   const [openAssignFor, setOpenAssignFor] = useState<string | null>(null);
-  const [selectedTask, setSelectedTask] = useQueryState(
+  const [, setSelectedTask] = useQueryState(
     "task",
     parseAsString.withDefault("")
   );
-  const [selectedStatusId, setSelectedStatusId] = useState<string | null>(null);
-  const [isOpen, setIsOpen] = useState(false);
 
   const [sort] = useQueryState(
     "sort",
@@ -251,12 +251,6 @@ function TasksTable({
   );
 
   const validatedFilters = sanitizeFilters(values);
-
-  useEffect(() => {
-    if (selectedTask) {
-      setIsOpen(true);
-    }
-  }, [selectedTask]);
 
   const prefetchOnMouseEnter = (id: string) => {
     queryClient.prefetchQuery({
@@ -363,10 +357,7 @@ function TasksTable({
                   <React.Fragment key={task._id}>
                     <TableRow
                       className="!h-[44px] hover:bg-gray-50 !border-b-1 !border-gray-100 cursor-pointer"
-                      onClick={() => {
-                        setSelectedTask(task._id);
-                        setIsOpen(true);
-                      }}
+                      onClick={() => setSelectedTask(task._id)}
                       onMouseEnter={() => prefetchOnMouseEnter(task._id)}
                     >
                       <TableCell
@@ -590,10 +581,7 @@ function TasksTable({
                               variant="ghost"
                               size="sm"
                               className="cursor-pointer flex items-center gap-2 w-full [&>span]:justify-start"
-                              onClick={() => {
-                                setSelectedTask(task._id);
-                                setIsOpen(true);
-                              }}
+                              onClick={() => setSelectedTask(task._id)}
                             >
                               <Pencil />
                               Edit
@@ -632,27 +620,11 @@ function TasksTable({
         variant="ghost"
         className="text-gray-400 text-[12px] mt-2"
         size="sm"
-        onClick={() => {
-          setIsOpen(true);
-          setSelectedStatusId(tasks[0]?.status?._id);
-        }}
+        onClick={() => onAddTask?.(tasks[0]?.status?._id)}
       >
         <Image src={assets.icons.plus} alt="add" width={14} height={14} />
         Add Task
       </Button>
-      <AddTaskSheet
-        open={isOpen}
-        onOpenChange={(toggle) => {
-          setIsOpen(toggle);
-          setTimeout(() => {
-            setSelectedTask(null);
-            setSelectedStatusId(null);
-          }, 200);
-        }}
-        selectedTask={selectedTask}
-        editing={!!selectedTask}
-        predefinedStatus={selectedStatusId}
-      />
     </div>
   );
 }

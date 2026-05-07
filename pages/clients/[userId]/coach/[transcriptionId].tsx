@@ -1,4 +1,5 @@
 "use client";
+import PageTitle from "@/components/Seo/PageTitle";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
@@ -553,6 +554,7 @@ function TranscriptsDescription() {
 
   return (
     <AppLayout>
+      <PageTitle title="Transcript" />
       <div className="mb-4 flex items-center justify-between">
         <div className="flex gap-2 items-center ">
           <Link
