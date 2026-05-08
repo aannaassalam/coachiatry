@@ -24,11 +24,7 @@ import {
 } from "../ui/collapsible";
 import TasksTable from "./TasksTable";
 
-function ListView({
-  onAddTask
-}: {
-  onAddTask: (statusId?: string) => void;
-}) {
+function ListView({ onAddTask }: { onAddTask: (statusId?: string) => void }) {
   const [openIndexes, setOpenIndexes] = useState<number[]>([0]);
 
   const [sort] = useQueryState(

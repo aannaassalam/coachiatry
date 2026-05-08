@@ -338,6 +338,7 @@ export default function CoachAI({
     isTaskAdded: false,
     selectedTasks: []
   });
+  const bodyRef = useRef<HTMLDivElement>(null);
 
   const resize = () => {
     const el = textareaRef.current;
@@ -390,6 +391,18 @@ export default function CoachAI({
       showToast: false
     }
   });
+
+  // Keep the chat pinned to the bottom as the conversation grows. Triggers on
+  // every new message and on the pending indicator so the user always sees
+  // the latest reply / "Thinking…" without manually scrolling.
+  useEffect(() => {
+    const container = bodyRef.current;
+    if (!container) return;
+    container.scrollTo({
+      top: container.scrollHeight,
+      behavior: "smooth"
+    });
+  }, [chats, isPending]);
 
   const handleSend = () => {
     if (value.trim()) {
@@ -471,7 +484,10 @@ export default function CoachAI({
       </div>
 
       {/* Body */}
-      <div className="flex-1 flex flex-col pt-6 p-5 overflow-y-auto max-h-[calc(100%-160px)] max-md:max-h-[calc(100%-140px)] max-sm:max-h-[calc(100%-130px)]">
+      <div
+        ref={bodyRef}
+        className="flex-1 flex flex-col pt-6 p-5 overflow-y-auto max-h-[calc(100%-160px)] max-md:max-h-[calc(100%-140px)] max-sm:max-h-[calc(100%-130px)]"
+      >
         <div className="flex items-start gap-2 mb-6">
           <RiDvdAiFill className="size-6 text-black mt-0.5" />
           <div className="flex-1">
