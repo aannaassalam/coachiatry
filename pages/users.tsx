@@ -90,13 +90,16 @@ export function getAssignableUsersForDropdown(params: {
   // from any "Managed by" candidates regardless of role pairing.
   const excludeSelf = (u: User) => u._id !== creatorId;
 
-  // ✅ Manager being created => assignable: admins
+  // ✅ Manager being created => assignable: admins.
+  // The acting admin is intentionally kept in the list (no excludeSelf) so a
+  // manager can be managed by the admin creating/editing them. Excluding self
+  // here would also make sanitizeAssignedCoach strip a self-assignment on save.
   if (targetRole === "manager") {
     return {
       requiresAssignment: true,
       autoAssigned: false,
       options: allUsers
-        .filter((u) => u.role === "admin" && excludeSelf(u))
+        .filter((u) => u.role === "admin")
         .map((u) => ({ label: u.fullName, value: u._id }))
     };
   }
@@ -171,9 +174,16 @@ export function getAssignableUsersForDropdown(params: {
     return { requiresAssignment: false, autoAssigned: false, options: [] };
   }
 
-  // ✅ Admin being created: no assignment needed (or you can enforce rules)
+  // ✅ Admin being created / upgraded => no "managed by" assignment.
+  // assignedCoach must be empty: options:[] drives sanitizeAssignedCoach to
+  // strip any ids carried over from the user's previous role on submit.
   if (targetRole === "admin") {
-    return { requiresAssignment: false, autoAssigned: true, options: [] };
+    return {
+      requiresAssignment: false,
+      autoAssigned: false,
+      autoAssignedTo: [],
+      options: []
+    };
   }
 
   return { requiresAssignment: false, autoAssigned: false, options: [] };
@@ -299,20 +309,26 @@ export default function Users() {
       targetRole: watchedRole
     });
 
-  // Hard guard: any time the role changes (radio click, form.reset on edit
-  // open, programmatic setValue, etc.) wipe assignedCoach so stale managers
-  // from a previous role can't sneak through and the admin starts with an
-  // empty selection that's valid for the new role.
+  // When the role changes, drop only the assignedCoach ids that aren't valid
+  // for the newly-selected role. On a real role switch this clears stale
+  // managers/coaches, but on edit-open (form.reset sets role + assignedCoach
+  // together) the pre-filled ids are already valid for the user's role, so
+  // they're preserved instead of being wiped.
   const previousRoleRef = useRef<string | undefined>(watchedRole);
   useEffect(() => {
     if (
       previousRoleRef.current !== undefined &&
       previousRoleRef.current !== watchedRole
     ) {
-      form.setValue("assignedCoach", [], { shouldDirty: true });
+      const validIds = new Set(options.map((o) => o.value));
+      const current = form.getValues("assignedCoach") ?? [];
+      const filtered = current.filter((id) => validIds.has(id));
+      if (filtered.length !== current.length) {
+        form.setValue("assignedCoach", filtered, { shouldDirty: true });
+      }
     }
     previousRoleRef.current = watchedRole;
-  }, [watchedRole, form]);
+  }, [watchedRole, form, options]);
 
   const goToPage = (p: number) => {
     if (p < 1 || (data?.meta.totalPages && p > data?.meta.totalPages)) return;
@@ -432,7 +448,7 @@ export default function Users() {
                       {user.email}
                     </TableCell>
                     <TableCell className="py-3.5 text-sm text-gray-600 capitalize">
-                      {user.role}
+                      {user.role === "user" ? "Client" : user.role}
                     </TableCell>
                     <TableCell className="py-3.5 text-sm text-gray-600 capitalize max-w-[300px] flex flex-wrap gap-1">
                       {user.assignedCoach?.map((ac) => (

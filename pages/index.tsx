@@ -214,7 +214,7 @@ export default function Home() {
                           (_task) => _task.status._id === _status._id
                         ) ?? []
                       }
-                      isHighlighted={_status.title === "Todo"}
+                      isHighlighted={_status.title === "To Do"}
                       titleColor={_status.color.text}
                       bgColor={_status.color.bg}
                       accentColor={_status.color.text}

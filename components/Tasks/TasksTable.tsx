@@ -23,7 +23,7 @@ import { cn } from "@/lib/utils";
 import { queryClient } from "@/pages/_app";
 import { Task } from "@/typescript/interface/task.interface";
 import { useMutation } from "@tanstack/react-query";
-import { ChevronsUpDown, Ellipsis, Pencil, Trash } from "lucide-react";
+import { Check, ChevronsUpDown, Ellipsis, Pencil, Trash } from "lucide-react";
 import Image from "next/image";
 import {
   parseAsArrayOf,
@@ -109,7 +109,7 @@ export const SubTasksTable = ({
       )}
     >
       <TableCell
-        colSpan={7}
+        colSpan={8}
         className="font-medium text-sm leading-5 flex items-center font-lato tracking-[-0.05px] pl-10 my-auto w-full"
       >
         <label
@@ -287,27 +287,42 @@ function TasksTable({
   const { mutate: assign, isPending: isAssigning } = useMutation({
     mutationFn: assignToggle,
     onMutate: async ({ taskId, coachId }) => {
-      const tasksKey = ["tasks", sort, validatedFilters];
-      await queryClient.cancelQueries({ queryKey: tasksKey });
-      const previous = queryClient.getQueryData<Task[]>(tasksKey);
-      const nextCoach = data?.user?.assignedCoach.find(
+      await queryClient.cancelQueries({ queryKey: ["tasks"] });
+
+      const snapshots = queryClient.getQueriesData<Task[]>({ queryKey: ["tasks"] });
+
+      const coachUser = data?.user?.assignedCoach.find(
         (c) => (c as unknown as User)._id === coachId
       ) as unknown as User | undefined;
-      if (nextCoach) {
-        queryClient.setQueryData<Task[]>(tasksKey, (old) =>
-          old?.map((t) =>
-            t._id === taskId ? { ...t, assignedTo: nextCoach } : t
-          )
-        );
+
+      const applyUpdate = (old: Task[] | undefined) =>
+        old?.map((t) => {
+          if (t._id !== taskId) return t;
+          const current = Array.isArray(t.assignedTo)
+            ? t.assignedTo
+            : t.assignedTo
+              ? [t.assignedTo as unknown as User]
+              : [];
+          const alreadyIn = current.some((u) => u._id === coachId);
+          return {
+            ...t,
+            assignedTo: alreadyIn
+              ? current.filter((u) => u._id !== coachId)
+              : coachUser
+                ? [...current, coachUser]
+                : current
+          };
+        });
+
+      for (const [key] of snapshots) {
+        queryClient.setQueryData<Task[]>(key, applyUpdate);
       }
-      return { previous };
+
+      return { snapshots };
     },
     onError: (_err, _vars, context) => {
-      if (context?.previous) {
-        queryClient.setQueryData(
-          ["tasks", sort, validatedFilters],
-          context.previous
-        );
+      for (const [key, data] of context?.snapshots ?? []) {
+        queryClient.setQueryData(key, data);
       }
     },
     meta: {
@@ -334,6 +349,9 @@ function TasksTable({
               <TableHead className="text-xs text-gray-400 tracking-[-0.05px] flex items-center group">
                 Due Date
                 <RenderTableSortingIcon name="dueDate" />
+              </TableHead>
+              <TableHead className="text-xs text-gray-400 tracking-[-0.05px]">
+                Owner
               </TableHead>
               <TableHead className="text-xs text-gray-400 tracking-[-0.05px]">
                 Category
@@ -442,96 +460,189 @@ function TasksTable({
                         className="tracking-[-0.05px]"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <Popover
-                          open={
-                            data?.user?.role === "admin"
-                              ? false
-                              : openAssignFor === task._id
-                          }
-                          onOpenChange={(open) => {
-                            if (data?.user?.role === "admin") return;
-                            setOpenAssignFor(open ? task._id : null);
-                          }}
-                        >
-                          <PopoverTrigger asChild>
-                            <button
-                              className="[all:unset] !flex !items-center !gap-2 disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
-                              disabled={
-                                isAssigning || data?.user?.role === "admin"
-                              }
-                            >
-                              <SmartAvatar
-                                src={task?.assignedTo?.photo}
-                                name={task?.assignedTo?.fullName}
-                                key={task?.assignedTo?.updatedAt}
-                                className="size-5"
-                                textSize="text-[10px]"
-                              />
-                              <span className="font-lato font-medium text-sm text-gray-700">
-                                {task.assignedTo?._id === data?.user?._id
-                                  ? "me"
-                                  : task.assignedTo?.fullName}
-                              </span>
-                              <ChevronsUpDown size={14} color="#777" />
-                            </button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-50">
-                            {data?.user?.assignedCoach.map((coach) => {
-                              const coachUser = coach as unknown as User;
-                              return (
-                                <button
-                                  onClick={() => {
-                                    assign({
-                                      taskId: task._id,
-                                      coachId: coachUser._id
-                                    });
-                                    setOpenAssignFor(null);
-                                  }}
-                                  key={coachUser._id}
-                                  className="py-2! [all:unset] !flex !items-center !gap-2 disabled:opacity-70 cursor-pointer!"
-                                >
+                        {(() => {
+                          const isOwner = task.user?._id === data?.user?._id;
+                          const assignees = Array.isArray(task.assignedTo)
+                            ? task.assignedTo
+                            : task.assignedTo
+                              ? [task.assignedTo as unknown as User]
+                              : [];
+
+                          const assigneeDisplay = (
+                            <div className="flex items-center gap-2">
+                              {assignees.length === 0 ? (
+                                <span className="font-lato font-medium text-sm text-gray-400">
+                                  Unassigned
+                                </span>
+                              ) : assignees.length === 1 ? (
+                                <>
                                   <SmartAvatar
-                                    src={coachUser?.photo}
-                                    name={coachUser?.fullName}
-                                    key={coachUser?.updatedAt}
+                                    src={assignees[0]?.photo}
+                                    name={assignees[0]?.fullName}
+                                    key={assignees[0]?.updatedAt}
                                     className="size-5"
                                     textSize="text-[10px]"
                                   />
                                   <span className="font-lato font-medium text-sm text-gray-700">
-                                    {coachUser?._id === data?.user?._id
+                                    {assignees[0]?._id === data?.user?._id
                                       ? "me"
-                                      : coachUser?.fullName}
+                                      : assignees[0]?.fullName}
                                   </span>
-                                </button>
-                              );
-                            })}
-                            {/* <button
-                              onClick={() =>
-                                assign({
-                                  taskId: task._id,
-                                  coachId: data?.user?._id!
-                                })
-                              }
-                              className="py-2! [all:unset] !flex !items-center !gap-2 disabled:opacity-70 cursor-pointer!"
-                            >
-                              <SmartAvatar
-                                src={data?.user?.photo}
-                                name={data?.user?.fullName}
-                                key={data?.user?.updatedAt}
-                                className="size-5"
-                                textSize="text-[10px]"
-                              />
-                              <span className="font-lato font-medium text-sm text-gray-700">
-                                {data?.user?._id === data?.user?._id
-                                  ? "me"
-                                  : data?.user?.fullName}
-                              </span>
-                            </button> */}
-                          </PopoverContent>
-                        </Popover>
+                                </>
+                              ) : (
+                                <>
+                                  <div className="flex items-center">
+                                    {assignees.slice(0, 2).map((u, i) => (
+                                      <div
+                                        key={u._id}
+                                        className={cn(i > 0 && "-ml-2")}
+                                      >
+                                        <SmartAvatar
+                                          src={u.photo}
+                                          name={u.fullName}
+                                          key={u.updatedAt}
+                                          className="size-5 ring-1 ring-white"
+                                          textSize="text-[10px]"
+                                        />
+                                      </div>
+                                    ))}
+                                  </div>
+                                  <span className="font-lato font-medium text-sm text-gray-700">
+                                    {assignees.length} people
+                                  </span>
+                                </>
+                              )}
+                              {isOwner && (
+                                <ChevronsUpDown size={14} color="#777" />
+                              )}
+                            </div>
+                          );
+
+                          if (isOwner) {
+                            return (
+                              <Popover
+                                open={openAssignFor === task._id}
+                                onOpenChange={(open) =>
+                                  setOpenAssignFor(open ? task._id : null)
+                                }
+                              >
+                                <PopoverTrigger asChild>
+                                  <button
+                                    className="[all:unset] !flex !items-center !gap-2 disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
+                                    disabled={isAssigning}
+                                  >
+                                    {assigneeDisplay}
+                                  </button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-72 p-2">
+                                  {data?.user?.assignedCoach.map((coach) => {
+                                    const coachUser = coach as unknown as User;
+                                    const isAssigned = assignees.some(
+                                      (u) => u._id === coachUser._id
+                                    );
+                                    return (
+                                      <button
+                                        onClick={() =>
+                                          assign({
+                                            taskId: task._id,
+                                            coachId: coachUser._id
+                                          })
+                                        }
+                                        key={coachUser._id}
+                                        className="[all:unset] w-full! !flex !items-center !gap-3 cursor-pointer rounded-md px-3 py-1.5! hover:bg-gray-50"
+                                      >
+                                        <span className="w-4">
+                                          {isAssigned && (
+                                            <Check
+                                              size={14}
+                                              className="text-green-500 shrink-0"
+                                            />
+                                          )}
+                                        </span>
+                                        <SmartAvatar
+                                          src={coachUser?.photo}
+                                          name={coachUser?.fullName}
+                                          key={coachUser?.updatedAt}
+                                          className="size-5"
+                                          textSize="text-[11px]"
+                                        />
+                                        <span className="font-lato font-medium text-sm text-gray-700 flex-1">
+                                          {coachUser?._id === data?.user?._id
+                                            ? "me"
+                                            : coachUser?.fullName}
+                                        </span>
+                                        {coachUser?.role && (
+                                          <Badge
+                                            variant="outline"
+                                            className="capitalize rounded-full py-0 px-2 font-archivo font-medium text-[10px] leading-4 text-gray-500"
+                                          >
+                                            {coachUser.role}
+                                          </Badge>
+                                        )}
+                                      </button>
+                                    );
+                                  })}
+                                </PopoverContent>
+                              </Popover>
+                            );
+                          }
+
+                          // Non-owner: grayed out, hover tooltip shows assignees
+                          return (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="flex items-center gap-2 opacity-50 cursor-not-allowed">
+                                  {assigneeDisplay}
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent side="bottom" className="p-2">
+                                {assignees.length === 0 ? (
+                                  <p className="text-xs">No one assigned</p>
+                                ) : (
+                                  <div className="space-y-1.5">
+                                    {assignees.map((u) => (
+                                      <div
+                                        key={u._id}
+                                        className="flex items-center gap-2"
+                                      >
+                                        <SmartAvatar
+                                          src={u.photo}
+                                          name={u.fullName}
+                                          className="size-4"
+                                          textSize="text-[8px]"
+                                        />
+                                        <span className="text-xs">
+                                          {u._id === data?.user?._id
+                                            ? "me"
+                                            : u.fullName}
+                                        </span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </TooltipContent>
+                            </Tooltip>
+                          );
+                        })()}
                       </TableCell>
                       <TableCell className="font-lato text-sm text-gray-600 tracking-[-0.05px]">
                         {formatDateOrEmpty(task.dueDate, "DD-MM-YYYY") || "-"}
+                      </TableCell>
+                      <TableCell className="tracking-[-0.05px]">
+                        <div className="flex items-center gap-2">
+                          <SmartAvatar
+                            src={task.user?.photo}
+                            name={task.user?.fullName}
+                            key={task.user?.updatedAt}
+                            className="size-5"
+                            textSize="text-[10px]"
+                          />
+                          <span className="font-lato font-medium text-sm text-gray-700">
+                            {task.user?._id === data?.user?._id
+                              ? "me"
+                              : task.user?.fullName || "-"}
+                          </span>
+                        </div>
                       </TableCell>
                       <TableCell className="tracking-[-0.05px]">
                         <Badge

@@ -70,6 +70,7 @@
     "embla-carousel-react": "^8.6.0",
     "emoji-picker-react": "^4.15.0",
     "file-saver": "^2.0.5",
+    "firebase": "^12.13.0",
     "html2canvas": "^1.4.1",
     "input-otp": "^1.4.2",
     "jq": "^1.7.2",

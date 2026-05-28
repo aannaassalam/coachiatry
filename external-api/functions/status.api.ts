@@ -49,3 +49,20 @@ export const addStatusByCoach = async (body: {
   );
   return res;
 };
+
+export interface DeleteStatusResponse {
+  status?: "requires_replacement";
+  taskCount?: number;
+  message?: string;
+}
+
+export const deleteStatus = async (body: {
+  statusId: string;
+  replacementStatusId?: string;
+}): Promise<DeleteStatusResponse> => {
+  const res = await axiosInstance.delete(
+    endpoints.status.delete(body.statusId),
+    { data: { replacementStatusId: body.replacementStatusId } }
+  );
+  return res.data;
+};

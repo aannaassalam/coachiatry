@@ -38,6 +38,7 @@ import {
   editTask,
   getTask
 } from "@/external-api/functions/task.api";
+import { queryClient } from "@/pages/_app";
 import { Subtask } from "@/typescript/interface/task.interface";
 import { useMutation, useQueries } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
@@ -138,20 +139,12 @@ export default function AddTaskSheet({
   const { mutate: editMutate, isPending: isEditPending } = useMutation({
     mutationFn: editTask,
     onSuccess: () => {
-      form.reset({
-        title: "",
-        description: "",
-        priority: "low",
-        category: "",
-        dueDate: undefined,
-        status: "",
-        frequency: "",
-        minutesDuration: "",
-        hoursDuration: "",
-        remindBefore: "",
-        subtasks: []
+      // Keep the sheet open after an update so the coach can keep reviewing /
+      // editing; they close it manually via Cancel or X. Just refresh the
+      // loaded task so the form re-seeds with the saved values.
+      queryClient.invalidateQueries({
+        queryKey: ["task", selectedTask]
       });
-      onOpenChange(false);
     },
     meta: {
       invalidateQueries: ["tasks", userId]

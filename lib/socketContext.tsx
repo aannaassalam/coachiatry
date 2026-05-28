@@ -9,6 +9,7 @@ import {
   useState
 } from "react";
 import { io, Socket } from "socket.io-client";
+import { initWebPush } from "./fcm";
 
 const SocketContext = createContext<Socket | null>(null);
 
@@ -19,6 +20,10 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     // ⚠️ Only connect if user is logged in
     if (!data?.user?._id) return;
+
+    initWebPush().catch((err) =>
+      console.warn("Web push registration skipped:", err)
+    );
 
     // Prevent duplicate sockets
     if (!socket) {

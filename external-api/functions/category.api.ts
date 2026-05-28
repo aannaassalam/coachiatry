@@ -40,3 +40,20 @@ export const addCategoryByCoach = async (body: {
   );
   return res;
 };
+
+export interface DeleteCategoryResponse {
+  status?: "requires_replacement";
+  taskCount?: number;
+  message?: string;
+}
+
+export const deleteCategory = async (body: {
+  categoryId: string;
+  replacementCategoryId?: string;
+}): Promise<DeleteCategoryResponse> => {
+  const res = await axiosInstance.delete(
+    endpoints.category.delete(body.categoryId),
+    { data: { replacementCategoryId: body.replacementCategoryId } }
+  );
+  return res.data;
+};

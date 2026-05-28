@@ -64,3 +64,17 @@ export const updatePassword = async (body: { password: string }) => {
   const res = await axiosInstance.patch(endpoints.auth.updatePassword, body);
   return res;
 };
+
+export const registerFcmToken = async (fcmToken: string) => {
+  const res = await axiosInstance.patch(endpoints.auth.updateFcmToken, {
+    fcmToken
+  });
+  return res;
+};
+
+export const removeFcmToken = async (fcmToken: string) => {
+  const res = await axiosInstance.delete(endpoints.auth.deleteFcmToken, {
+    data: { fcmToken }
+  });
+  return res;
+};

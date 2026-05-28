@@ -21,15 +21,17 @@ export function SessionGuard({ children }: { children: React.ReactNode }) {
       router.replace("/auth/login");
       return;
     }
-    // The JWT carries a snapshot of the user at sign-in time, so values like
-    // shareId/role can drift after a server-side change. Trigger one update()
-    // per mount so the JWT callback re-fetches the profile and the cached
-    // useSession data reflects the latest server state.
     if (status === "authenticated" && !refreshedOnceRef.current) {
       refreshedOnceRef.current = true;
       update();
     }
   }, [status, router, update]);
+
+  useEffect(() => {
+    if (status !== "authenticated") return;
+    const id = setInterval(() => update(), 5 * 60 * 1000);
+    return () => clearInterval(id);
+  }, [status, update]);
 
   // Only block render on the very first session resolve. After that, every
   // transient "loading" (from update(), refetchInterval, focus refetch)

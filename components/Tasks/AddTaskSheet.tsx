@@ -161,20 +161,9 @@ export default function AddTaskSheet({
   const { mutate: editMutate, isPending: isEditPending } = useMutation({
     mutationFn: editTask,
     onSuccess: () => {
-      form.reset({
-        title: "",
-        description: "",
-        priority: "low",
-        category: "",
-        dueDate: undefined,
-        status: "",
-        frequency: "",
-        minutesDuration: "",
-        hoursDuration: "",
-        remindBefore: "",
-        subtasks: []
-      });
-      onOpenChange(false);
+      // Keep the sheet open after an update so the user can keep reviewing /
+      // editing; they close it manually via Cancel or X. Just refresh the
+      // loaded task so the form re-seeds with the saved values.
       queryClient.invalidateQueries({
         queryKey: ["task", effectiveSelectedTask]
       });

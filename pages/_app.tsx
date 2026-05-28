@@ -87,7 +87,6 @@ export default function CustomApp({ Component, pageProps }: AppProps) {
       <SessionProvider
         session={pageProps.session}
         refetchOnWindowFocus
-        refetchInterval={10}
       >
         <NuqsAdapter>
           <QueryClientProvider client={queryClient}>

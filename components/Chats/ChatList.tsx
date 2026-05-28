@@ -250,7 +250,7 @@ export default function ChatList() {
           <>
             {chats.map((chat) => {
               const chatUser = chat.members.find(
-                (member) => member.user._id !== data?.user?._id
+                (member) => member?.user?._id && member.user._id !== data?.user?._id
               );
 
               const details =

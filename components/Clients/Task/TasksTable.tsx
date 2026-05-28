@@ -299,7 +299,7 @@ function TasksTable({
                 <RenderTableSortingIcon name="name" />
               </TableHead>
               <TableHead className="text-xs text-gray-400 tracking-[-0.05px]">
-                Assigned to
+                Owner / Assignee
               </TableHead>
               <TableHead className="text-xs text-gray-400 tracking-[-0.05px] flex items-center group">
                 Due Date
@@ -420,17 +420,76 @@ function TasksTable({
                         </div>
                       </TableCell>
                       <TableCell className="tracking-[-0.05px]">
-                        <div className="flex items-center gap-2">
-                          <SmartAvatar
-                            src={task?.user?.photo}
-                            name={task?.user?.fullName}
-                            key={task?.user?.updatedAt}
-                            className="size-5"
-                          />
-                          <span className="font-lato font-medium text-sm text-gray-700">
-                            me
-                          </span>
-                        </div>
+                        {(() => {
+                          const assignees = Array.isArray(task.assignedTo)
+                            ? task.assignedTo
+                            : [];
+
+                          return (
+                            <div className="flex flex-col gap-1">
+                              {/* Owner */}
+                              <div className="flex items-center gap-2">
+                                <SmartAvatar
+                                  src={task?.user?.photo}
+                                  name={task?.user?.fullName}
+                                  key={task?.user?.updatedAt}
+                                  className="size-5"
+                                  textSize="text-[10px]"
+                                />
+                                <span className="font-lato font-medium text-sm text-gray-700">
+                                  {task?.user?.fullName ?? "-"}
+                                </span>
+                              </div>
+
+                              {/* Assignees */}
+                              <div className="flex items-center gap-2">
+                                <span className="font-lato text-xs text-gray-400 shrink-0">
+                                  Assignee:
+                                </span>
+                                {assignees.length === 0 ? (
+                                  <span className="font-lato font-medium text-sm text-gray-400">
+                                    Unassigned
+                                  </span>
+                                ) : assignees.length === 1 ? (
+                                  <div className="flex items-center gap-2">
+                                    <SmartAvatar
+                                      src={assignees[0]?.photo}
+                                      name={assignees[0]?.fullName}
+                                      key={assignees[0]?.updatedAt}
+                                      className="size-5"
+                                      textSize="text-[10px]"
+                                    />
+                                    <span className="font-lato font-medium text-sm text-gray-700">
+                                      {assignees[0]?.fullName}
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center gap-2">
+                                    <div className="flex items-center">
+                                      {assignees.slice(0, 2).map((u, i) => (
+                                        <div
+                                          key={u._id}
+                                          className={cn(i > 0 && "-ml-2")}
+                                        >
+                                          <SmartAvatar
+                                            src={u.photo}
+                                            name={u.fullName}
+                                            key={u.updatedAt}
+                                            className="size-5 ring-1 ring-white"
+                                            textSize="text-[10px]"
+                                          />
+                                        </div>
+                                      ))}
+                                    </div>
+                                    <span className="font-lato font-medium text-sm text-gray-700">
+                                      {assignees.length} people
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })()}
                       </TableCell>
                       <TableCell className="font-lato text-sm text-gray-600 tracking-[-0.05px]">
                         {task.dueDate

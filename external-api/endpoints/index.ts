@@ -19,7 +19,9 @@ export const endpoints = {
     googleAuth: "/auth/google-auth",
     forgotPassword: "/auth/forgot-password",
     resetPassword: "/auth/reset-password",
-    updatePassword: "/auth/update-password"
+    updatePassword: "/auth/update-password",
+    updateFcmToken: "/auth/update-fcm-token",
+    deleteFcmToken: "/auth/delete-fcm-token"
   },
   document: {
     getAll: "/documents",
@@ -34,12 +36,15 @@ export const endpoints = {
   category: {
     getAll: "/categories",
     add: "/categories",
+    getOne: (id: string) => `/categories/${id}`,
+    delete: (id: string) => `/categories/${id}`,
     getAllCoach: (userId: string) => `/categories/coach/${userId}`,
     addCoach: (userId: string) => `/categories/coach/${userId}`
   },
   status: {
     getAll: "/statuses",
     add: "/statuses",
+    delete: (id: string) => `/statuses/${id}`,
     getAllCoach: (userId: string) => `/statuses/coach/${userId}`,
     addCoach: (userId: string) => `/statuses/coach/${userId}`
   },
@@ -52,7 +57,7 @@ export const endpoints = {
   },
   task: {
     getAll: "/task",
-    getAllCoach: "/task/coach",
+    getAllCoach: (userId: string) => `/task/coach/${userId}`,
     post: "/task",
     postCoach: "/task/coach",
     importBulkTasks: "/task/import-bulk-tasks",

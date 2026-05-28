@@ -21,7 +21,10 @@ const isFrontendExpired = (frontendExpiresAt?: number) =>
 // via getMyProfile() in settings, never from useSession(). For
 // `assignedCoach` we keep only the fields the UI actually consumes (avatar,
 // name, id) so the cookie stays under the 4 KB chunk warning.
-type SlimCoach = Pick<User, "_id" | "fullName" | "photo" | "updatedAt">;
+type SlimCoach = Pick<
+  User,
+  "_id" | "fullName" | "photo" | "updatedAt" | "role"
+>;
 const slimUserForToken = (raw: any): any => {
   if (!raw || typeof raw !== "object") return raw;
   const rest = { ...raw };
@@ -34,7 +37,8 @@ const slimUserForToken = (raw: any): any => {
             _id: c._id,
             fullName: c.fullName,
             photo: c.photo,
-            updatedAt: c.updatedAt
+            updatedAt: c.updatedAt,
+            role: c.role
           }
     );
   }

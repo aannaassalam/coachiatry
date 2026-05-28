@@ -9,6 +9,7 @@ import assets from "@/json/assets";
 import Logo from "@/ui/Logo/Logo";
 import { Menu, Search } from "lucide-react";
 import { getInitials } from "@/lib/functions/_helpers.lib";
+import { teardownWebPush } from "@/lib/fcm";
 import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
 import CoachAI from "@/components/CoachAIPopover";
@@ -53,7 +54,12 @@ export default function Navbar({
           </div>
         </PopoverTrigger>
         <PopoverContent className="p-2 w-max">
-          <Button onClick={() => signOut({ callbackUrl: "/auth/login" })}>
+          <Button
+            onClick={async () => {
+              await teardownWebPush();
+              signOut({ callbackUrl: "/auth/login" });
+            }}
+          >
             Logout
           </Button>
         </PopoverContent>

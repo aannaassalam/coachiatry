@@ -97,7 +97,7 @@ export const getAllTasks = async ({
 
   const res = await axiosInstance.get(endpoints.task.getAll, {
     params: {
-      populate: "category,status,assignedTo",
+      populate: "category,status,assignedTo,user",
       sort,
       ...filterQuery,
       dueDate:
@@ -120,12 +120,11 @@ export const getAllTasksByCoach = async ({
 }): Promise<Task[]> => {
   const filterQuery = buildFilterQuery(filter);
 
-  const res = await axiosInstance.get(endpoints.task.getAll, {
+  const res = await axiosInstance.get(endpoints.task.getAllCoach(userId), {
     params: {
-      populate: "category,status,assignedTo",
+      populate: "category,status,assignedTo,user",
       sort,
-      ...filterQuery,
-      user: userId
+      ...filterQuery
     }
   });
   return res.data;
