@@ -63,7 +63,8 @@ messaging.onBackgroundMessage((payload) => {
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const targetUrl = (event.notification.data && event.notification.data.url) || "/chat";
+  const targetUrl =
+    (event.notification.data && event.notification.data.url) || "/chat";
 
   event.waitUntil(
     self.clients

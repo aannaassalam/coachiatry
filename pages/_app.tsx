@@ -84,10 +84,7 @@ export default function CustomApp({ Component, pageProps }: AppProps) {
     <main className={`${archivo.variable} ${lato.variable}`}>
       {/* Brand fallback for any page that doesn't render its own PageTitle. */}
       <PageTitle />
-      <SessionProvider
-        session={pageProps.session}
-        refetchOnWindowFocus
-      >
+      <SessionProvider session={pageProps.session} refetchOnWindowFocus>
         <NuqsAdapter>
           <QueryClientProvider client={queryClient}>
             <HydrationBoundary state={pageProps.dehydratedState}>

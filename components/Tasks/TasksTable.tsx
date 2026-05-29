@@ -289,7 +289,9 @@ function TasksTable({
     onMutate: async ({ taskId, coachId }) => {
       await queryClient.cancelQueries({ queryKey: ["tasks"] });
 
-      const snapshots = queryClient.getQueriesData<Task[]>({ queryKey: ["tasks"] });
+      const snapshots = queryClient.getQueriesData<Task[]>({
+        queryKey: ["tasks"]
+      });
 
       const coachUser = data?.user?.assignedCoach.find(
         (c) => (c as unknown as User)._id === coachId

@@ -14,19 +14,19 @@ A single source of truth for visual language, tokens, and component conventions 
 
 ## 2. Tech Stack & Conventions
 
-| Concern | Choice |
-| --- | --- |
-| Framework | Next.js (Pages router) + React 19 |
-| Styling | Tailwind CSS v4 (`@import "tailwindcss"`) + `tw-animate-css` |
-| Component primitives | shadcn/ui — `style: "new-york"`, `baseColor: "zinc"`, `cssVariables: true` |
-| Headless primitives | Radix UI (`@radix-ui/react-*`) |
-| Icon library | `lucide-react` (primary), `@iconify/react` and `react-icons` for niche glyphs |
-| Forms | `react-hook-form` + `yup` (`@hookform/resolvers`) |
-| Data | `@tanstack/react-query` |
-| Toasts | `sonner` — `<Toaster richColors position="bottom-left" />` |
-| Animations | `motion` (Framer Motion) for orchestrated UI, CSS keyframes for spinners |
-| Aliases | `@/components`, `@/components/ui`, `@/lib`, `@/lib/utils`, `@/hooks` |
-| Theme mode | **Light only** — `:root { color-scheme: light; }`. Dark mode tokens exist but are commented out. Do not enable dark mode without coordinating across all surfaces. |
+| Concern              | Choice                                                                                                                                                             |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Framework            | Next.js (Pages router) + React 19                                                                                                                                  |
+| Styling              | Tailwind CSS v4 (`@import "tailwindcss"`) + `tw-animate-css`                                                                                                       |
+| Component primitives | shadcn/ui — `style: "new-york"`, `baseColor: "zinc"`, `cssVariables: true`                                                                                         |
+| Headless primitives  | Radix UI (`@radix-ui/react-*`)                                                                                                                                     |
+| Icon library         | `lucide-react` (primary), `@iconify/react` and `react-icons` for niche glyphs                                                                                      |
+| Forms                | `react-hook-form` + `yup` (`@hookform/resolvers`)                                                                                                                  |
+| Data                 | `@tanstack/react-query`                                                                                                                                            |
+| Toasts               | `sonner` — `<Toaster richColors position="bottom-left" />`                                                                                                         |
+| Animations           | `motion` (Framer Motion) for orchestrated UI, CSS keyframes for spinners                                                                                           |
+| Aliases              | `@/components`, `@/components/ui`, `@/lib`, `@/lib/utils`, `@/hooks`                                                                                               |
+| Theme mode           | **Light only** — `:root { color-scheme: light; }`. Dark mode tokens exist but are commented out. Do not enable dark mode without coordinating across all surfaces. |
 
 `cn()` from `@/lib/utils` is the canonical class-merger (clsx + tailwind-merge). Always use it when conditionally composing classes.
 
@@ -38,28 +38,28 @@ All colors are declared as CSS variables in [styles/globals.css](styles/globals.
 
 ### 3.1 Brand & semantic tokens
 
-| Token | Value | Tailwind class | Usage |
-| --- | --- | --- | --- |
-| `--background` | `#f9f9f9` | `bg-background` | App canvas |
-| `--foreground` | `oklch(0.141 0.005 285.823)` | `text-foreground` | Primary text on `background` |
-| `--primary` | `#0e1734` | `bg-primary`, `text-primary` | Deep navy. Brand. Used for primary buttons, active states, key accents. |
-| `--primary-foreground` | `#ffffff` | `text-primary-foreground` | Text on primary |
-| `--primary-text` | `#0a090b` | `text-primary-text` | Highest-emphasis headings on light surfaces |
-| `--secondary` | `#ececed` | `bg-secondary` | Light neutral chip / button background |
-| `--secondary-foreground` | `#4f4d55` | `text-secondary-foreground` | Text on secondary |
-| `--muted` | `oklch(0.967 0.001 286.375)` | `bg-muted` | Subdued surfaces (tabs background, etc.) |
-| `--muted-foreground` | `oklch(0.552 0.016 285.938)` | `text-muted-foreground` | Helper text, descriptions |
-| `--accent` | `oklch(0.967 0.001 286.375)` | `bg-accent` | Hover / focus tint |
-| `--accent-foreground` | `oklch(0.21 0.006 285.885)` | `text-accent-foreground` | Text on accent |
-| `--destructive` | `oklch(0.577 0.245 27.325)` | `bg-destructive`, `text-destructive` | Errors, destructive actions |
-| `--border` | `oklch(0.92 0.004 286.32)` | `border-border` | Default border |
-| `--input` | `oklch(0.92 0.004 286.32)` | `border-input` | Form field border |
-| `--ring` | `oklch(0.705 0.015 286.067)` | `ring-ring` | Focus ring |
-| `--card` | `#ffffff` (oklch 1 0 0) | `bg-card` | Card / surface backgrounds |
-| `--card-foreground` | dark neutral | `text-card-foreground` | Text on card |
-| `--popover` / `--popover-foreground` | white / dark neutral | `bg-popover`, `text-popover-foreground` | Popover, dropdown content |
-| `--sidebar*` | matching neutral set | `bg-sidebar`, etc. | Reserved for future sidebar surface theming |
-| `--chart-1` … `--chart-5` | warm/cool oklch ramp | `text-chart-1` etc. | Recharts series colors |
+| Token                                | Value                        | Tailwind class                          | Usage                                                                   |
+| ------------------------------------ | ---------------------------- | --------------------------------------- | ----------------------------------------------------------------------- |
+| `--background`                       | `#f9f9f9`                    | `bg-background`                         | App canvas                                                              |
+| `--foreground`                       | `oklch(0.141 0.005 285.823)` | `text-foreground`                       | Primary text on `background`                                            |
+| `--primary`                          | `#0e1734`                    | `bg-primary`, `text-primary`            | Deep navy. Brand. Used for primary buttons, active states, key accents. |
+| `--primary-foreground`               | `#ffffff`                    | `text-primary-foreground`               | Text on primary                                                         |
+| `--primary-text`                     | `#0a090b`                    | `text-primary-text`                     | Highest-emphasis headings on light surfaces                             |
+| `--secondary`                        | `#ececed`                    | `bg-secondary`                          | Light neutral chip / button background                                  |
+| `--secondary-foreground`             | `#4f4d55`                    | `text-secondary-foreground`             | Text on secondary                                                       |
+| `--muted`                            | `oklch(0.967 0.001 286.375)` | `bg-muted`                              | Subdued surfaces (tabs background, etc.)                                |
+| `--muted-foreground`                 | `oklch(0.552 0.016 285.938)` | `text-muted-foreground`                 | Helper text, descriptions                                               |
+| `--accent`                           | `oklch(0.967 0.001 286.375)` | `bg-accent`                             | Hover / focus tint                                                      |
+| `--accent-foreground`                | `oklch(0.21 0.006 285.885)`  | `text-accent-foreground`                | Text on accent                                                          |
+| `--destructive`                      | `oklch(0.577 0.245 27.325)`  | `bg-destructive`, `text-destructive`    | Errors, destructive actions                                             |
+| `--border`                           | `oklch(0.92 0.004 286.32)`   | `border-border`                         | Default border                                                          |
+| `--input`                            | `oklch(0.92 0.004 286.32)`   | `border-input`                          | Form field border                                                       |
+| `--ring`                             | `oklch(0.705 0.015 286.067)` | `ring-ring`                             | Focus ring                                                              |
+| `--card`                             | `#ffffff` (oklch 1 0 0)      | `bg-card`                               | Card / surface backgrounds                                              |
+| `--card-foreground`                  | dark neutral                 | `text-card-foreground`                  | Text on card                                                            |
+| `--popover` / `--popover-foreground` | white / dark neutral         | `bg-popover`, `text-popover-foreground` | Popover, dropdown content                                               |
+| `--sidebar*`                         | matching neutral set         | `bg-sidebar`, etc.                      | Reserved for future sidebar surface theming                             |
+| `--chart-1` … `--chart-5`            | warm/cool oklch ramp         | `text-chart-1` etc.                     | Recharts series colors                                                  |
 
 ### 3.2 Brand gradient
 
@@ -73,14 +73,14 @@ background-image: linear-gradient(129deg, #0e1734 10%, #314587 50%, #0e1734);
 
 The codebase leans on Tailwind's `gray` scale for non-token neutrals. Common pairings:
 
-| Usage | Class |
-| --- | --- |
-| Body / secondary text | `text-gray-500`, `text-gray-700` |
-| Strong text | `text-gray-900` |
-| Disabled / placeholder | `text-gray-300` |
-| Hover surface | `bg-gray-100`, `bg-gray-200/60` |
-| Divider lines | `border-gray-200`, `border-gray-300` |
-| Scrollbar thumb | `#e2e4e6` default, `#cccfd5` hover |
+| Usage                  | Class                                |
+| ---------------------- | ------------------------------------ |
+| Body / secondary text  | `text-gray-500`, `text-gray-700`     |
+| Strong text            | `text-gray-900`                      |
+| Disabled / placeholder | `text-gray-300`                      |
+| Hover surface          | `bg-gray-100`, `bg-gray-200/60`      |
+| Divider lines          | `border-gray-200`, `border-gray-300` |
+| Scrollbar thumb        | `#e2e4e6` default, `#cccfd5` hover   |
 
 `@layer base` sets the default border color to `var(--color-gray-200, currentcolor)` — every element inherits a light gray border by default.
 
@@ -88,13 +88,13 @@ The codebase leans on Tailwind's `gray` scale for non-token neutrals. Common pai
 
 These are used contextually (badges, status pills, toasts). Stick to the same shades:
 
-| Intent | Background | Foreground |
-| --- | --- | --- |
-| Info / link | `bg-blue-50` / `bg-blue-100` | `text-blue-500`, `text-blue-600` |
-| Success | `bg-green-50` | `text-green-600` |
-| Warning | `bg-yellow-200` | `text-yellow-500` (on dark) |
-| Error | `bg-red-50` | `text-red-500`, `text-red-600` |
-| Avatar fallback | `bg-orange-100` | `text-orange-600` |
+| Intent          | Background                   | Foreground                       |
+| --------------- | ---------------------------- | -------------------------------- |
+| Info / link     | `bg-blue-50` / `bg-blue-100` | `text-blue-500`, `text-blue-600` |
+| Success         | `bg-green-50`                | `text-green-600`                 |
+| Warning         | `bg-yellow-200`              | `text-yellow-500` (on dark)      |
+| Error           | `bg-red-50`                  | `text-red-500`, `text-red-600`   |
+| Avatar fallback | `bg-orange-100`              | `text-orange-600`                |
 
 Task/document **status colors are data-driven** — they arrive from the API on each `Status`/`Tag` (e.g. `_status.color.bg`, `_status.color.text`) and are applied via inline `style`. Do not hardcode status colors in components.
 
@@ -104,34 +104,43 @@ Task/document **status colors are data-driven** — they arrive from the API on 
 
 ### 4.1 Font families
 
-Two Google fonts, registered in [services/fonts.ts](services/fonts.ts) and applied in [pages/_app.tsx](pages/_app.tsx) via CSS variables.
+Two Google fonts, registered in [services/fonts.ts](services/fonts.ts) and applied in [pages/\_app.tsx](pages/_app.tsx) via CSS variables.
 
-| Font | Variable / Tailwind class | Where it's used |
-| --- | --- | --- |
-| **Archivo** (variable: `--font-archivo`) | `font-archivo` | All headings (`h1`–`h6`), buttons, badges, navigation labels |
-| **Lato** (weights 100/300/400/700/900, var `--font-lato`) | `font-lato` (default on `body`) | Body copy, paragraphs, inputs, table content |
+| Font                                                      | Variable / Tailwind class       | Where it's used                                              |
+| --------------------------------------------------------- | ------------------------------- | ------------------------------------------------------------ |
+| **Archivo** (variable: `--font-archivo`)                  | `font-archivo`                  | All headings (`h1`–`h6`), buttons, badges, navigation labels |
+| **Lato** (weights 100/300/400/700/900, var `--font-lato`) | `font-lato` (default on `body`) | Body copy, paragraphs, inputs, table content                 |
 
 Global rule in [styles/globals.css](styles/globals.css):
 
 ```css
-body { @apply bg-background text-foreground font-lato; }
-h1, h2, h3, h4, h5, h6 { font-family: var(--font-archivo); }
+body {
+  @apply bg-background text-foreground font-lato;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-archivo);
+}
 ```
 
 ### 4.2 Type scale (observed conventions)
 
 Tailwind size — preferred line height / weight / use case:
 
-| Class | Line-height | Weight | Typical use |
-| --- | --- | --- | --- |
-| `text-[32px]` | `leading-10` | `font-semibold` | Auth card title (`Login to account`) |
-| `text-2xl` (24px) | `leading-7` | `font-semibold` | Page headings (e.g. dashboard "Hey, …") |
-| `text-xl` (20px) | – | `font-semibold` | Section headers |
-| `text-lg` (18px) | `leading-none` | `font-semibold` | Dialog titles |
-| `text-base` (16px) | – | `font-regular` | Input field text |
-| `text-sm` (14px) | `leading-5` | `font-medium`/`font-semibold` | **Default body / UI text** — most used |
-| `text-xs` (12px) | `leading-4`/`leading-4.5` | `font-medium` | Meta info, timestamps, badges, table chips |
-| `text-[10px]` | `leading-3` | uppercase + `tracking-[5%]` | Sidebar section labels |
+| Class              | Line-height               | Weight                        | Typical use                                |
+| ------------------ | ------------------------- | ----------------------------- | ------------------------------------------ |
+| `text-[32px]`      | `leading-10`              | `font-semibold`               | Auth card title (`Login to account`)       |
+| `text-2xl` (24px)  | `leading-7`               | `font-semibold`               | Page headings (e.g. dashboard "Hey, …")    |
+| `text-xl` (20px)   | –                         | `font-semibold`               | Section headers                            |
+| `text-lg` (18px)   | `leading-none`            | `font-semibold`               | Dialog titles                              |
+| `text-base` (16px) | –                         | `font-regular`                | Input field text                           |
+| `text-sm` (14px)   | `leading-5`               | `font-medium`/`font-semibold` | **Default body / UI text** — most used     |
+| `text-xs` (12px)   | `leading-4`/`leading-4.5` | `font-medium`                 | Meta info, timestamps, badges, table chips |
+| `text-[10px]`      | `leading-3`               | uppercase + `tracking-[5%]`   | Sidebar section labels                     |
 
 Letter-spacing patterns: hero/heading titles use `tracking-[-3%]`; nav labels use `tracking-[0.05px]`; section eyebrows use `tracking-[5%]`.
 
@@ -145,13 +154,13 @@ Letter-spacing patterns: hero/heading titles use `tracking-[-3%]`; nav labels us
 
 Driven by `--radius: 0.625rem` (10px):
 
-| Token | Tailwind class | Resolved |
-| --- | --- | --- |
-| `--radius-sm` | `rounded-sm` | 6px |
-| `--radius-md` | `rounded-md` | 8px |
-| `--radius-lg` | `rounded-lg` | 10px |
-| `--radius-xl` | `rounded-xl` | 14px |
-| `rounded-full` | pills, avatars, scrollbar thumb | — |
+| Token          | Tailwind class                  | Resolved |
+| -------------- | ------------------------------- | -------- |
+| `--radius-sm`  | `rounded-sm`                    | 6px      |
+| `--radius-md`  | `rounded-md`                    | 8px      |
+| `--radius-lg`  | `rounded-lg`                    | 10px     |
+| `--radius-xl`  | `rounded-xl`                    | 14px     |
+| `rounded-full` | pills, avatars, scrollbar thumb | —        |
 
 Conventions: cards use `rounded-xl`; buttons / inputs / popovers / sheets use `rounded-md`; chips, badges, status pills use `rounded-sm`; avatars use `rounded-full`.
 
@@ -172,15 +181,15 @@ Use Tailwind's default spacing scale. Common patterns seen across pages:
 
 Defined in `@theme` in [styles/globals.css](styles/globals.css) — note `--breakpoint-*: initial;` resets defaults before redefining:
 
-| Token | Value |
-| --- | --- |
-| `xs` | 480px |
-| `sm` | 640px |
-| `md` | 768px |
-| `lg` | 1024px (sidebar/desktop split happens here) |
-| `xl` | 1280px |
-| `2xl` | 1536px |
-| `3xl` | 1792px |
+| Token | Value                                       |
+| ----- | ------------------------------------------- |
+| `xs`  | 480px                                       |
+| `sm`  | 640px                                       |
+| `md`  | 768px                                       |
+| `lg`  | 1024px (sidebar/desktop split happens here) |
+| `xl`  | 1280px                                      |
+| `2xl` | 1536px                                      |
+| `3xl` | 1792px                                      |
 
 Mobile-first by default; `max-lg:`, `max-sm:` prefixes are heavily used for desktop-down overrides.
 
@@ -209,6 +218,7 @@ Mobile-first by default; `max-lg:`, `max-sm:` prefixes are heavily used for desk
 ```
 
 Key classes:
+
 - Root: `h-screen bg-background flex overflow-hidden`
 - Sidebar fixed-width `w-[312px]`, becomes overlay below `lg` (`max-lg:fixed max-lg:z-[1000]`, slides in from `-left-100`).
 - Right column wraps `Navbar` + `Card`; the `Card` is the scroll container (`overflow-y-auto`), with content padded `p-7`.
@@ -311,6 +321,7 @@ Validation: `yup` + `yupResolver`. Errors surface through `FormMessage`; never r
 `Alert`, `AlertDialog`, `AspectRatio`, `Calendar`, `Checkbox`, `Collapsible`, `Combobox` (+ creatable + API-search), `Command`, `CountryCodeSelect`, `DateTimePicker`, `DropdownMenu`, `HoverCard`, `InputOtp`, `Label`, `MultiSelect` (+ API-search), `Pagination`, `Popover`, `Progress`, `RadioGroup`, `ScrollArea`, `Select`, `Separator`, `Skeleton`, `Switch`, `Textarea`, `Tooltip`.
 
 App-level composites worth knowing about:
+
 - `GlobalSearch` (navbar)
 - `CoachAIPopover` (AI entry point)
 - `FloatingChat` + `FloatingChatProvider` (persistent chat overlay, mounted in `_app.tsx`)
@@ -347,10 +358,19 @@ Active-state pattern for navigation: icons are monochrome SVGs colored via `inve
 Custom thin scrollbars (WebKit only):
 
 ```css
-::-webkit-scrollbar       { width: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background-color: #e2e4e6; border-radius: 9999px; }
-::-webkit-scrollbar-thumb:hover { background-color: #cccfd5; }
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: #e2e4e6;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: #cccfd5;
+}
 ```
 
 Use `.scrollbar-hide` to opt out entirely (used inside tables and horizontal carousels).
@@ -387,7 +407,7 @@ When introducing new rich-text surfaces, reuse these classes so editor chrome st
 
 ```ts
 import { cn } from "@/lib/utils";
-cn("base-class", condition && "extra-class", className)
+cn("base-class", condition && "extra-class", className);
 ```
 
 Always use it when composing classnames conditionally.
@@ -398,7 +418,7 @@ Wrap each page with `PageTitle`:
 
 ```tsx
 import PageTitle from "@/components/Seo/PageTitle";
-<PageTitle title="Dashboard" />
+<PageTitle title="Dashboard" />;
 ```
 
 A brand-fallback `<PageTitle />` is rendered globally in `_app.tsx`.
@@ -428,7 +448,7 @@ When building a sibling site or new surface, replicate the following minimum to 
 - [ ] Adopt the same Tailwind v4 `@theme` setup, including the `--radius: 0.625rem` base and the breakpoint list (Sections 5.1 + 5.3).
 - [ ] Ship the same color-scheme: light only — no system dark mode (Section 2).
 - [ ] Build with shadcn/ui (`style: "new-york"`, `baseColor: "zinc"`), Radix, and `lucide-react`. Mirror the variant lists in `Button`, `Badge`, `Card` (Section 7).
-- [ ] Use `sonner` toasts at `bottom-left` with `richColors`; reuse the `MutationCache` toast pattern from [pages/_app.tsx](pages/_app.tsx) if React Query is present.
+- [ ] Use `sonner` toasts at `bottom-left` with `richColors`; reuse the `MutationCache` toast pattern from [pages/\_app.tsx](pages/_app.tsx) if React Query is present.
 - [ ] Render the Coachiatry logo at 155×32 in the header; use the auth shell pattern (logo + opposite CTA + `border-b border-gray-300`) for marketing-style top bars.
 - [ ] Reuse `.gradient-button`, `.bg-auth`, custom scrollbar styles, and skeleton patterns rather than re-deriving them.
 - [ ] Default body class: `bg-background text-foreground font-lato`. Default heading family: Archivo.

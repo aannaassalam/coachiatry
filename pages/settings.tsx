@@ -122,9 +122,7 @@ export default function Settings() {
         queryClient.invalidateQueries({ queryKey: ["categories"] });
         queryClient.invalidateQueries({ queryKey: ["tasks"] });
       },
-      onError: (error: any) => {
-        // Already deleted elsewhere — drop the stale entry from the list
-        // instead of leaving it clickable, and let the user know.
+      onError: (error: { response?: { status?: number } }) => {
         if (error?.response?.status === 404) {
           setDeletingCategory(null);
           setReplacementCategoryId("");
@@ -148,9 +146,7 @@ export default function Settings() {
         queryClient.invalidateQueries({ queryKey: ["status"] });
         queryClient.invalidateQueries({ queryKey: ["tasks"] });
       },
-      onError: (error: any) => {
-        // Already deleted elsewhere — drop the stale entry from the list
-        // instead of leaving it clickable, and let the user know.
+      onError: (error: { response?: { status?: number } }) => {
         if (error?.response?.status === 404) {
           setDeletingStatus(null);
           setReplacementStatusId("");
@@ -717,10 +713,11 @@ export default function Settings() {
                     Cancel
                   </Button>
                   <Button
-                    variant="destructive"
+                    variant="default"
                     size="sm"
                     isLoading={isDeletingStatus}
                     onClick={confirmDeleteStatus}
+                    className="bg-red-500 text-white hover:bg-red-600 hover:text-white"
                   >
                     Delete
                   </Button>
@@ -857,10 +854,11 @@ export default function Settings() {
                   Cancel
                 </Button>
                 <Button
-                  variant="destructive"
+                  variant="default"
                   size="sm"
                   isLoading={isDeletingCategory}
                   onClick={confirmDeleteCategory}
+                  className="bg-red-500 text-white hover:bg-red-600 hover:text-white"
                 >
                   Delete
                 </Button>
