@@ -63,12 +63,36 @@ export const getMyProfile = async (): Promise<
 
 export const getUserSuggestions = async (
   search: string,
-  type: "group" | "watchers" = "group"
-): Promise<Pick<User, "_id" | "fullName" | "email" | "photo">[]> => {
+  type: "group" | "watchers" = "group",
+  exclude: string[] = []
+): Promise<Pick<User, "_id" | "fullName" | "email" | "photo" | "role">[]> => {
   const res = await axiosInstance.get(endpoints.user.suggestUsers, {
-    params: { search, type }
+    params: { search, type, exclude }
   });
   return res.data;
+};
+
+export interface FindWatcherResult {
+  found: boolean;
+  alreadyWatcher?: boolean;
+  isSelf?: boolean;
+  user?: Pick<User, "_id" | "fullName" | "email" | "photo" | "role">;
+}
+
+export const findWatcherByEmail = async (
+  email: string
+): Promise<FindWatcherResult> => {
+  const res = await axiosInstance.get(endpoints.user.findWatcherByEmail, {
+    params: { email }
+  });
+  return res.data;
+};
+
+export const inviteWatchersByEmail = async (emails: string[]) => {
+  const res = await axiosInstance.post(endpoints.user.inviteWatchers, {
+    emails
+  });
+  return res;
 };
 
 export const getUserById = async (

@@ -78,6 +78,8 @@ export const endpoints = {
     updateProfilePicture: "/user/me/update-profile-picture",
     getAllWatching: "/user/get-all-watching",
     suggestUsers: "/user/suggestions",
+    findWatcherByEmail: "/user/find-watcher-by-email",
+    inviteWatchers: "/user/invite-watchers",
     addWatchers: "/user/add-watchers",
     userByIds: "/user/user-by-ids",
     createUser: "/user/create-user",

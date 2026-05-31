@@ -164,6 +164,7 @@ export default function GroupModal({
                 setDetails((prev) => ({ ...prev, members: users }))
               }
               existingUsers={[]}
+              exclude={data?.members ?? []}
               disabled={isPending || isEditing}
             />
           </div>

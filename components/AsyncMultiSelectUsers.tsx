@@ -33,12 +33,14 @@ export default function AsyncMultiSelectUsers({
   selectedUsers,
   onChange,
   disabled,
-  existingUsers = []
+  existingUsers = [],
+  exclude = []
 }: {
   selectedUsers: string[];
   onChange: (users: string[]) => void;
   disabled?: boolean;
   existingUsers?: string[];
+  exclude?: string[];
 }) {
   const { data } = useSession();
   const [open, setOpen] = React.useState(false);
@@ -51,8 +53,8 @@ export default function AsyncMultiSelectUsers({
     isLoading,
     isFetching
   } = useQuery({
-    queryKey: ["suggest-users", search, "group"],
-    queryFn: () => getUserSuggestions(search, "group")
+    queryKey: ["suggest-users", search, "group", exclude],
+    queryFn: () => getUserSuggestions(search, "group", exclude)
   });
 
   // 🔄 Preload user details for selected IDs

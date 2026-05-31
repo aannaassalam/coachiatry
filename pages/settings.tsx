@@ -1,4 +1,4 @@
-import MultiSelectUsers from "@/components/MultiSelectUsers";
+import AddWatchers from "@/components/AddWatchers";
 import PageTitle from "@/components/Seo/PageTitle";
 import {
   AlertDialog,
@@ -47,7 +47,6 @@ import {
   getAllStatuses
 } from "@/external-api/functions/status.api";
 import {
-  addWatchers,
   getMyProfile,
   revokeViewAccess,
   updateProfile,
@@ -76,7 +75,6 @@ export default function Settings() {
   const { data, update } = useSession();
 
   const [password, setPassword] = useState<string>("");
-  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [watchersDialog, setWatchersDialog] = useState(false);
 
   // Category deletion state
@@ -184,16 +182,7 @@ export default function Settings() {
     }
   });
 
-  const { mutate: watchersMutate, isPending: isAdding } = useMutation({
-    mutationFn: addWatchers,
-    onSuccess: () => {
-      setWatchersDialog(false);
-      queryClient.invalidateQueries({ queryKey: ["conversations"] });
-    },
-    meta: {
-      invalidateQueries: ["settings-profile"]
-    }
-  });
+  // Watcher add/invite flow lives in the <AddWatchers /> component.
 
   const form = useForm<yup.InferType<typeof schema>>({
     resolver: yupResolver(schema),
@@ -456,36 +445,20 @@ export default function Settings() {
                   </DialogTrigger>
                   <DialogContent>
                     <DialogTitle>Add Watchers</DialogTitle>
-                    <div className="p-2.5">
-                      <MultiSelectUsers
-                        selectedUsers={selectedUsers}
-                        onChange={setSelectedUsers}
-                        existingUsers={
-                          profile?.sharedViewers.map((_u) => _u._id) ?? []
-                        }
-                        disabled={isAdding}
-                      />
-                    </div>
-                    <DialogFooter>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        disabled={isAdding}
-                        onClick={() => setWatchersDialog(false)}
-                      >
-                        Close
-                      </Button>
-                      <Button
-                        onClick={() => {
-                          watchersMutate(selectedUsers);
-                        }}
-                        size="sm"
-                        isLoading={isAdding}
-                        disabled={selectedUsers.length === 0}
-                      >
-                        Add
-                      </Button>
-                    </DialogFooter>
+                    <AddWatchers
+                      existingWatcherIds={
+                        profile?.sharedViewers.map((_u) => _u._id) ?? []
+                      }
+                      onClose={() => setWatchersDialog(false)}
+                      onSuccess={() => {
+                        queryClient.invalidateQueries({
+                          queryKey: ["settings-profile"]
+                        });
+                        queryClient.invalidateQueries({
+                          queryKey: ["conversations"]
+                        });
+                      }}
+                    />
                   </DialogContent>
                 </Dialog>
               </div>
