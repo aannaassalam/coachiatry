@@ -8,7 +8,9 @@ export interface ChatConversation {
   createdBy: string;
   members: [
     {
-      user: User;
+      // `user` is a placeholder ({ fullName: "Deleted user", deleted: true })
+      // when the referenced account no longer exists.
+      user: User & { deleted?: boolean };
       role: "member" | "admin" | "owner";
       joinedAt: string;
       lastReadAt: string;
