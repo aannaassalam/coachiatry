@@ -73,7 +73,7 @@ export default function ChatConversation() {
   const { typingUsers, friendStatus } = useChatSocket({
     room,
     conversation,
-    friendId: friend?.user._id,
+    friendId: friend?.user?._id,
     handlers: {
       onNewMessage: (msg) => {
         if (msg.tempId && msg._id) {
@@ -278,7 +278,7 @@ export default function ChatConversation() {
         onBack={() => setSelectedChat("")}
         canManageGroup={
           conversation?.members.find(
-            (_mem) => _mem.user._id === data?.user?._id
+            (_mem) => _mem.user?._id === data?.user?._id
           )?.role === "owner"
         }
       />

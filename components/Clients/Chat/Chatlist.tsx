@@ -144,11 +144,11 @@ export default function ChatList() {
           <>
             {chats.map((_chat) => {
               const chatUser = _chat.members.find(
-                (_member) => _member.user._id !== userId
+                (_member) => _member.user?._id !== userId
               );
               const details: { photo?: string; name?: string } = {
-                photo: chatUser?.user.photo,
-                name: chatUser?.user.fullName
+                photo: chatUser?.user?.photo,
+                name: chatUser?.user?.fullName
               };
 
               if (_chat && _chat.type === "group") {

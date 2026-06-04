@@ -66,7 +66,9 @@ export const ChatHeader = ({
           <GroupModal
             data={{
               name: conversation.name,
-              members: conversation.members.map((_mem) => _mem.user._id),
+              members: conversation.members
+                .filter((_mem) => _mem.user?._id)
+                .map((_mem) => _mem.user._id),
               groupPhoto: conversation.groupPhoto
             }}
           >

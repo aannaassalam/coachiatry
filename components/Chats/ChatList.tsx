@@ -258,8 +258,8 @@ export default function ChatList() {
                 chat.type === "group"
                   ? { photo: chat.groupPhoto, name: chat.name }
                   : {
-                      photo: chatUser?.user.photo,
-                      name: chatUser?.user.fullName
+                      photo: chatUser?.user?.photo,
+                      name: chatUser?.user?.fullName
                     };
 
               const renderLastMessage = () => {

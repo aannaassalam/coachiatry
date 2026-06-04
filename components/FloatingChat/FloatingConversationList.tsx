@@ -118,14 +118,14 @@ export default function FloatingConversationList() {
           <ul>
             {chats.map((chat) => {
               const friend = chat.members.find(
-                (m) => m.user._id !== data?.user?._id
+                (m) => m.user?._id !== data?.user?._id
               );
               const details =
                 chat.type === "group"
                   ? { photo: chat.groupPhoto, name: chat.name }
                   : {
-                      photo: friend?.user.photo,
-                      name: friend?.user.fullName
+                      photo: friend?.user?.photo,
+                      name: friend?.user?.fullName
                     };
 
               return (

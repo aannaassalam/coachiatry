@@ -60,12 +60,12 @@ export default function ChatConversation() {
   });
 
   const friend = conversation?.members?.find(
-    (_member) => _member.user._id !== (userId as string)
+    (_member) => _member.user?._id !== (userId as string)
   );
 
   const details: { photo?: string; name?: string } = {
-    photo: friend?.user.photo,
-    name: friend?.user.fullName
+    photo: friend?.user?.photo,
+    name: friend?.user?.fullName
   };
 
   if (conversation && conversation.type === "group") {

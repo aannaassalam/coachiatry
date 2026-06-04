@@ -271,11 +271,11 @@ export default function Home() {
             ) : (
               chats?.data.slice(0, 6).map((msg) => {
                 const friend = msg.members.find(
-                  (_m) => _m.user._id !== data?.user?._id
+                  (_m) => _m.user?._id !== data?.user?._id
                 );
                 const details: { photo?: string; name?: string } = {
-                  photo: friend?.user.photo,
-                  name: friend?.user.fullName
+                  photo: friend?.user?.photo,
+                  name: friend?.user?.fullName
                 };
 
                 if (msg && msg.type === "group") {

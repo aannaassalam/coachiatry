@@ -24,18 +24,18 @@ export const useConversationDetails = (
   });
 
   const friend = conversation?.members?.find(
-    (member) => member.user._id !== session?.user?._id
+    (member) => member.user?._id !== session?.user?._id
   );
 
   const details: Details = {
     photo:
       conversation?.type === "group"
         ? conversation.groupPhoto
-        : friend?.user.photo,
+        : friend?.user?.photo,
     name:
       conversation?.type === "group"
         ? conversation?.name
-        : friend?.user.fullName
+        : friend?.user?.fullName
   };
 
   return {

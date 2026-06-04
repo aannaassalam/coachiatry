@@ -49,7 +49,7 @@ export default function FloatingChatWindow({ roomId }: Props) {
   const { typingUsers } = useChatSocket({
     room: roomId,
     conversation,
-    friendId: friend?.user._id,
+    friendId: friend?.user?._id,
     handlers: {
       onNewMessage: (msg) => {
         if (msg.tempId && msg._id) {

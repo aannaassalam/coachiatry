@@ -14,10 +14,7 @@ import { DialogFooter } from "./ui/dialog";
 import { Input } from "./ui/input";
 import { SmartAvatar } from "./ui/smart-avatar";
 
-type WatcherUser = Pick<
-  User,
-  "_id" | "fullName" | "email" | "photo" | "role"
->;
+type WatcherUser = Pick<User, "_id" | "fullName" | "email" | "photo" | "role">;
 
 type SearchState =
   | { status: "idle" }
