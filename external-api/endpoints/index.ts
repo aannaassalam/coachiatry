@@ -96,7 +96,10 @@ export const endpoints = {
     getConversationByCoach: (roomId: string) => `/chat/coach/room/${roomId}`,
     createGroup: "/chat/group",
     editGroup: "/chat/group/edit",
-    leaveGroup: (chatId: string) => `/chat/leave-group/${chatId}`
+    leaveGroup: (chatId: string) => `/chat/leave-group/${chatId}`,
+    inviteToGroup: "/chat/group/invite",
+    getGroupInvite: (token: string) => `/chat/group/invite/${token}`,
+    acceptGroupInvite: (token: string) => `/chat/group/invite/${token}/accept`
   },
   messages: {
     getScheduleMessages: "/message/schedule",

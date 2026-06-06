@@ -142,8 +142,16 @@ export const authOptions: AuthOptions = {
         token.frontendExpired = false;
       } else if (trigger === "update") {
         if (!token.token) return token;
-        const appUser = await fetchProfile(token.token);
-        token.user = slimUserForToken(appUser);
+        // A failed profile refresh must NOT throw out of the jwt callback —
+        // doing so makes NextAuth treat the whole session as broken, which
+        // leaves useSession stuck on "loading" and blanks any screen gated by
+        // SessionGuard. On error we keep the existing token/user as-is.
+        try {
+          const appUser = await fetchProfile(token.token);
+          token.user = slimUserForToken(appUser);
+        } catch (err) {
+          console.error("Session update fetchProfile failed:", err);
+        }
       }
       return token;
     },

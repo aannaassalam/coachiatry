@@ -86,3 +86,44 @@ export const leaveGroup = async (chatId: string) => {
   const res = await axiosInstance.delete(endpoints.chat.leaveGroup(chatId));
   return res;
 };
+
+export const inviteToGroupByEmail = async (body: {
+  chatId: string;
+  emails: string[];
+}) => {
+  const res = await axiosInstance.post(endpoints.chat.inviteToGroup, body);
+  return res.data;
+};
+
+export interface GroupInvitePreview {
+  token: string;
+  email: string;
+  accepted: boolean;
+  chat: {
+    _id: string;
+    name?: string;
+    groupPhoto?: string;
+    type: string;
+  } | null;
+  invitedBy: {
+    _id: string;
+    fullName: string;
+    photo?: string;
+  } | null;
+}
+
+export const getGroupInvite = async (
+  token: string
+): Promise<GroupInvitePreview> => {
+  const res = await axiosInstance.get(endpoints.chat.getGroupInvite(token));
+  return res.data;
+};
+
+export const acceptGroupInvite = async (
+  token: string
+): Promise<{ chatId: string }> => {
+  const res = await axiosInstance.post(
+    endpoints.chat.acceptGroupInvite(token)
+  );
+  return res.data;
+};

@@ -1,6 +1,7 @@
 import {
   createGroup,
   editGroup,
+  inviteToGroupByEmail,
   leaveGroup
 } from "@/external-api/functions/chat.api";
 import { cn } from "@/lib/utils";
@@ -9,7 +10,9 @@ import { useMutation } from "@tanstack/react-query";
 import { Camera } from "lucide-react";
 import { parseAsString, useQueryState } from "nuqs";
 import { ReactNode, useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import AsyncMultiSelectUsers from "../AsyncMultiSelectUsers";
+import GroupInviteEmails from "./GroupInviteEmails";
 import { Button } from "../ui/button";
 import {
   Dialog,
@@ -42,6 +45,8 @@ export default function GroupModal({
     name: data?.name ?? "",
     members: data?.members ?? []
   });
+  // Emails for people who can't be added directly (not in system, or no access).
+  const [inviteEmails, setInviteEmails] = useState<string[]>([]);
 
   const previewUrl = useMemo(() => {
     if (typeof groupPhoto === "string" || !groupPhoto) {
@@ -61,14 +66,28 @@ export default function GroupModal({
     };
   }, [previewUrl, groupPhoto]);
 
+  // Fire-and-forget email invites once we know the group id. Backend skips
+  // people already addable/added and only emails those out of reach.
+  const sendInvitesIfAny = async (chatId: string) => {
+    if (!chatId || inviteEmails.length === 0) return;
+    try {
+      await inviteToGroupByEmail({ chatId, emails: inviteEmails });
+      toast.success(`${inviteEmails.length} invitation(s) sent`);
+    } catch {
+      toast.error("Failed to send some invitations");
+    }
+  };
+
   const { mutate, isPending } = useMutation({
     mutationFn: createGroup,
-    onSuccess: () => {
+    onSuccess: async (group: { _id?: string }) => {
+      await sendInvitesIfAny(group?._id ?? "");
       setGroupPhoto(null);
       setDetails({
         name: "",
         members: []
       });
+      setInviteEmails([]);
       setOpen(false);
     },
     meta: {
@@ -78,7 +97,9 @@ export default function GroupModal({
 
   const { mutate: editMutate, isPending: isEditing } = useMutation({
     mutationFn: editGroup,
-    onSuccess: () => {
+    onSuccess: async () => {
+      await sendInvitesIfAny(room);
+      setInviteEmails([]);
       setOpen(false);
       queryClient.invalidateQueries({ queryKey: ["conversations", room] });
     },
@@ -98,8 +119,11 @@ export default function GroupModal({
     }
   });
 
+  const hasRecipients =
+    details.members.length > 0 || inviteEmails.length > 0;
+
   const handleSubmit = () => {
-    if (!details.name?.trim() || details.members.length === 0) return;
+    if (!details.name?.trim() || !hasRecipients) return;
     if (!data && typeof groupPhoto !== "string")
       mutate({ ...details, groupPhoto });
     if (data) editMutate({ ...details, groupPhoto, chatId: room });
@@ -168,6 +192,16 @@ export default function GroupModal({
               disabled={isPending || isEditing}
             />
           </div>
+          <div className="space-y-1">
+            <span className="text-sm font-medium text-gray-700">
+              Invite by email
+            </span>
+            <GroupInviteEmails
+              emails={inviteEmails}
+              onChange={setInviteEmails}
+              disabled={isPending || isEditing}
+            />
+          </div>
         </div>
         <DialogFooter className="!flex-col">
           {data ? (
@@ -186,7 +220,7 @@ export default function GroupModal({
             center
             className="w-full"
             onClick={handleSubmit}
-            disabled={!details.name.trim() || details.members.length === 0}
+            disabled={!details.name.trim() || !hasRecipients}
             isLoading={isPending || isEditing}
           >
             {data ? "Save" : "Create"}

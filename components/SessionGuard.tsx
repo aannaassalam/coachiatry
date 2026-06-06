@@ -2,7 +2,7 @@
 
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export function SessionGuard({ children }: { children: React.ReactNode }) {
   const { data, status, update } = useSession();
@@ -15,6 +15,11 @@ export function SessionGuard({ children }: { children: React.ReactNode }) {
   // pages."
   const hasResolvedRef = useRef(false);
   if (data) hasResolvedRef.current = true;
+
+  // Safety valve: if the first session resolve stays stuck in "loading" (e.g.
+  // /api/auth/session erroring), stop blocking after a short delay so the user
+  // never gets trapped on a permanent blank screen.
+  const [loadingTimedOut, setLoadingTimedOut] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -33,10 +38,19 @@ export function SessionGuard({ children }: { children: React.ReactNode }) {
     return () => clearInterval(id);
   }, [status, update]);
 
+  useEffect(() => {
+    if (status === "loading" && !hasResolvedRef.current) {
+      const id = setTimeout(() => setLoadingTimedOut(true), 8000);
+      return () => clearTimeout(id);
+    }
+  }, [status]);
+
   // Only block render on the very first session resolve. After that, every
   // transient "loading" (from update(), refetchInterval, focus refetch)
   // keeps showing children to avoid the navigation flash.
-  if (status === "loading" && !hasResolvedRef.current) return null;
+  if (status === "loading" && !hasResolvedRef.current && !loadingTimedOut) {
+    return null;
+  }
 
   return <>{children}</>;
 }

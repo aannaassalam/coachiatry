@@ -39,7 +39,14 @@ export default withAuth(
   }
 );
 
-// 4️⃣ Exclude static assets, API routes, and public pages
+// 4️⃣ Exclude static assets, API routes, and public pages.
+// The final alternative `.*\\..*` excludes ANY path containing a dot, i.e.
+// every public file at the web root (firebase-messaging-sw.js, manifest.json,
+// icons, etc.). Without it those requests get redirected to /auth/login when
+// logged out — which breaks service-worker registration and white-screens the
+// app under the SW's clients.claim().
 export const config = {
-  matcher: ["/((?!_next|api|assets|static|favicon.ico|share).*)"]
+  matcher: [
+    "/((?!_next|api|assets|static|favicon.ico|share|group-invite|.*\\..*).*)"
+  ]
 };

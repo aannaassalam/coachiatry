@@ -21,6 +21,14 @@ const messaging = firebase.messaging();
 
 console.log("[fcm-sw] loaded");
 
+// Activate a new SW version immediately instead of waiting for all tabs to
+// close, and take control of open pages. Without this, a deployed SW update
+// can sit in "waiting" while the old one keeps handling (or mishandling) push.
+self.addEventListener("install", () => self.skipWaiting());
+self.addEventListener("activate", (event) =>
+  event.waitUntil(self.clients.claim())
+);
+
 // Raw push listener for debugging: fires for EVERY push, even if Firebase's
 // onBackgroundMessage doesn't pick it up. Helps us tell "no push arrived" from
 // "push arrived but Firebase didn't dispatch".
@@ -52,7 +60,10 @@ messaging.onBackgroundMessage((payload) => {
   return self.registration.showNotification(title, {
     body,
     icon: "/android-chrome-192x192.png",
-    tag: data.chatId || "chat",
+    // Tag PER MESSAGE (not per chat) so each message keeps its own entry in the
+    // tray instead of replacing the previous one. messageId is unique; fall
+    // back to a chat+time key if it's ever missing.
+    tag: data.messageId || `${data.chatId || "chat"}-${Date.now()}`,
     data: {
       chatId: data.chatId,
       type: data.type,
