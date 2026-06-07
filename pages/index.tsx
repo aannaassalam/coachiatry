@@ -1,5 +1,5 @@
 import PageTitle from "@/components/Seo/PageTitle";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { SmartAvatar } from "@/components/ui/smart-avatar";
 import { Badge } from "@/components/ui/badge";
 import { getAllConversations } from "@/external-api/functions/chat.api";
 import { getAllDocuments } from "@/external-api/functions/document.api";
@@ -9,8 +9,7 @@ import assets from "@/json/assets";
 import AppLayout from "@/layouts/AppLayout";
 import {
   formatChatTime,
-  formatDateOrEmpty,
-  getInitials
+  formatDateOrEmpty
 } from "@/lib/functions/_helpers.lib";
 import { Task } from "@/typescript/interface/task.interface";
 import { useQueries } from "@tanstack/react-query";
@@ -285,15 +284,11 @@ export default function Home() {
                 return (
                   <Link href={`/chat?room=${msg._id}`} key={msg._id}>
                     <div className="flex items-start gap-3 p-2.5 cursor-pointer hover:bg-gray-100 rounded-md">
-                      <Avatar className="size-10">
-                        <AvatarImage
-                          src={details?.photo}
-                          alt={getInitials(details?.name)}
-                        />
-                        <AvatarFallback className="bg-orange-100 flex items-center justify-center font-semibold text-orange-600">
-                          {getInitials(details?.name)}
-                        </AvatarFallback>
-                      </Avatar>
+                      <SmartAvatar
+                        src={details?.photo}
+                        name={details?.name}
+                        className="size-10"
+                      />
                       <div className="flex-1">
                         <p className="font-semibold text-sm leading-5 text-gray-900">
                           {details?.name}

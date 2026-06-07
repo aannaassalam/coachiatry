@@ -119,8 +119,7 @@ export default function GroupModal({
     }
   });
 
-  const hasRecipients =
-    details.members.length > 0 || inviteEmails.length > 0;
+  const hasRecipients = details.members.length > 0 || inviteEmails.length > 0;
 
   const handleSubmit = () => {
     if (!details.name?.trim() || !hasRecipients) return;

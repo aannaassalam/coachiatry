@@ -62,6 +62,7 @@ export const endpoints = {
     postCoach: "/task/coach",
     importBulkTasks: "/task/import-bulk-tasks",
     assignToggle: "/task/assign-toggle",
+    getAssignees: (taskId: string) => `/task/${taskId}/assignees`,
     getOne: (taskId: string) => `/task/${taskId}`,
     edit: (taskId: string) => `/task/${taskId}`,
     delete: (taskId: string) => `/task/${taskId}`,

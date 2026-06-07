@@ -16,7 +16,6 @@ import {
   PopoverTrigger
 } from "@/components/ui/popover";
 import { getUserSuggestions } from "@/external-api/functions/user.api";
-import { getInitials } from "@/lib/functions/_helpers.lib";
 import { User } from "@/typescript/interface/user.interface";
 import { useQuery } from "@tanstack/react-query";
 import { Check, ChevronsUpDown, Loader2, X } from "lucide-react";
@@ -94,9 +93,8 @@ export default function MultiSelectUsers({
                   >
                     <SmartAvatar
                       src={user.photo}
-                      name={getInitials(user.fullName)}
+                      name={user.fullName}
                       className="size-4"
-                      textSize="text-xs"
                     />
                     <span>{user.fullName}</span>
                     <button
@@ -150,9 +148,8 @@ export default function MultiSelectUsers({
                         >
                           <SmartAvatar
                             src={user.photo}
-                            name={getInitials(user.fullName)}
+                            name={user.fullName}
                             className="size-6"
-                            textSize="text-xs"
                           />
                           <div className="flex flex-col text-sm">
                             <span className="font-medium">{user.fullName}</span>

@@ -9,14 +9,20 @@ import { getInitials } from "@/lib/functions/_helpers.lib";
 interface SmartAvatarProps {
   src?: string;
   name?: string;
+  /**
+   * @deprecated Initials now scale automatically with the avatar size.
+   * Kept for backwards compatibility; no longer controls the font size.
+   */
   textSize?: string;
+  /** Initials font size as a fraction of the avatar diameter (default 0.4). */
+  textScale?: number;
   className?: string;
 }
 
 export function SmartAvatar({
   src,
   name,
-  textSize = "text-base",
+  textScale = 0.4,
   className
 }: SmartAvatarProps) {
   const [loaded, setLoaded] = React.useState(false);
@@ -24,6 +30,10 @@ export function SmartAvatar({
 
   return (
     <Avatar
+      // Establish a container so the initials can size relative to the
+      // avatar's actual width (via cqw), keeping them proportional at any
+      // `size-*` instead of relying on a hand-tuned text class.
+      style={{ containerType: "inline-size" }}
       className={cn(
         "overflow-hidden border border-gray-100 bg-gray-100 relative",
         className
@@ -37,6 +47,7 @@ export function SmartAvatar({
       {/* Fade-in image */}
       {src && !error && (
         <motion.div
+          className="size-full"
           initial={{ opacity: 0 }}
           animate={{ opacity: loaded ? 1 : 0 }}
           transition={{ duration: 0.3 }}
@@ -54,10 +65,10 @@ export function SmartAvatar({
 
       {/* Fallback (initials or default icon) */}
       <AvatarFallback
-        className={cn(
-          "bg-orange-100 flex items-center justify-center font-semibold text-orange-600",
-          textSize
-        )}
+        // Font size tracks the avatar width: 1cqw = 1% of the container's
+        // width, so `textScale * 100` cqw == that fraction of the diameter.
+        style={{ fontSize: `${textScale * 100}cqw`, lineHeight: 1 }}
+        className="bg-orange-100 flex items-center justify-center font-semibold text-orange-600 leading-none"
       >
         {getInitials(name)}
       </AvatarFallback>

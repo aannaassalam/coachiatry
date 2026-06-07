@@ -122,8 +122,6 @@ export const getGroupInvite = async (
 export const acceptGroupInvite = async (
   token: string
 ): Promise<{ chatId: string }> => {
-  const res = await axiosInstance.post(
-    endpoints.chat.acceptGroupInvite(token)
-  );
+  const res = await axiosInstance.post(endpoints.chat.acceptGroupInvite(token));
   return res.data;
 };

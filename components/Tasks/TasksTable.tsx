@@ -15,6 +15,7 @@ import {
   assignToggle,
   deleteTask,
   getTask,
+  getTaskAssignees,
   markSubtaskAsCompleted
 } from "@/external-api/functions/task.api";
 import assets from "@/json/assets";
@@ -22,7 +23,7 @@ import { formatDateOrEmpty } from "@/lib/functions/_helpers.lib";
 import { cn } from "@/lib/utils";
 import { queryClient } from "@/pages/_app";
 import { Task } from "@/typescript/interface/task.interface";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Check, ChevronsUpDown, Ellipsis, Pencil, Trash } from "lucide-react";
 import Image from "next/image";
 import {
@@ -232,6 +233,16 @@ function TasksTable({
   const [openTasksIndex, setOpenTasksIndex] = useState<string[]>([]);
   const [statusBoxIndex, setStatusBoxIndex] = useState<string | null>(null);
   const [openAssignFor, setOpenAssignFor] = useState<string | null>(null);
+
+  // Candidate assignees are anchored on the OPEN task's owner hierarchy, so
+  // they're fetched lazily only while a task's assignee popover is open.
+  const { data: assigneeData, isLoading: assigneesLoading } = useQuery({
+    queryKey: ["task-assignees", openAssignFor],
+    queryFn: () => getTaskAssignees(openAssignFor as string),
+    enabled: !!openAssignFor,
+    staleTime: 60 * 1000
+  });
+
   const [, setSelectedTask] = useQueryState(
     "task",
     parseAsString.withDefault("")
@@ -285,17 +296,20 @@ function TasksTable({
   });
 
   const { mutate: assign, isPending: isAssigning } = useMutation({
-    mutationFn: assignToggle,
-    onMutate: async ({ taskId, coachId }) => {
+    mutationFn: ({
+      taskId,
+      coachId
+    }: {
+      taskId: string;
+      coachId: string;
+      coachUser?: User;
+    }) => assignToggle({ taskId, coachId }),
+    onMutate: async ({ taskId, coachId, coachUser }) => {
       await queryClient.cancelQueries({ queryKey: ["tasks"] });
 
       const snapshots = queryClient.getQueriesData<Task[]>({
         queryKey: ["tasks"]
       });
-
-      const coachUser = data?.user?.assignedCoach.find(
-        (c) => (c as unknown as User)._id === coachId
-      ) as unknown as User | undefined;
 
       const applyUpdate = (old: Task[] | undefined) =>
         old?.map((t) => {
@@ -326,6 +340,11 @@ function TasksTable({
       for (const [key, data] of context?.snapshots ?? []) {
         queryClient.setQueryData(key, data);
       }
+    },
+    onSuccess: () => {
+      // Assigning may have created a matching status column for the assignee
+      // (server-side) — refresh columns so a newly-added one shows up.
+      queryClient.invalidateQueries({ queryKey: ["status"] });
     },
     meta: {
       invalidateQueries: ["tasks"]
@@ -463,12 +482,21 @@ function TasksTable({
                         onClick={(e) => e.stopPropagation()}
                       >
                         {(() => {
-                          const isOwner = task.user?._id === data?.user?._id;
+                          const currentUserId = data?.user?._id;
+                          const isOwner = task.user?._id === currentUserId;
                           const assignees = Array.isArray(task.assignedTo)
                             ? task.assignedTo
                             : task.assignedTo
                               ? [task.assignedTo as unknown as User]
                               : [];
+                          // Anyone in the owner's management hierarchy can edit
+                          // — in the personal list that's the owner plus anyone
+                          // currently assigned (assignees always come from the
+                          // owner's tree). The backend re-validates on toggle.
+                          const isAssignee = assignees.some(
+                            (u) => u._id === currentUserId
+                          );
+                          const canEdit = isOwner || isAssignee;
 
                           const assigneeDisplay = (
                             <div className="flex items-center gap-2">
@@ -514,13 +542,13 @@ function TasksTable({
                                   </span>
                                 </>
                               )}
-                              {isOwner && (
+                              {canEdit && (
                                 <ChevronsUpDown size={14} color="#777" />
                               )}
                             </div>
                           );
 
-                          if (isOwner) {
+                          if (canEdit) {
                             return (
                               <Popover
                                 open={openAssignFor === task._id}
@@ -537,53 +565,67 @@ function TasksTable({
                                   </button>
                                 </PopoverTrigger>
                                 <PopoverContent className="w-72 p-2">
-                                  {data?.user?.assignedCoach.map((coach) => {
-                                    const coachUser = coach as unknown as User;
-                                    const isAssigned = assignees.some(
-                                      (u) => u._id === coachUser._id
-                                    );
-                                    return (
-                                      <button
-                                        onClick={() =>
-                                          assign({
-                                            taskId: task._id,
-                                            coachId: coachUser._id
-                                          })
-                                        }
-                                        key={coachUser._id}
-                                        className="[all:unset] w-full! !flex !items-center !gap-3 cursor-pointer rounded-md px-3 py-1.5! hover:bg-gray-50"
-                                      >
-                                        <span className="w-4">
-                                          {isAssigned && (
-                                            <Check
-                                              size={14}
-                                              className="text-green-500 shrink-0"
-                                            />
-                                          )}
-                                        </span>
-                                        <SmartAvatar
-                                          src={coachUser?.photo}
-                                          name={coachUser?.fullName}
-                                          key={coachUser?.updatedAt}
-                                          className="size-5"
-                                          textSize="text-[11px]"
-                                        />
-                                        <span className="font-lato font-medium text-sm text-gray-700 flex-1">
-                                          {coachUser?._id === data?.user?._id
-                                            ? "me"
-                                            : coachUser?.fullName}
-                                        </span>
-                                        {coachUser?.role && (
-                                          <Badge
-                                            variant="outline"
-                                            className="capitalize rounded-full py-0 px-2 font-archivo font-medium text-[10px] leading-4 text-gray-500"
+                                  {assigneesLoading ? (
+                                    <div className="px-3 py-2 text-sm text-gray-400">
+                                      Loading…
+                                    </div>
+                                  ) : assigneeData &&
+                                    !assigneeData.canAssign ? (
+                                    <div className="px-3 py-2 text-sm text-gray-400">
+                                      You can&apos;t change this task&apos;s
+                                      assignees.
+                                    </div>
+                                  ) : (
+                                    (assigneeData?.assignees ?? []).map(
+                                      (coachUser) => {
+                                        const isAssigned = assignees.some(
+                                          (u) => u._id === coachUser._id
+                                        );
+                                        return (
+                                          <button
+                                            onClick={() =>
+                                              assign({
+                                                taskId: task._id,
+                                                coachId: coachUser._id,
+                                                coachUser
+                                              })
+                                            }
+                                            key={coachUser._id}
+                                            className="[all:unset] w-full! !flex !items-center !gap-3 cursor-pointer rounded-md px-3 py-1.5! hover:bg-gray-50"
                                           >
-                                            {coachUser.role}
-                                          </Badge>
-                                        )}
-                                      </button>
-                                    );
-                                  })}
+                                            <span className="w-4">
+                                              {isAssigned && (
+                                                <Check
+                                                  size={14}
+                                                  className="text-green-500 shrink-0"
+                                                />
+                                              )}
+                                            </span>
+                                            <SmartAvatar
+                                              src={coachUser?.photo}
+                                              name={coachUser?.fullName}
+                                              key={coachUser?.updatedAt}
+                                              className="size-5"
+                                              textSize="text-[11px]"
+                                            />
+                                            <span className="font-lato font-medium text-sm text-gray-700 flex-1">
+                                              {coachUser?._id === currentUserId
+                                                ? "me"
+                                                : coachUser?.fullName}
+                                            </span>
+                                            {coachUser?.role && (
+                                              <Badge
+                                                variant="outline"
+                                                className="capitalize rounded-full py-0 px-2 font-archivo font-medium text-[10px] leading-4 text-gray-500"
+                                              >
+                                                {coachUser.role}
+                                              </Badge>
+                                            )}
+                                          </button>
+                                        );
+                                      }
+                                    )
+                                  )}
                                 </PopoverContent>
                               </Popover>
                             );

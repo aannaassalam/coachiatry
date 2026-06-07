@@ -55,7 +55,6 @@ import {
 import { Category } from "@/typescript/interface/category.interface";
 import { Status } from "@/typescript/interface/status.interface";
 import AppLayout from "@/layouts/AppLayout";
-import { getInitials } from "@/lib/functions/_helpers.lib";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Camera, Link2, Plus, Trash2 } from "lucide-react";
@@ -496,8 +495,7 @@ export default function Settings() {
                   >
                     <SmartAvatar
                       src={_viewer.photo}
-                      name={getInitials(_viewer.fullName)}
-                      textSize="text-lg"
+                      name={_viewer.fullName}
                       className="size-13 max-sm:size-10"
                     />
                     <div>

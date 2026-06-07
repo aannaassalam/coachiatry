@@ -3,6 +3,7 @@ import {
   PaginatedResponse
 } from "@/typescript/interface/common.interface";
 import { Task, TaskBody } from "@/typescript/interface/task.interface";
+import { User } from "@/typescript/interface/user.interface";
 import axiosInstance from "../axiosInstance";
 import { endpoints } from "../endpoints";
 import moment from "moment";
@@ -241,4 +242,9 @@ export const assignToggle = async (body: {
 }) => {
   const res = await axiosInstance.patch(endpoints.task.assignToggle, body);
   return res;
+};
+
+export const getTaskAssignees = async (taskId: string) => {
+  const res = await axiosInstance.get(endpoints.task.getAssignees(taskId));
+  return res.data as { canAssign: boolean; assignees: User[] };
 };

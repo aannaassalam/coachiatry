@@ -63,6 +63,19 @@ function ListView({ onAddTask }: { onAddTask: (statusId?: string) => void }) {
     ]
   });
 
+  // A task carries the OWNER's status id. When a task is assigned from another
+  // user, its status id won't be one of this viewer's columns — fall back to
+  // matching by title so it lands in the equivalent column instead of being
+  // silently hidden.
+  const columnIds = new Set(status.map((s) => s?._id));
+  const tasksForStatus = (_status: (typeof status)[number]) =>
+    tasks?.filter(
+      (task) =>
+        task.status._id === _status?._id ||
+        (!columnIds.has(task.status._id) &&
+          task.status.title === _status?.title)
+    ) ?? [];
+
   const handleToggle = (idx: number, isOpen: boolean) => {
     setOpenIndexes((prev) =>
       isOpen ? [...prev, idx] : prev.filter((i) => i !== idx)
@@ -138,10 +151,7 @@ function ListView({ onAddTask }: { onAddTask: (statusId?: string) => void }) {
                     variant="counter"
                     style={{ backgroundColor: _status?.color?.text }}
                   >
-                    {
-                      tasks?.filter((task) => task.status._id === _status?._id)
-                        .length
-                    }
+                    {tasksForStatus(_status).length}
                   </Badge>
                 </div>
                 <Button
@@ -161,10 +171,7 @@ function ListView({ onAddTask }: { onAddTask: (statusId?: string) => void }) {
               </div>
               <CollapsibleContent className="pl-7 data-[state=closed]:animate-slideUp data-[state=open]:animate-slideDown max-md:w-[94vw] max-sm:w-[92vw] max-md:overflow-auto scrollbar-hide max-sm:pl-0">
                 <TasksTable
-                  tasks={
-                    tasks?.filter((task) => task.status._id === _status?._id) ??
-                    []
-                  }
+                  tasks={tasksForStatus(_status)}
                   isLoading={isLoading}
                   onAddTask={onAddTask}
                 />
