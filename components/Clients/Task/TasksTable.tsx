@@ -509,131 +509,128 @@ function TasksTable({
                             // hierarchy (coach / manager / admin). The backend
                             // re-validates on toggle.
                             <Popover
-                                open={openAssignFor === task._id}
-                                onOpenChange={(open) =>
-                                  setOpenAssignFor(open ? task._id : null)
-                                }
-                              >
-                                <PopoverTrigger asChild>
-                                  <button
-                                    onClick={(e) => e.stopPropagation()}
-                                    disabled={isAssigning}
-                                    className="[all:unset] !flex !items-center !gap-2 disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
-                                  >
-                                    {assignees.length === 0 ? (
-                                      <span className="font-lato font-medium text-sm text-gray-400">
-                                        Unassigned
-                                      </span>
-                                    ) : assignees.length === 1 ? (
-                                      <div className="flex items-center gap-2">
-                                        <SmartAvatar
-                                          src={assignees[0]?.photo}
-                                          name={assignees[0]?.fullName}
-                                          key={assignees[0]?.updatedAt}
-                                          className="size-5"
-                                          textSize="text-[10px]"
-                                        />
-                                        <span className="font-lato font-medium text-sm text-gray-700">
-                                          {assignees[0]?._id === currentUserId
-                                            ? "me"
-                                            : assignees[0]?.fullName}
-                                        </span>
-                                      </div>
-                                    ) : (
-                                      <div className="flex items-center gap-2">
-                                        <div className="flex items-center">
-                                          {assignees
-                                            .slice(0, 2)
-                                            .map((u, i) => (
-                                              <div
-                                                key={u._id}
-                                                className={cn(i > 0 && "-ml-2")}
-                                              >
-                                                <SmartAvatar
-                                                  src={u.photo}
-                                                  name={u.fullName}
-                                                  key={u.updatedAt}
-                                                  className="size-5 ring-1 ring-white"
-                                                  textSize="text-[10px]"
-                                                />
-                                              </div>
-                                            ))}
-                                        </div>
-                                        <span className="font-lato font-medium text-sm text-gray-700">
-                                          {assignees.length} people
-                                        </span>
-                                      </div>
-                                    )}
-                                    <ChevronsUpDown size={14} color="#777" />
-                                  </button>
-                                </PopoverTrigger>
-                                <PopoverContent
-                                  className="w-72 p-2"
+                              open={openAssignFor === task._id}
+                              onOpenChange={(open) =>
+                                setOpenAssignFor(open ? task._id : null)
+                              }
+                            >
+                              <PopoverTrigger asChild>
+                                <button
                                   onClick={(e) => e.stopPropagation()}
+                                  disabled={isAssigning}
+                                  className="[all:unset] !flex !items-center !gap-2 disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
                                 >
-                                  {assigneesLoading ? (
-                                    <div className="px-3 py-2 text-sm text-gray-400">
-                                      Loading…
-                                    </div>
-                                  ) : assigneeData &&
-                                    !assigneeData.canAssign ? (
-                                    <div className="px-3 py-2 text-sm text-gray-400">
-                                      You can&apos;t change this task&apos;s
-                                      assignees.
+                                  {assignees.length === 0 ? (
+                                    <span className="font-lato font-medium text-sm text-gray-400">
+                                      Unassigned
+                                    </span>
+                                  ) : assignees.length === 1 ? (
+                                    <div className="flex items-center gap-2">
+                                      <SmartAvatar
+                                        src={assignees[0]?.photo}
+                                        name={assignees[0]?.fullName}
+                                        key={assignees[0]?.updatedAt}
+                                        className="size-5"
+                                        textSize="text-[10px]"
+                                      />
+                                      <span className="font-lato font-medium text-sm text-gray-700">
+                                        {assignees[0]?._id === currentUserId
+                                          ? "me"
+                                          : assignees[0]?.fullName}
+                                      </span>
                                     </div>
                                   ) : (
-                                    (assigneeData?.assignees ?? []).map(
-                                      (coachUser) => {
-                                        const isAssigned = assignees.some(
-                                          (u) => u._id === coachUser._id
-                                        );
-                                        return (
-                                          <button
-                                            onClick={() =>
-                                              assign({
-                                                taskId: task._id,
-                                                coachId: coachUser._id,
-                                                coachUser
-                                              })
-                                            }
-                                            key={coachUser._id}
-                                            className="[all:unset] w-full! !flex !items-center !gap-3 cursor-pointer rounded-md px-3 py-1.5! hover:bg-gray-50"
+                                    <div className="flex items-center gap-2">
+                                      <div className="flex items-center">
+                                        {assignees.slice(0, 2).map((u, i) => (
+                                          <div
+                                            key={u._id}
+                                            className={cn(i > 0 && "-ml-2")}
                                           >
-                                            <span className="w-4">
-                                              {isAssigned && (
-                                                <Check
-                                                  size={14}
-                                                  className="text-green-500 shrink-0"
-                                                />
-                                              )}
-                                            </span>
                                             <SmartAvatar
-                                              src={coachUser?.photo}
-                                              name={coachUser?.fullName}
-                                              key={coachUser?.updatedAt}
-                                              className="size-5"
-                                              textSize="text-[11px]"
+                                              src={u.photo}
+                                              name={u.fullName}
+                                              key={u.updatedAt}
+                                              className="size-5 ring-1 ring-white"
+                                              textSize="text-[10px]"
                                             />
-                                            <span className="font-lato font-medium text-sm text-gray-700 flex-1">
-                                              {coachUser?._id === currentUserId
-                                                ? "me"
-                                                : coachUser?.fullName}
-                                            </span>
-                                            {coachUser?.role && (
-                                              <Badge
-                                                variant="outline"
-                                                className="capitalize rounded-full py-0 px-2 font-archivo font-medium text-[10px] leading-4 text-gray-500"
-                                              >
-                                                {coachUser.role}
-                                              </Badge>
-                                            )}
-                                          </button>
-                                        );
-                                      }
-                                    )
+                                          </div>
+                                        ))}
+                                      </div>
+                                      <span className="font-lato font-medium text-sm text-gray-700">
+                                        {assignees.length} people
+                                      </span>
+                                    </div>
                                   )}
-                                </PopoverContent>
-                              </Popover>
+                                  <ChevronsUpDown size={14} color="#777" />
+                                </button>
+                              </PopoverTrigger>
+                              <PopoverContent
+                                className="w-72 p-2"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                {assigneesLoading ? (
+                                  <div className="px-3 py-2 text-sm text-gray-400">
+                                    Loading…
+                                  </div>
+                                ) : assigneeData && !assigneeData.canAssign ? (
+                                  <div className="px-3 py-2 text-sm text-gray-400">
+                                    You can&apos;t change this task&apos;s
+                                    assignees.
+                                  </div>
+                                ) : (
+                                  (assigneeData?.assignees ?? []).map(
+                                    (coachUser) => {
+                                      const isAssigned = assignees.some(
+                                        (u) => u._id === coachUser._id
+                                      );
+                                      return (
+                                        <button
+                                          onClick={() =>
+                                            assign({
+                                              taskId: task._id,
+                                              coachId: coachUser._id,
+                                              coachUser
+                                            })
+                                          }
+                                          key={coachUser._id}
+                                          className="[all:unset] w-full! !flex !items-center !gap-3 cursor-pointer rounded-md px-3 py-1.5! hover:bg-gray-50"
+                                        >
+                                          <span className="w-4">
+                                            {isAssigned && (
+                                              <Check
+                                                size={14}
+                                                className="text-green-500 shrink-0"
+                                              />
+                                            )}
+                                          </span>
+                                          <SmartAvatar
+                                            src={coachUser?.photo}
+                                            name={coachUser?.fullName}
+                                            key={coachUser?.updatedAt}
+                                            className="size-5"
+                                            textSize="text-[11px]"
+                                          />
+                                          <span className="font-lato font-medium text-sm text-gray-700 flex-1">
+                                            {coachUser?._id === currentUserId
+                                              ? "me"
+                                              : coachUser?.fullName}
+                                          </span>
+                                          {coachUser?.role && (
+                                            <Badge
+                                              variant="outline"
+                                              className="capitalize rounded-full py-0 px-2 font-archivo font-medium text-[10px] leading-4 text-gray-500"
+                                            >
+                                              {coachUser.role}
+                                            </Badge>
+                                          )}
+                                        </button>
+                                      );
+                                    }
+                                  )
+                                )}
+                              </PopoverContent>
+                            </Popover>
                           );
                         })()}
                       </TableCell>

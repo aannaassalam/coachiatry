@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { CalendarIcon, X } from "lucide-react";
 import moment from "moment";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Resolver, useForm } from "react-hook-form";
 import * as yup from "yup";
 import { Button } from "../ui/button";
@@ -31,10 +31,12 @@ import {
 import { Skeleton } from "../ui/skeleton";
 import { Textarea } from "../ui/textarea";
 import SubtaskList from "./AddSubTasks";
+import AutosaveIndicator from "./AutosaveIndicator";
 
 import { getAllCategories } from "@/external-api/functions/category.api";
 import { getAllStatuses } from "@/external-api/functions/status.api";
-import { addTask, editTask, getTask } from "@/external-api/functions/task.api";
+import { addTask, getTask } from "@/external-api/functions/task.api";
+import { useTaskAutosave } from "@/hooks/utils/useTaskAutosave";
 import { queryClient } from "@/pages/_app";
 import { Subtask } from "@/typescript/interface/task.interface";
 import { useMutation, useQueries } from "@tanstack/react-query";
@@ -158,21 +160,6 @@ export default function AddTaskSheet({
     }
   });
 
-  const { mutate: editMutate, isPending: isEditPending } = useMutation({
-    mutationFn: editTask,
-    onSuccess: () => {
-      // Keep the sheet open after an update so the user can keep reviewing /
-      // editing; they close it manually via Cancel or X. Just refresh the
-      // loaded task so the form re-seeds with the saved values.
-      queryClient.invalidateQueries({
-        queryKey: ["task", effectiveSelectedTask]
-      });
-    },
-    meta: {
-      invalidateQueries: ["tasks"]
-    }
-  });
-
   // @hookform/resolvers v5 + yup's mix of optional and defaulted fields in
   // this schema produces a Resolver<input> that doesn't match useForm's
   // expected Resolver<output>. Cast through to keep the typed form API while
@@ -193,6 +180,56 @@ export default function AddTaskSheet({
       remindBefore: "",
       subtasks: []
     }
+  });
+
+  // Maps form values to the API payload. Shared by the manual create submit and
+  // the edit autosave so both round-trip identically.
+  const buildFinalData = useCallback(
+    (values: TaskFormData) => {
+      const todoStatusId =
+        statuses?.find((s) => s.title === "Todo")?._id ?? "Todo";
+      const healthCategory =
+        categories?.find((c) => c.title === "Health")?._id ?? "Health";
+      return {
+        ...values,
+        priority: values.priority || "low",
+        status: values.status || todoStatusId,
+        category: values.category ?? healthCategory,
+        remindBefore: values.remindBefore
+          ? parseInt(values.remindBefore)
+          : undefined,
+        taskDuration: values.hoursDuration
+          ? values.minutesDuration
+            ? parseInt(values.hoursDuration) * 60 +
+              parseInt(values.minutesDuration)
+            : parseInt(values.hoursDuration) * 60
+          : values.minutesDuration
+            ? parseInt(values.minutesDuration)
+            : undefined,
+        frequency:
+          values.frequency === "" || !values.frequency
+            ? undefined
+            : values.frequency
+      };
+    },
+    [statuses, categories]
+  );
+
+  // Edit flow autosaves; create still uses the explicit "Add Task" button.
+  const {
+    saveState,
+    resetBaseline,
+    flush: flushAutosave,
+    retry: retryAutosave,
+    hasSaved,
+    clearHasSaved
+  } = useTaskAutosave<TaskFormData>({
+    enabled:
+      open && effectiveEditing && !!effectiveSelectedTask && !disabledAll,
+    taskId: effectiveSelectedTask,
+    form,
+    buildPayload: buildFinalData,
+    canSave: (values) => !!values.title?.trim()
   });
 
   // Single source of truth for seeding the form. When the sheet is open we
@@ -234,6 +271,9 @@ export default function AddTaskSheet({
         },
         { keepDirty: false }
       );
+      // Mark these freshly-seeded values as the saved baseline so seeding
+      // doesn't trigger an autosave and the first real edit diffs correctly.
+      resetBaseline();
       return;
     }
     // Add mode: prefer matching status / category _ids; fall back to the
@@ -269,38 +309,31 @@ export default function AddTaskSheet({
     effectivePredefinedDueDate,
     statuses,
     categories,
-    form
+    form,
+    resetBaseline
   ]);
 
-  const onSubmit = (data: yup.InferType<typeof schema>) => {
-    // The schema marks priority/status as optional, but the API contract
-    // (TaskBody) requires both. Coerce to safe defaults at submit time so
-    // partial form states still round-trip cleanly.
-    const todoStatusId =
-      statuses?.find((s) => s.title === "Todo")?._id ?? "Todo";
-    const healthCategory =
-      categories?.find((c) => c.title === "Health")?._id ?? "Health";
-    const finalData = {
-      ...data,
-      priority: data.priority || "low",
-      status: data.status || todoStatusId,
-      category: data.category ?? healthCategory,
-      remindBefore: data.remindBefore ? parseInt(data.remindBefore) : undefined,
-      taskDuration: data.hoursDuration
-        ? data.minutesDuration
-          ? parseInt(data.hoursDuration) * 60 + parseInt(data.minutesDuration)
-          : parseInt(data.hoursDuration) * 60
-        : data.minutesDuration
-          ? parseInt(data.minutesDuration)
-          : undefined,
-      frequency:
-        data.frequency === "" || !data.frequency ? undefined : data.frequency
-    };
-    if (effectiveSelectedTask && effectiveEditing) {
-      editMutate({ task_id: effectiveSelectedTask, data: finalData });
-    } else {
-      mutate(finalData);
+  const onSubmit = (values: yup.InferType<typeof schema>) => {
+    // Edit mode persists via autosave — nothing to do on (e.g. Enter) submit.
+    if (effectiveSelectedTask && effectiveEditing) return;
+    mutate(buildFinalData(values));
+  };
+
+  // Flush any pending autosave on close, then refresh the lists/task so the
+  // view behind the sheet (and the next open) reflect the saved values.
+  const handleOpenChange = (toggle: boolean) => {
+    if (!toggle && effectiveEditing) {
+      flushAutosave().finally(() => {
+        if (hasSaved()) {
+          queryClient.invalidateQueries({ queryKey: ["tasks"] });
+          queryClient.invalidateQueries({
+            queryKey: ["task", effectiveSelectedTask]
+          });
+          clearHasSaved();
+        }
+      });
     }
+    onOpenChange(toggle);
   };
 
   const dropDownOptions = {
@@ -330,7 +363,7 @@ export default function AddTaskSheet({
   };
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <Sheet open={open} onOpenChange={handleOpenChange}>
       <SheetContent className="lg:max-w-2xl gap-0 max-lg:!max-w-full max-lg:!w-full">
         <SheetHeader className="border-b p-6 max-sm:p-4 flex-row items-center justify-between">
           <SheetTitle className="font-archivo font-semibold text-xl text-gray-900">
@@ -340,9 +373,14 @@ export default function AddTaskSheet({
                 ? "Edit Task"
                 : "Add New Task"}
           </SheetTitle>
-          <SheetClose className="cursor-pointer">
-            <X />
-          </SheetClose>
+          <div className="flex items-center gap-3">
+            {effectiveEditing && !disabledAll && (
+              <AutosaveIndicator state={saveState} onRetry={retryAutosave} />
+            )}
+            <SheetClose className="cursor-pointer">
+              <X />
+            </SheetClose>
+          </div>
         </SheetHeader>
         {isLoading ? (
           <div className="flex-1 p-6 py-4 inline-flex flex-col overflow-auto max-sm:p-4">
@@ -400,7 +438,7 @@ export default function AddTaskSheet({
                               placeholder="Enter Task Title"
                               {...field}
                               disabled={
-                                isPending || isEditPending || disabledAll
+                                isPending || disabledAll
                               }
                             />
                           </FormControl>
@@ -422,7 +460,7 @@ export default function AddTaskSheet({
                             rows={7}
                             placeholder="Enter Task Description"
                             {...field}
-                            disabled={isPending || isEditPending || disabledAll}
+                            disabled={isPending || disabledAll}
                           />
                         </FormControl>
                         <FormMessage />
@@ -430,7 +468,7 @@ export default function AddTaskSheet({
                     )}
                   />
                   <SubtaskList
-                    disabled={disabledAll || isPending || isEditPending}
+                    disabled={disabledAll || isPending}
                   />
                   <div className="grid grid-cols-2 max-sm:grid-cols-1 max-sm:gap-2 space-y-2 gap-3 pt-4 mt-4 border-t border-gray-100 items-start">
                     <FormField
@@ -450,7 +488,7 @@ export default function AddTaskSheet({
                                 placeholder="Select priority"
                                 isFlag={true}
                                 disabled={
-                                  disabledAll || isPending || isEditPending
+                                  disabledAll || isPending
                                 }
                               />
                             </FormControl>
@@ -487,7 +525,7 @@ export default function AddTaskSheet({
                               placeholder="Select category"
                               isBadge={true}
                               disabled={
-                                disabledAll || isPending || isEditPending
+                                disabledAll || isPending
                               }
                             />
                           </FormControl>
@@ -513,7 +551,7 @@ export default function AddTaskSheet({
                                     !field.value && "text-muted-foreground"
                                   )}
                                   disabled={
-                                    disabledAll || isPending || isEditPending
+                                    disabledAll || isPending
                                   }
                                 >
                                   {field.value ? (
@@ -566,7 +604,7 @@ export default function AddTaskSheet({
                               isLoading={isStatusLoading || isStatusFetching}
                               placeholder="Select status"
                               disabled={
-                                disabledAll || isPending || isEditPending
+                                disabledAll || isPending
                               }
                             />
                           </FormControl>
@@ -593,7 +631,7 @@ export default function AddTaskSheet({
                                     placeholder="Select"
                                     className="rounded-tr-none rounded-br-none "
                                     disabled={
-                                      disabledAll || isPending || isEditPending
+                                      disabledAll || isPending
                                     }
                                   />
                                   <span className="text-xs border-1 shadow-xs border-gray-200 border-l-0 px-2 h-full bg-gray-200 rounded-tr-sm rounded-br-sm flex justify-center items-center">
@@ -619,7 +657,7 @@ export default function AddTaskSheet({
                                     placeholder="Select"
                                     className="rounded-tr-none rounded-br-none "
                                     disabled={
-                                      disabledAll || isPending || isEditPending
+                                      disabledAll || isPending
                                     }
                                   />
                                   <span className="text-xs border-1 shadow-xs border-gray-200 border-l-0 px-2 h-full bg-gray-200 rounded-tr-sm rounded-br-sm flex justify-center items-center">
@@ -648,7 +686,7 @@ export default function AddTaskSheet({
                               options={dropDownOptions.frequency}
                               placeholder="Select frequency"
                               disabled={
-                                disabledAll || isPending || isEditPending
+                                disabledAll || isPending
                               }
                             />
                           </FormControl>
@@ -673,7 +711,7 @@ export default function AddTaskSheet({
                                 placeholder="Select"
                                 className="rounded-tr-none rounded-br-none "
                                 disabled={
-                                  disabledAll || isPending || isEditPending
+                                  disabledAll || isPending
                                 }
                               />
                               <span className="text-xs border-1 shadow-xs border-gray-200 border-l-0 px-2 h-full bg-gray-200 rounded-tr-sm rounded-br-sm flex justify-center items-center">
@@ -694,20 +732,20 @@ export default function AddTaskSheet({
             </p>
           </div>
         )}
-        {!disabledAll && !isLoading && (
+        {!disabledAll && !isLoading && !effectiveEditing && (
           <SheetFooter className="pt-4 px-4.5 pb-5 border-t max-sm:p-4">
-            <div className="flex gap-3">
+            <div className="flex gap-3 items-center">
               <SheetClose className="cursor-pointer" asChild>
-                <Button variant="outline" disabled={isEditPending || isPending}>
+                <Button variant="outline" disabled={isPending}>
                   Cancel
                 </Button>
               </SheetClose>
               <Button
                 className="gap-2 ml-auto"
                 onClick={form.handleSubmit(onSubmit)}
-                isLoading={isPending || isEditPending}
+                isLoading={isPending}
               >
-                {editing ? "Update" : "Add Task"}
+                Add Task
               </Button>
             </div>
           </SheetFooter>
