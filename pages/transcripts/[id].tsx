@@ -492,9 +492,7 @@ const TranscriptionsSection = ({
       {/* Infinite-scroll sentinel: loads the next page when scrolled near. */}
       <div ref={sentinelRef} className="h-1 w-full" />
       {isFetchingMore && (
-        <p className="font-lato text-xs text-gray-400 py-2">
-          Loading more…
-        </p>
+        <p className="font-lato text-xs text-gray-400 py-2">Loading more…</p>
       )}
     </div>
   );

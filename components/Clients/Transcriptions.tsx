@@ -43,9 +43,20 @@ const TranscriptionItem = ({
   const [isHovered, setIsHovered] = useState(false);
 
   const prefetchOnMouseEnter = (id: string) => {
-    queryClient.prefetchQuery({
+    // MUST be prefetchInfiniteQuery — the coach detail page reads this same key
+    // via useInfiniteQuery, so the cached entry has to be an infinite-query
+    // shape ({ pages, pageParams }). A plain prefetchQuery here writes a bare
+    // object and the detail page then crashes on `data.pages.length`.
+    queryClient.prefetchInfiniteQuery({
       queryKey: ["transcriptions", id],
-      queryFn: () => getTranscription(id as string),
+      queryFn: ({ pageParam }) =>
+        getTranscription(id as string, {
+          after: pageParam as string | null,
+          limit: 50
+        }),
+      initialPageParam: null as string | null,
+      getNextPageParam: (last: Awaited<ReturnType<typeof getTranscription>>) =>
+        last.hasMore && last.cursor ? last.cursor : undefined,
       staleTime: 5 * 60 * 1000
     });
   };
