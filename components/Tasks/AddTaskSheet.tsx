@@ -437,9 +437,7 @@ export default function AddTaskSheet({
                               type="text"
                               placeholder="Enter Task Title"
                               {...field}
-                              disabled={
-                                isPending || disabledAll
-                              }
+                              disabled={isPending || disabledAll}
                             />
                           </FormControl>
                           <FormMessage />
@@ -467,9 +465,7 @@ export default function AddTaskSheet({
                       </FormItem>
                     )}
                   />
-                  <SubtaskList
-                    disabled={disabledAll || isPending}
-                  />
+                  <SubtaskList disabled={disabledAll || isPending} />
                   <div className="grid grid-cols-2 max-sm:grid-cols-1 max-sm:gap-2 space-y-2 gap-3 pt-4 mt-4 border-t border-gray-100 items-start">
                     <FormField
                       control={form.control}
@@ -487,9 +483,7 @@ export default function AddTaskSheet({
                                 options={dropDownOptions.priority}
                                 placeholder="Select priority"
                                 isFlag={true}
-                                disabled={
-                                  disabledAll || isPending
-                                }
+                                disabled={disabledAll || isPending}
                               />
                             </FormControl>
                             <FormMessage />
@@ -524,9 +518,7 @@ export default function AddTaskSheet({
                               isLoading={isCategoryLoading || isFetching}
                               placeholder="Select category"
                               isBadge={true}
-                              disabled={
-                                disabledAll || isPending
-                              }
+                              disabled={disabledAll || isPending}
                             />
                           </FormControl>
                           <FormMessage />
@@ -550,9 +542,7 @@ export default function AddTaskSheet({
                                     "w-full justify-between text-left font-normal [&>span]:justify-between",
                                     !field.value && "text-muted-foreground"
                                   )}
-                                  disabled={
-                                    disabledAll || isPending
-                                  }
+                                  disabled={disabledAll || isPending}
                                 >
                                   {field.value ? (
                                     moment(field.value).format(
@@ -603,9 +593,7 @@ export default function AddTaskSheet({
                               }
                               isLoading={isStatusLoading || isStatusFetching}
                               placeholder="Select status"
-                              disabled={
-                                disabledAll || isPending
-                              }
+                              disabled={disabledAll || isPending}
                             />
                           </FormControl>
                           <FormMessage />
@@ -630,9 +618,7 @@ export default function AddTaskSheet({
                                     options={dropDownOptions.hours}
                                     placeholder="Select"
                                     className="rounded-tr-none rounded-br-none "
-                                    disabled={
-                                      disabledAll || isPending
-                                    }
+                                    disabled={disabledAll || isPending}
                                   />
                                   <span className="text-xs border-1 shadow-xs border-gray-200 border-l-0 px-2 h-full bg-gray-200 rounded-tr-sm rounded-br-sm flex justify-center items-center">
                                     Hours
@@ -656,9 +642,7 @@ export default function AddTaskSheet({
                                     options={dropDownOptions.minutes}
                                     placeholder="Select"
                                     className="rounded-tr-none rounded-br-none "
-                                    disabled={
-                                      disabledAll || isPending
-                                    }
+                                    disabled={disabledAll || isPending}
                                   />
                                   <span className="text-xs border-1 shadow-xs border-gray-200 border-l-0 px-2 h-full bg-gray-200 rounded-tr-sm rounded-br-sm flex justify-center items-center">
                                     Mins
@@ -685,9 +669,7 @@ export default function AddTaskSheet({
                               onChange={field.onChange}
                               options={dropDownOptions.frequency}
                               placeholder="Select frequency"
-                              disabled={
-                                disabledAll || isPending
-                              }
+                              disabled={disabledAll || isPending}
                             />
                           </FormControl>
                           <FormMessage />
@@ -710,9 +692,7 @@ export default function AddTaskSheet({
                                 options={dropDownOptions.minutes}
                                 placeholder="Select"
                                 className="rounded-tr-none rounded-br-none "
-                                disabled={
-                                  disabledAll || isPending
-                                }
+                                disabled={disabledAll || isPending}
                               />
                               <span className="text-xs border-1 shadow-xs border-gray-200 border-l-0 px-2 h-full bg-gray-200 rounded-tr-sm rounded-br-sm flex justify-center items-center">
                                 Mins

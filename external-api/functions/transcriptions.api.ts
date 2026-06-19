@@ -46,12 +46,24 @@ export const getAllTranscriptionsByCoach = async ({
   return res.data;
 };
 
-export const getTranscription = async (id: string): Promise<Transcription> => {
+// One page of a transcript's segments. `cursor`/`hasMore` drive infinite
+// scroll so a long past meeting isn't loaded all at once.
+export interface TranscriptionPage extends Transcription {
+  cursor?: string | null;
+  hasMore?: boolean;
+}
+
+export const getTranscription = async (
+  id: string,
+  params?: { after?: string | null; limit?: number }
+): Promise<TranscriptionPage> => {
   const res = await axiosInstance.get(
     endpoints.transcriptions.getTranscription(id),
     {
       params: {
-        populate: "user"
+        populate: "user",
+        ...(params?.after ? { after: params.after } : {}),
+        ...(params?.limit ? { limit: params.limit } : {})
       }
     }
   );

@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { transcriptAi } from "@/external-api/functions/ai.api";
 import { importBulkTasks } from "@/external-api/functions/task.api";
 import { getTranscription } from "@/external-api/functions/transcriptions.api";
+import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import assets from "@/json/assets";
 import AppLayout from "@/layouts/AppLayout";
 import { cn } from "@/lib/utils";
@@ -15,7 +16,7 @@ import {
   EachTranscription,
   Transcription
 } from "@/typescript/interface/transcription.interface";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation } from "@tanstack/react-query";
 import moment from "moment";
 import Image from "next/image";
 import Link from "next/link";
@@ -362,10 +363,14 @@ const GenerateTaskBox = ({
 
 const TranscriptionsSection = ({
   transcriptions,
-  isLoading
+  isLoading,
+  sentinelRef,
+  isFetchingMore
 }: {
   transcriptions: EachTranscription[];
   isLoading?: boolean;
+  sentinelRef?: React.Ref<HTMLDivElement>;
+  isFetchingMore?: boolean;
 }) => {
   if (isLoading)
     return (
@@ -484,6 +489,13 @@ const TranscriptionsSection = ({
           </div>
         </div>
       ))}
+      {/* Infinite-scroll sentinel: loads the next page when scrolled near. */}
+      <div ref={sentinelRef} className="h-1 w-full" />
+      {isFetchingMore && (
+        <p className="font-lato text-xs text-gray-400 py-2">
+          Loading more…
+        </p>
+      )}
     </div>
   );
 };
@@ -496,9 +508,26 @@ function TranscriptsDescription() {
   const [AIData, setAIData] = useState<Chat>(null);
   const [sessionId] = useState(moment.now());
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["transcriptions", id],
-    queryFn: () => getTranscription(id as string)
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useInfiniteQuery({
+      queryKey: ["transcriptions", id],
+      queryFn: ({ pageParam }) =>
+        getTranscription(id as string, { after: pageParam, limit: 50 }),
+      initialPageParam: null as string | null,
+      getNextPageParam: (last) =>
+        last.hasMore && last.cursor ? last.cursor : undefined,
+      enabled: !!id
+    });
+
+  // Metadata (title/user/date) lives on the first page; segments accumulate
+  // across all loaded pages.
+  const meta = data?.pages[0];
+  const transcriptions = data?.pages.flatMap((p) => p.transcriptions) ?? [];
+
+  const sentinelRef = useInfiniteScroll({
+    hasMore: !!hasNextPage,
+    isLoading: isFetchingNextPage,
+    onLoadMore: fetchNextPage
   });
 
   const { mutate, isPending } = useMutation({
@@ -568,7 +597,7 @@ function TranscriptsDescription() {
       <Separator />
       <TranscriptHeader
         handleAIAction={handleAIAction}
-        transcription={data}
+        transcription={meta}
         isLoading={isLoading}
       />
       {openedBox === "generate_tasks" ? (
@@ -583,8 +612,10 @@ function TranscriptsDescription() {
         <ShortSummaryBox data={AIData} isPending={isPending} />
       ) : null}
       <TranscriptionsSection
-        transcriptions={data?.transcriptions ?? []}
+        transcriptions={transcriptions}
         isLoading={isLoading}
+        sentinelRef={sentinelRef}
+        isFetchingMore={isFetchingNextPage}
       />
     </AppLayout>
   );
