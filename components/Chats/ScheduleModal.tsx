@@ -119,16 +119,27 @@ export default function ScheduleMessageModal({
   });
 
   const onSubmit = (data: yup.InferType<typeof schema>) => {
+    // Combine the picked date + time in the user's LOCAL timezone, then convert
+    // to an absolute UTC instant. moment(string) parses in local time and
+    // toISOString() emits UTC, so the same wall-clock the user sees is what
+    // gets scheduled — regardless of the server's timezone.
+    const scheduledAt = moment(
+      `${moment(data.date).format("YYYY-MM-DD")} ${data.time || "00:00"}`,
+      "YYYY-MM-DD HH:mm"
+    ).toISOString();
+
     if (editing) {
       edit({
-        ...data,
-        date: moment(data.date).format("YYYY-MM-DD"),
+        message: data.message,
+        frequency: data.frequency,
+        scheduledAt,
         messageId: selectedMessage?._id || ""
       });
     } else {
       mutate({
-        ...data,
-        date: moment(data.date).format("YYYY-MM-DD"),
+        message: data.message,
+        frequency: data.frequency,
+        scheduledAt,
         chatId: room
       });
     }

@@ -18,6 +18,7 @@ import assets from "@/json/assets";
 import AppLayout from "@/layouts/AppLayout";
 import { User } from "@/typescript/interface/user.interface";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
 import moment from "moment";
 import Image from "next/image";
 import Link from "next/link";
@@ -100,6 +101,11 @@ const ClientInfo = ({
 function ClientDetails() {
   const { userId } = useParams();
   const queryClient = useQueryClient();
+  const { data: session } = useSession();
+  // Admins reach client details from the /users listing, so their breadcrumb
+  // returns there; coaches/managers go back to /clients.
+  const allClientsHref =
+    session?.user?.role === "admin" ? "/users" : "/clients";
   const [tab, setTab] = useQueryState(
     "tab",
     parseAsString.withDefault("transcriptions")
@@ -178,7 +184,7 @@ function ClientDetails() {
       <div className="mb-4 flex items-center justify-between">
         <div className="flex gap-2 items-center ">
           <Link
-            href="/clients"
+            href={allClientsHref}
             className="text-sm font-lato font-normal text-gray-600 "
           >
             All Clients

@@ -17,7 +17,10 @@ import {
 import { cn } from "@/lib/utils";
 import { CommandLoading } from "cmdk";
 import { Check, ChevronsUpDown, Plus } from "lucide-react";
+import { useParams } from "next/navigation";
 import React, { useState } from "react";
+import CoachAddCategoryModal from "../Clients/Task/AddCategoryModal";
+import CoachAddStatusModal from "../Clients/Task/AddStatusModal";
 import AddCategoryModal from "../Tasks/AddCategoryModal";
 import AddStatusModal from "../Tasks/AddStatusModal";
 import PriorityFlag from "../Tasks/PriorityFlag";
@@ -111,6 +114,13 @@ export function Combobox({
     category: false,
     status: false
   });
+
+  // On a client page (/clients/[userId]) the inline "Add Status/Category"
+  // must create the record under the viewed client, not the logged-in
+  // coach/manager/admin — so use the coach-scoped modals there.
+  const { userId } = useParams();
+  const AddCategory = userId ? CoachAddCategoryModal : AddCategoryModal;
+  const AddStatus = userId ? CoachAddStatusModal : AddStatusModal;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -255,13 +265,13 @@ export function Combobox({
           )}
         </Command>
       </PopoverContent>
-      <AddCategoryModal
+      <AddCategory
         onChange={onChange}
         setIsAdding={setIsAdding}
         isOpen={addModal.category}
         onClose={() => setAddModal({ ...addModal, category: false })}
       />
-      <AddStatusModal
+      <AddStatus
         onChange={onChange}
         setIsAdding={setIsAdding}
         isOpen={addModal.status}

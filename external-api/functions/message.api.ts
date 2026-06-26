@@ -2,7 +2,7 @@ import { PaginatedResponse } from "@/typescript/interface/common.interface";
 import axiosInstance from "../axiosInstance";
 import { endpoints } from "../endpoints";
 import { Message } from "@/typescript/interface/message.interface";
-import { QueryFunctionContext, QueryKey } from "@tanstack/react-query";
+import { QueryFunctionContext } from "@tanstack/react-query";
 import { ChatConversation } from "@/typescript/interface/chat.interface";
 
 export const getMessages = async (
@@ -21,8 +21,9 @@ export const getMessages = async (
 
 export const scheduleMessage = async (body: {
   message: string;
-  date: string;
-  time: string;
+  // Absolute send time as an ISO/UTC string, computed from the user's local
+  // date + time so the backend never has to guess a timezone.
+  scheduledAt: string;
   frequency: string;
   chatId: string;
 }) => {
@@ -36,8 +37,7 @@ export const scheduleMessage = async (body: {
 export const editScheduleMessage = async (body: {
   messageId: string;
   message: string;
-  date: string;
-  time: string;
+  scheduledAt: string;
   frequency: string;
 }) => {
   const res = await axiosInstance.patch(

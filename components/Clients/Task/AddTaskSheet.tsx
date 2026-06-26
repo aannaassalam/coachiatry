@@ -5,7 +5,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { CalendarIcon, Loader2, X } from "lucide-react";
 import moment from "moment";
 import { useCallback, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { Resolver, useForm } from "react-hook-form";
 import * as yup from "yup";
 import { Button } from "../../ui/button";
 import { Combobox } from "../../ui/combobox";
@@ -43,11 +43,11 @@ import { useParams } from "next/navigation";
 
 const schema = yup.object().shape({
   title: yup.string().required("Title is required"),
-  description: yup.string().required("Description is required"),
-  priority: yup.string().required("Priority is required"),
-  category: yup.string().required("Category is required"),
-  dueDate: yup.date().required("Due date is required"),
-  status: yup.string().required("Status is required"),
+  description: yup.string().default(""),
+  priority: yup.string().default("low"),
+  category: yup.string(),
+  dueDate: yup.date(),
+  status: yup.string(),
   frequency: yup.string().default(""),
   minutesDuration: yup.string().default(""),
   hoursDuration: yup.string().default(""),
@@ -111,6 +111,16 @@ export default function AddTaskSheet({
     ]
   });
 
+  // Default status ("To do") and category ("Health") for this client, matched
+  // case/space-insensitively so "To Do" / "Todo" / "To do" all resolve. Used
+  // to pre-select the form and as the save-time fallback when nothing is picked.
+  const normalizeTitle = (s?: string) =>
+    s?.trim().toLowerCase().replace(/\s+/g, "");
+  const defaultStatusId =
+    statuses?.find((s) => normalizeTitle(s.title) === "todo")?._id ?? "";
+  const defaultCategoryId =
+    categories?.find((c) => normalizeTitle(c.title) === "health")?._id ?? "";
+
   const { mutate, isPending } = useMutation({
     mutationFn: addTaskByCoach,
     onSuccess: () => {
@@ -134,9 +144,12 @@ export default function AddTaskSheet({
     }
   });
 
+  // @hookform/resolvers + yup's mix of optional and defaulted fields produces a
+  // Resolver<input> that doesn't match useForm's expected Resolver<output>.
+  // Cast through to keep the typed form API while still validating at runtime.
   type TaskFormData = yup.InferType<typeof schema>;
   const form = useForm<TaskFormData>({
-    resolver: yupResolver(schema),
+    resolver: yupResolver(schema) as unknown as Resolver<TaskFormData>,
     defaultValues: {
       title: "",
       description: "",
@@ -153,10 +166,15 @@ export default function AddTaskSheet({
   });
 
   // Maps form values to the API payload. Shared by the manual create submit and
-  // the edit autosave so both round-trip identically.
+  // the edit autosave so both round-trip identically. Only `title` is required;
+  // when nothing is picked, status falls back to "To do" and category to
+  // "Health".
   const buildFinalData = useCallback(
     (values: TaskFormData) => ({
       ...values,
+      priority: values.priority || "low",
+      status: values.status || defaultStatusId || undefined,
+      category: values.category || defaultCategoryId || undefined,
       remindBefore: values.remindBefore
         ? parseInt(values.remindBefore)
         : undefined,
@@ -174,7 +192,7 @@ export default function AddTaskSheet({
           : values.frequency,
       user: userId as string
     }),
-    [userId]
+    [userId, defaultStatusId, defaultCategoryId]
   );
 
   // Edit flow autosaves; create still uses the explicit "Add Task" button.
@@ -193,21 +211,32 @@ export default function AddTaskSheet({
     canSave: (values) => !!values.title?.trim()
   });
 
+  // Add mode: seed an empty form, pre-selecting the default status ("To do")
+  // and category ("Health") so the user can save with just a title. Edit mode
+  // is seeded from the loaded task in the effect below, so skip it here.
   useEffect(() => {
+    if (editing) return;
     form.reset({
       title: "",
       description: "",
       priority: "low",
-      category: "",
+      category: defaultCategoryId,
       dueDate: predefinedDueDate ? new Date(predefinedDueDate) : undefined,
-      status: predefinedStatus ?? "",
+      status: predefinedStatus ?? defaultStatusId,
       frequency: "",
       minutesDuration: "",
       hoursDuration: "",
       remindBefore: "",
       subtasks: []
     });
-  }, [predefinedStatus, predefinedDueDate, form]);
+  }, [
+    predefinedStatus,
+    predefinedDueDate,
+    form,
+    editing,
+    defaultStatusId,
+    defaultCategoryId
+  ]);
 
   const onSubmit = (values: yup.InferType<typeof schema>) => {
     // Edit mode persists via autosave — nothing to do on (e.g. Enter) submit.
@@ -594,9 +623,11 @@ export default function AddTaskSheet({
                 </div>
               </form>
             </Form>
-            <p className="mt-auto text-sm text-gray-500 font-lato">
-              Created on: {moment(data?.createdAt).format("LLL")}
-            </p>
+            {editing && data?.createdAt && (
+              <p className="mt-auto text-sm text-gray-500 font-lato">
+                Created on: {moment(data.createdAt).format("LLL")}
+              </p>
+            )}
           </div>
         )}
         {!disabledAll && !isLoading && !editing && (
