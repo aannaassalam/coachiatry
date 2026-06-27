@@ -4,6 +4,7 @@ import {
   getTask,
   moveToStatus
 } from "@/external-api/functions/task.api";
+import { getAllStatuses } from "@/external-api/functions/status.api";
 import assets from "@/json/assets";
 import { sanitizeFilters } from "@/lib/functions/_helpers.lib";
 import { cn } from "@/lib/utils";
@@ -95,21 +96,42 @@ const TaskCard = ({
     });
   };
 
+  const { data: statuses } = useQuery({
+    queryKey: ["status"],
+    queryFn: getAllStatuses,
+    staleTime: 5 * 60 * 1000
+  });
+  const completedStatus = statuses?.find((s) => s.title === "Completed");
+
   const { mutate, isPending } = useMutation({
     mutationFn: moveToStatus,
-    onMutate: async ({ task_id, status }) => {
+    onMutate: async ({ task_id }) => {
       await queryClient.cancelQueries({ queryKey: ["tasks"] });
 
-      const previousResponse = queryClient.getQueryData<Task[]>(["tasks"]);
-
-      if (previousResponse) {
-        const updatedTasks = previousResponse.map((task) =>
-          task._id === task_id ? { ...task, status } : task
+      // Patch every cached task list (keys carry filters/dates, so an exact
+      // ["tasks"] write is a no-op). Swap in the FULL status object so the
+      // card keeps its title/color instead of corrupting to a raw id.
+      const snapshots = queryClient.getQueriesData<Task[]>({
+        queryKey: ["tasks"]
+      });
+      for (const [key, data] of snapshots) {
+        if (!Array.isArray(data) || !completedStatus) continue;
+        queryClient.setQueryData<Task[]>(
+          key,
+          data.map((task) =>
+            task._id === task_id
+              ? { ...task, status: completedStatus }
+              : task
+          )
         );
-        queryClient.setQueryData(["tasks"], updatedTasks);
       }
 
-      return { previousResponse };
+      return { snapshots };
+    },
+    onError: (_err, _vars, context) => {
+      for (const [key, data] of context?.snapshots ?? []) {
+        queryClient.setQueryData(key, data);
+      }
     },
     meta: {
       invalidateQueries: ["tasks"]
@@ -128,10 +150,11 @@ const TaskCard = ({
           "w-4 h-4 mr-4 -ml-8 transition-all duration-200 mt-1 group-hover:ml-0 cursor-pointer"
         )}
         checked={task.status?.title === "Completed"}
-        disabled={isPending}
-        onClick={() =>
-          mutate({ task_id: task._id, status: "68dead55e9c648f5b606740f" })
-        }
+        disabled={isPending || !completedStatus}
+        onClick={() => {
+          if (!completedStatus) return;
+          mutate({ task_id: task._id, status: completedStatus._id });
+        }}
       />
       <div className="flex flex-col gap-1 flex-1">
         <p

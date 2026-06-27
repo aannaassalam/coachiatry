@@ -182,37 +182,41 @@ export default function AddTaskSheet({
     }
   });
 
+  // Default status ("To do") and category ("Health"), matched case/space-
+  // insensitively so "To Do" / "Todo" / "To do" all resolve to the same id.
+  // Used both to seed the form and as the save-time fallback.
+  const normalizeTitle = (s?: string) =>
+    s?.trim().toLowerCase().replace(/\s+/g, "");
+  const defaultStatusId =
+    statuses?.find((s) => normalizeTitle(s.title) === "todo")?._id ?? "";
+  const defaultCategoryId =
+    categories?.find((c) => normalizeTitle(c.title) === "health")?._id ?? "";
+
   // Maps form values to the API payload. Shared by the manual create submit and
   // the edit autosave so both round-trip identically.
   const buildFinalData = useCallback(
-    (values: TaskFormData) => {
-      const todoStatusId =
-        statuses?.find((s) => s.title === "Todo")?._id ?? "Todo";
-      const healthCategory =
-        categories?.find((c) => c.title === "Health")?._id ?? "Health";
-      return {
-        ...values,
-        priority: values.priority || "low",
-        status: values.status || todoStatusId,
-        category: values.category ?? healthCategory,
-        remindBefore: values.remindBefore
-          ? parseInt(values.remindBefore)
+    (values: TaskFormData) => ({
+      ...values,
+      priority: values.priority || "low",
+      status: values.status || defaultStatusId || undefined,
+      category: values.category || defaultCategoryId || undefined,
+      remindBefore: values.remindBefore
+        ? parseInt(values.remindBefore)
+        : undefined,
+      taskDuration: values.hoursDuration
+        ? values.minutesDuration
+          ? parseInt(values.hoursDuration) * 60 +
+            parseInt(values.minutesDuration)
+          : parseInt(values.hoursDuration) * 60
+        : values.minutesDuration
+          ? parseInt(values.minutesDuration)
           : undefined,
-        taskDuration: values.hoursDuration
-          ? values.minutesDuration
-            ? parseInt(values.hoursDuration) * 60 +
-              parseInt(values.minutesDuration)
-            : parseInt(values.hoursDuration) * 60
-          : values.minutesDuration
-            ? parseInt(values.minutesDuration)
-            : undefined,
-        frequency:
-          values.frequency === "" || !values.frequency
-            ? undefined
-            : values.frequency
-      };
-    },
-    [statuses, categories]
+      frequency:
+        values.frequency === "" || !values.frequency
+          ? undefined
+          : values.frequency
+    }),
+    [defaultStatusId, defaultCategoryId]
   );
 
   // Edit flow autosaves; create still uses the explicit "Add Task" button.
@@ -276,30 +280,27 @@ export default function AddTaskSheet({
       resetBaseline();
       return;
     }
-    // Add mode: prefer matching status / category _ids; fall back to the
-    // literal labels so the form still has a sensible value before those
-    // queries resolve.
-    const todoStatus =
-      statuses?.find((s) => s.title === "To do")?._id ?? "To do";
-    const healthCategory =
-      categories?.find((c) => c.title === "Health")?._id ?? "Health";
+    // Add mode: seed empty, pre-selecting the default status/category. Use
+    // keepDirtyValues so that when statuses/categories resolve (and this effect
+    // re-runs to fill the defaults), any field the user already typed is
+    // preserved instead of being wiped.
     form.reset(
       {
         title: "",
         description: "",
         priority: "low",
-        category: healthCategory,
+        category: defaultCategoryId,
         dueDate: effectivePredefinedDueDate
           ? new Date(effectivePredefinedDueDate)
           : undefined,
-        status: effectivePredefinedStatus ?? todoStatus,
+        status: effectivePredefinedStatus ?? defaultStatusId,
         frequency: "",
         minutesDuration: "",
         hoursDuration: "",
         remindBefore: "",
         subtasks: []
       },
-      { keepDirty: false }
+      { keepDirtyValues: true }
     );
   }, [
     open,
@@ -307,8 +308,8 @@ export default function AddTaskSheet({
     effectiveEditing,
     effectivePredefinedStatus,
     effectivePredefinedDueDate,
-    statuses,
-    categories,
+    defaultStatusId,
+    defaultCategoryId,
     form,
     resetBaseline
   ]);

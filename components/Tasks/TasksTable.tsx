@@ -66,27 +66,37 @@ export const SubTasksTable = ({
   const { mutate } = useMutation({
     mutationFn: markSubtaskAsCompleted,
     onMutate: async ({ task_id, subtask_id }) => {
-      // Cancel ongoing queries to avoid overwrite
       await queryClient.cancelQueries({ queryKey: ["tasks"] });
 
-      const previousResponse = queryClient.getQueryData<Task[]>(["tasks"]);
-
-      // Update query cache immediately
-      const updatedTasks = previousResponse?.map((task) =>
-        task._id === task_id
-          ? {
-              ...task,
-              subtasks: task?.subtasks?.map((subtask) =>
-                subtask._id === subtask_id
-                  ? { ...subtask, completed: !subtask.completed }
-                  : subtask
-              )
-            }
-          : task
-      );
-
-      queryClient.setQueryData(["tasks"], updatedTasks);
-      return { previousResponse };
+      // List queries are keyed with filters/sort, so patch every cached
+      // ["tasks"] entry (an exact ["tasks"] write would be a no-op).
+      const snapshots = queryClient.getQueriesData<Task[]>({
+        queryKey: ["tasks"]
+      });
+      for (const [key, data] of snapshots) {
+        if (!Array.isArray(data)) continue;
+        queryClient.setQueryData<Task[]>(
+          key,
+          data.map((task) =>
+            task._id === task_id
+              ? {
+                  ...task,
+                  subtasks: task?.subtasks?.map((subtask) =>
+                    subtask._id === subtask_id
+                      ? { ...subtask, completed: !subtask.completed }
+                      : subtask
+                  )
+                }
+              : task
+          )
+        );
+      }
+      return { snapshots };
+    },
+    onError: (_err, _vars, context) => {
+      for (const [key, data] of context?.snapshots ?? []) {
+        queryClient.setQueryData(key, data);
+      }
     },
     meta: {
       invalidateQueries: ["tasks"]

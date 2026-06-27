@@ -187,7 +187,7 @@ function ScheduledTable() {
           }}
           receiverName={
             selectedMessage?.chat?.name ??
-            selectedMessage?.chat.members.find(
+            selectedMessage?.chat?.members?.find(
               (_member) => _member?.user?._id !== selectedMessage.sender?._id
             )?.user?.fullName ??
             ""

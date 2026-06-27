@@ -216,19 +216,24 @@ export default function AddTaskSheet({
   // is seeded from the loaded task in the effect below, so skip it here.
   useEffect(() => {
     if (editing) return;
-    form.reset({
-      title: "",
-      description: "",
-      priority: "low",
-      category: defaultCategoryId,
-      dueDate: predefinedDueDate ? new Date(predefinedDueDate) : undefined,
-      status: predefinedStatus ?? defaultStatusId,
-      frequency: "",
-      minutesDuration: "",
-      hoursDuration: "",
-      remindBefore: "",
-      subtasks: []
-    });
+    form.reset(
+      {
+        title: "",
+        description: "",
+        priority: "low",
+        category: defaultCategoryId,
+        dueDate: predefinedDueDate ? new Date(predefinedDueDate) : undefined,
+        status: predefinedStatus ?? defaultStatusId,
+        frequency: "",
+        minutesDuration: "",
+        hoursDuration: "",
+        remindBefore: "",
+        subtasks: []
+      },
+      // Preserve anything the user already typed when this re-runs as the
+      // status/category queries resolve.
+      { keepDirtyValues: true }
+    );
   }, [
     predefinedStatus,
     predefinedDueDate,

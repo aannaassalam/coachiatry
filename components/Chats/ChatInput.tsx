@@ -290,10 +290,14 @@ export default function ChatInput({
 
   const handleSend = () => {
     if (!value.trim() && files.length === 0) return;
-    onSend(value, files);
+    // Snapshot then clear BEFORE dispatching, so a rapid second Enter can't
+    // resend the same text/files (and won't double-fire uploads).
+    const valueToSend = value;
+    const filesToSend = files;
     setValue("");
     setFiles([]);
     setReplyingTo(null);
+    onSend(valueToSend, filesToSend);
     socket?.emit("stop_typing", { chatId: room, userId: data?.user?._id });
   };
 

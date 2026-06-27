@@ -105,7 +105,7 @@ function SharedListView() {
           </div>
         </div>
       ) : (
-        status
+        [...status]
           .sort((a, b) => (a?.priority || 0) - (b?.priority || 0))
           .map((_status, id) => (
             <Collapsible

@@ -508,8 +508,9 @@ export default function Users() {
                                       | "coach"
                                       | "user",
                                     assignedCoach:
-                                      user.assignedCoach.map((ac) => ac._id) ||
-                                      []
+                                      user.assignedCoach?.map(
+                                        (ac) => ac._id
+                                      ) ?? []
                                   });
                                 }}
                               >

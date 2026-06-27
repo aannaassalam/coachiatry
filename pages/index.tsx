@@ -6,6 +6,7 @@ import { getAllDocuments } from "@/external-api/functions/document.api";
 import { getAllStatuses } from "@/external-api/functions/status.api";
 import { getAllTasks } from "@/external-api/functions/task.api";
 import assets from "@/json/assets";
+import { cn } from "@/lib/utils";
 import AppLayout from "@/layouts/AppLayout";
 import {
   formatChatTime,
@@ -131,7 +132,12 @@ export default function Home() {
       },
       {
         queryKey: ["conversations"],
-        queryFn: () => getAllConversations({ sort: "-updatedAt" })
+        queryFn: () => getAllConversations({ sort: "-updatedAt" }),
+        // Unread counts change while the user is away reading chats, so always
+        // refetch when returning to the dashboard (overrides the global
+        // refetchOnMount: false) instead of showing a stale badge.
+        refetchOnMount: "always",
+        refetchOnWindowFocus: true
       },
       {
         queryKey: ["documents"],
@@ -202,9 +208,9 @@ export default function Home() {
                 </div>
               </div>
             ) : (
-              status
-                ?.sort((a, b) => (a?.priority ?? 0) - (b?.priority ?? 0))
-                ?.map((_status) => {
+              [...(status ?? [])]
+                .sort((a, b) => (a?.priority ?? 0) - (b?.priority ?? 0))
+                .map((_status) => {
                   return (
                     <TaskBox
                       title={_status.title}
@@ -293,7 +299,14 @@ export default function Home() {
                         <p className="font-semibold text-sm leading-5 text-gray-900">
                           {details?.name}
                         </p>
-                        <p className="text-xs leading-4 text-gray-500 text-ellipsis overflow-hidden max-w-[200px] line-clamp-1">
+                        <p
+                          className={cn(
+                            "text-xs leading-4 text-ellipsis overflow-hidden max-w-[200px] line-clamp-1",
+                            (msg.unreadCount ?? 0) > 0
+                              ? "text-gray-900 font-semibold"
+                              : "text-gray-500"
+                          )}
+                        >
                           {msg.lastMessage?.sender?._id === data?.user?._id &&
                             "You: "}
                           {msg.lastMessage?.content ||
@@ -306,11 +319,18 @@ export default function Home() {
                                   : undefined)}
                         </p>
                       </div>
-                      <span className="text-gray-500 font-medium text-xs leading-4 shrink-0 ml-3">
-                        {formatChatTime(
-                          msg.lastMessage?.createdAt || msg.createdAt
+                      <div className="flex flex-col items-end gap-1 shrink-0 ml-3">
+                        <span className="text-gray-500 font-medium text-xs leading-4">
+                          {formatChatTime(
+                            msg.lastMessage?.createdAt || msg.createdAt
+                          )}
+                        </span>
+                        {(msg.unreadCount ?? 0) > 0 && (
+                          <span className="text-[10px] h-5 min-w-5 px-1 rounded-full bg-primary text-white font-semibold flex items-center justify-center">
+                            {msg.unreadCount > 99 ? "99+" : msg.unreadCount}
+                          </span>
                         )}
-                      </span>
+                      </div>
                     </div>
                   </Link>
                 );

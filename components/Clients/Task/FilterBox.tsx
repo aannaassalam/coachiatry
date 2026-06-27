@@ -21,7 +21,7 @@ type FilterOption = {
 };
 
 function FilterBox() {
-  const { id: userId } = useParams();
+  const { userId } = useParams();
 
   // ✅ store filters in URL instead of local state
   const [values, setValues] = useQueryState<Filter[]>(

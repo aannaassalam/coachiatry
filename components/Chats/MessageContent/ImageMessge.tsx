@@ -323,7 +323,7 @@ export default function ImageMessage({
                     if (_reaction.user === data?.user?._id)
                       handleRemoveReaction();
                   }}
-                  key={_reaction._id}
+                  key={_reaction._id ?? `${_reaction.user}-${_reaction.emoji}`}
                 >
                   {_reaction.emoji}
                 </span>

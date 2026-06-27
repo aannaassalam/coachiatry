@@ -1,4 +1,5 @@
 import { useCallback } from "react";
+import { toast } from "sonner";
 import { uploadManager } from "@/services/uploadManager";
 import { useChatUpload } from "@/hooks/useChatHook";
 
@@ -26,6 +27,7 @@ export const useChatUploadManager = () => {
 
       const totalSize = files.reduce((a, f) => a + f.size, 0);
       const progressPerFile = Array(files.length).fill(0);
+      let failedCount = 0;
 
       const uploadedFiles = await Promise.all(
         files.map(async (file, i) => {
@@ -60,13 +62,20 @@ export const useChatUploadManager = () => {
               duration: null
             } as UploadedFile;
           } catch {
+            // An intentional cancel is not a failure; a real error is.
             if (controller.signal.aborted) return null;
+            failedCount += 1;
             return null;
           }
         })
       );
 
       uploadManager.clear(tempId);
+      if (failedCount > 0) {
+        toast.error(
+          `${failedCount} file${failedCount > 1 ? "s" : ""} failed to upload. Please try again.`
+        );
+      }
       onFinish(uploadedFiles.filter(Boolean) as UploadedFile[]);
     },
     [uploadMutation]
