@@ -1,6 +1,7 @@
 import PageTitle from "@/components/Seo/PageTitle";
 import AddTaskSheet from "@/components/Tasks/AddTaskSheet";
 import FilterBox from "@/components/Tasks/FilterBox";
+import GroupByControl from "@/components/Tasks/GroupByControl";
 import ListView from "@/components/Tasks/ListView";
 import WeekView from "@/components/Tasks/WeekView";
 import { Button } from "@/components/ui/button";
@@ -235,6 +236,7 @@ function Tasks() {
                 </p>
               </div>
             )}
+            {tab === "list" && <GroupByControl />}
             <div className="ml-auto">
               {/* <Popover>
                 <PopoverTrigger asChild>

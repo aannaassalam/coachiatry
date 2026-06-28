@@ -111,7 +111,10 @@ export default function AsyncMultiSelectUsers({
 
   return (
     <div className="w-full max-w-md">
-      <Popover open={open} onOpenChange={setOpen}>
+      {/* `modal` makes the popover its own scroll-lock region. Without it, the
+          parent Dialog's react-remove-scroll blocks wheel scrolling inside this
+          portaled dropdown, so the user list can't be scrolled. */}
+      <Popover open={open} onOpenChange={setOpen} modal>
         <PopoverTrigger asChild disabled={disabled}>
           <Button
             variant="outline"

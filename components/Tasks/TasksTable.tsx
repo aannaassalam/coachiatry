@@ -15,7 +15,6 @@ import {
   assignToggle,
   deleteTask,
   getTask,
-  getTaskAssignees,
   markSubtaskAsCompleted
 } from "@/external-api/functions/task.api";
 import assets from "@/json/assets";
@@ -23,8 +22,8 @@ import { formatDateOrEmpty } from "@/lib/functions/_helpers.lib";
 import { cn } from "@/lib/utils";
 import { queryClient } from "@/pages/_app";
 import { Task } from "@/typescript/interface/task.interface";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { Check, ChevronsUpDown, Ellipsis, Pencil, Trash } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
+import { ChevronsUpDown, Ellipsis, Pencil, Trash } from "lucide-react";
 import Image from "next/image";
 import {
   parseAsArrayOf,
@@ -33,6 +32,9 @@ import {
   useQueryState
 } from "nuqs";
 import React, { useEffect, useState } from "react";
+import AssigneeList from "./AssigneeList";
+import ColumnSortControl from "./ColumnSortControl";
+import { useRowVirtualizer } from "./useRowVirtualizer";
 import DeleteDialog from "../DeleteDialog";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
@@ -244,24 +246,15 @@ function TasksTable({
   const [statusBoxIndex, setStatusBoxIndex] = useState<string | null>(null);
   const [openAssignFor, setOpenAssignFor] = useState<string | null>(null);
 
-  // Candidate assignees are anchored on the OPEN task's owner hierarchy, so
-  // they're fetched lazily only while a task's assignee popover is open.
-  const { data: assigneeData, isLoading: assigneesLoading } = useQuery({
-    queryKey: ["task-assignees", openAssignFor],
-    queryFn: () => getTaskAssignees(openAssignFor as string),
-    enabled: !!openAssignFor,
-    staleTime: 60 * 1000
-  });
-
   const [, setSelectedTask] = useQueryState(
     "task",
     parseAsString.withDefault("")
   );
 
-  const [sort] = useQueryState(
-    "sort",
-    parseAsArrayOf(parseAsString.withDefault("")).withDefault([])
-  );
+  // Each group is already a single status, so the Status column is only useful
+  // (and only shown) when the list is grouped by something else.
+  const [group] = useQueryState("group", parseAsString.withDefault("status"));
+  const showStatus = group !== "status";
   const [values] = useQueryState<Filter[]>(
     "filters",
     parseAsJson<Filter[]>((v) =>
@@ -285,19 +278,18 @@ function TasksTable({
     mutationFn: deleteTask,
     onMutate: async (id) => {
       await queryClient.cancelQueries({
-        queryKey: ["tasks", sort, validatedFilters]
+        queryKey: ["tasks", validatedFilters]
       });
 
       const previousResponse = queryClient.getQueryData<Task[]>([
         "tasks",
-        sort,
         validatedFilters
       ]);
 
       // Remove the deleted task from cache
       const updatedTasks = previousResponse?.filter((task) => task._id !== id);
 
-      queryClient.setQueryData(["tasks", sort, validatedFilters], updatedTasks);
+      queryClient.setQueryData(["tasks", validatedFilters], updatedTasks);
       return { previousResponse };
     },
     meta: {
@@ -361,6 +353,12 @@ function TasksTable({
     }
   });
 
+  // Progressive rendering: only the first chunk of a large group mounts; the
+  // rest load as the user scrolls (see useRowVirtualizer). Small groups render
+  // in full (renderedTasks === tasks).
+  const { renderedTasks, hasMore, sentinelRef } = useRowVirtualizer(tasks);
+  const colCount = showStatus ? 8 : 7;
+
   return (
     <div className="mt-2 w-full tasksTable">
       {tasks.length != 0 && (
@@ -370,27 +368,29 @@ function TasksTable({
         >
           <TableHeader className="">
             <TableRow className="hover:bg-transparent !border-b-1 !border-gray-100">
-              <TableHead className="text-xs text-gray-500 min-w-[200px] flex items-center group">
-                Name
-                <RenderTableSortingIcon name="name" />
+              <TableHead className="text-xs text-gray-500 min-w-[200px]">
+                <ColumnSortControl columnKey="name" />
               </TableHead>
               <TableHead className="text-xs text-gray-400 tracking-[-0.05px]">
-                Assigned to
-              </TableHead>
-              <TableHead className="text-xs text-gray-400 tracking-[-0.05px] flex items-center group">
-                Due Date
-                <RenderTableSortingIcon name="dueDate" />
+                <ColumnSortControl columnKey="assignedTo" />
               </TableHead>
               <TableHead className="text-xs text-gray-400 tracking-[-0.05px]">
-                Owner
+                <ColumnSortControl columnKey="dueDate" />
               </TableHead>
               <TableHead className="text-xs text-gray-400 tracking-[-0.05px]">
-                Category
+                <ColumnSortControl columnKey="owner" />
               </TableHead>
-              <TableHead className="text-xs text-gray-400 tracking-[-0.05px] flex items-center group">
-                Priority
-                {/* <RenderTableSortingIcon /> */}
+              <TableHead className="text-xs text-gray-400 tracking-[-0.05px]">
+                <ColumnSortControl columnKey="category" />
               </TableHead>
+              <TableHead className="text-xs text-gray-400 tracking-[-0.05px]">
+                <ColumnSortControl columnKey="priority" />
+              </TableHead>
+              {showStatus && (
+                <TableHead className="text-xs text-gray-400 tracking-[-0.05px]">
+                  <ColumnSortControl columnKey="status" />
+                </TableHead>
+              )}
               <TableHead className="text-xs text-gray-400 tracking-[-0.05px] !w-[20px]"></TableHead>
             </TableRow>
           </TableHeader>
@@ -402,7 +402,9 @@ function TasksTable({
                     className="!h-[44px] bg-gray-50 animate-pulse"
                   />
                 ))
-              : tasks.map((task) => (
+              : (
+                <>
+                  {renderedTasks.map((task) => (
                   <React.Fragment key={task._id}>
                     <TableRow
                       className="!h-[44px] hover:bg-gray-50 !border-b-1 !border-gray-100 cursor-pointer"
@@ -574,68 +576,19 @@ function TasksTable({
                                     {assigneeDisplay}
                                   </button>
                                 </PopoverTrigger>
-                                <PopoverContent className="w-72 p-2">
-                                  {assigneesLoading ? (
-                                    <div className="px-3 py-2 text-sm text-gray-400">
-                                      Loading…
-                                    </div>
-                                  ) : assigneeData &&
-                                    !assigneeData.canAssign ? (
-                                    <div className="px-3 py-2 text-sm text-gray-400">
-                                      You can&apos;t change this task&apos;s
-                                      assignees.
-                                    </div>
-                                  ) : (
-                                    (assigneeData?.assignees ?? []).map(
-                                      (coachUser) => {
-                                        const isAssigned = assignees.some(
-                                          (u) => u._id === coachUser._id
-                                        );
-                                        return (
-                                          <button
-                                            onClick={() =>
-                                              assign({
-                                                taskId: task._id,
-                                                coachId: coachUser._id,
-                                                coachUser
-                                              })
-                                            }
-                                            key={coachUser._id}
-                                            className="[all:unset] w-full! !flex !items-center !gap-3 cursor-pointer rounded-md px-3 py-1.5! hover:bg-gray-50"
-                                          >
-                                            <span className="w-4">
-                                              {isAssigned && (
-                                                <Check
-                                                  size={14}
-                                                  className="text-green-500 shrink-0"
-                                                />
-                                              )}
-                                            </span>
-                                            <SmartAvatar
-                                              src={coachUser?.photo}
-                                              name={coachUser?.fullName}
-                                              key={coachUser?.updatedAt}
-                                              className="size-5"
-                                              textSize="text-[11px]"
-                                            />
-                                            <span className="font-lato font-medium text-sm text-gray-700 flex-1">
-                                              {coachUser?._id === currentUserId
-                                                ? "me"
-                                                : coachUser?.fullName}
-                                            </span>
-                                            {coachUser?.role && (
-                                              <Badge
-                                                variant="outline"
-                                                className="capitalize rounded-full py-0 px-2 font-archivo font-medium text-[10px] leading-4 text-gray-500"
-                                              >
-                                                {coachUser.role}
-                                              </Badge>
-                                            )}
-                                          </button>
-                                        );
-                                      }
-                                    )
-                                  )}
+                                <PopoverContent className="w-72 p-0">
+                                  <AssigneeList
+                                    taskId={task._id}
+                                    assignees={assignees}
+                                    currentUserId={currentUserId}
+                                    onToggle={(u) =>
+                                      assign({
+                                        taskId: task._id,
+                                        coachId: u._id,
+                                        coachUser: u
+                                      })
+                                    }
+                                  />
                                 </PopoverContent>
                               </Popover>
                             );
@@ -724,6 +677,19 @@ function TasksTable({
                           {task.priority}
                         </div>
                       </TableCell>
+                      {showStatus && (
+                        <TableCell className="tracking-[-0.05px]">
+                          <Badge
+                            className="rounded-full py-0.5 px-2 font-archivo font-medium text-xs leading-4.5"
+                            style={{
+                              backgroundColor: task.status.color.bg,
+                              color: task.status.color.text
+                            }}
+                          >
+                            {task.status.title}
+                          </Badge>
+                        </TableCell>
+                      )}
                       <TableCell
                         className=""
                         onClick={(e) => e.stopPropagation()}
@@ -777,7 +743,17 @@ function TasksTable({
                         />
                       )}
                   </React.Fragment>
-                ))}
+                  ))}
+                  {hasMore && (
+                    <tr ref={sentinelRef} aria-hidden>
+                      <td
+                        colSpan={colCount}
+                        style={{ height: 1, padding: 0, border: 0 }}
+                      />
+                    </tr>
+                  )}
+                </>
+              )}
           </TableBody>
         </Table>
       )}

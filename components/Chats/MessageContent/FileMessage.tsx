@@ -287,7 +287,10 @@ export default function FileMessage({
                             if (_reaction.user === data?.user?._id)
                               handleRemoveReaction();
                           }}
-                          key={_reaction._id ?? `${_reaction.user}-${_reaction.emoji}`}
+                          key={
+                            _reaction._id ??
+                            `${_reaction.user}-${_reaction.emoji}`
+                          }
                         >
                           {_reaction.emoji}
                         </span>

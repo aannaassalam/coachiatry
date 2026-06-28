@@ -98,6 +98,9 @@ export const getAllTasks = async ({
 
   const res = await axiosInstance.get(endpoints.task.getAll, {
     params: {
+      // slim: web-only trimmed + lean payload (the other API consumer omits it
+      // and keeps the full response). See fetchTaskList on the backend.
+      slim: "true",
       populate: "category,status,assignedTo,user",
       sort,
       ...filterQuery,
@@ -123,6 +126,7 @@ export const getAllTasksByCoach = async ({
 
   const res = await axiosInstance.get(endpoints.task.getAllCoach(userId), {
     params: {
+      slim: "true",
       populate: "category,status,assignedTo,user",
       sort,
       ...filterQuery
@@ -206,6 +210,7 @@ export const getAllSharedTasks = async ({
 
   const res = await axiosInstance.get(endpoints.task.shared(shareId), {
     params: {
+      slim: "true",
       populate: "category,status,user",
       sort,
       ...filterQuery,
@@ -244,7 +249,31 @@ export const assignToggle = async (body: {
   return res;
 };
 
-export const getTaskAssignees = async (taskId: string) => {
-  const res = await axiosInstance.get(endpoints.task.getAssignees(taskId));
-  return res.data as { canAssign: boolean; assignees: User[] };
+export interface TaskAssigneesPage {
+  canAssign: boolean;
+  assignees: User[];
+  meta: {
+    totalCount: number;
+    currentPage: number;
+    limit: number;
+    totalPages: number;
+  };
+}
+
+export const getTaskAssignees = async ({
+  taskId,
+  page = 1,
+  search = ""
+}: {
+  taskId: string;
+  page?: number;
+  search?: string;
+}): Promise<TaskAssigneesPage> => {
+  // Always send `page` so the backend serves the paginated, role-based list
+  // (staff → all staff, user → their hierarchy). Omitting it hits the legacy
+  // shape, which is reserved for the other API consumer.
+  const res = await axiosInstance.get(endpoints.task.getAssignees(taskId), {
+    params: { page, search }
+  });
+  return res.data as TaskAssigneesPage;
 };

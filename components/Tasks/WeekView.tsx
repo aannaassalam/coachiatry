@@ -119,9 +119,7 @@ const TaskCard = ({
         queryClient.setQueryData<Task[]>(
           key,
           data.map((task) =>
-            task._id === task_id
-              ? { ...task, status: completedStatus }
-              : task
+            task._id === task_id ? { ...task, status: completedStatus } : task
           )
         );
       }

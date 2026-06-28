@@ -25,6 +25,11 @@ import {
 import { useState } from "react";
 import AddTaskSheet from "./AddTaskSheet";
 import TasksTable from "./TasksTable";
+import {
+  ColumnKey,
+  getGroups,
+  sortTasks
+} from "@/components/Tasks/tableColumns";
 
 function ListView() {
   const [openIndexes, setOpenIndexes] = useState<number[]>([0]);
@@ -37,6 +42,8 @@ function ListView() {
     "sort",
     parseAsArrayOf(parseAsString.withDefault("")).withDefault([])
   );
+  const [group] = useQueryState("group", parseAsString.withDefault("status"));
+  const [groupDir] = useQueryState("groupDir", parseAsString.withDefault("asc"));
   const [values] = useQueryState<Filter[]>(
     "filters",
     parseAsJson<Filter[]>((v) =>
@@ -54,14 +61,16 @@ function ListView() {
   ] = useQueries({
     queries: [
       {
-        queryKey: ["tasks", sort, validatedFilters, userId],
+        // Sort is applied client-side (sortTasks); kept out of the key/request
+        // so toggling sort never refetches this client's list.
+        queryKey: ["tasks", validatedFilters, userId],
         queryFn: () =>
           getAllTasksByCoach({
-            sort: sort.join(","),
             filter: validatedFilters,
             userId: userId as string
           }),
-        placeholderData: (prev: Task[] | undefined) => prev
+        placeholderData: (prev: Task[] | undefined) => prev,
+        staleTime: 60 * 1000
       },
       {
         queryKey: ["status", userId],
@@ -70,17 +79,13 @@ function ListView() {
     ]
   });
 
-  // A task carries the OWNER's status id. When a task is assigned from another
-  // user, its status id won't be one of these columns — fall back to matching
-  // by title so it lands in the equivalent column instead of being hidden.
-  const columnIds = new Set(status.map((s) => s?._id));
-  const tasksForStatus = (_status: (typeof status)[number]) =>
-    tasks?.filter(
-      (task) =>
-        task.status._id === _status?._id ||
-        (!columnIds.has(task.status._id) &&
-          task.status.title === _status?.title)
-    ) ?? [];
+  // Sort in memory, then bucket into the chosen grouping (Status by default).
+  const groups = getGroups(
+    sortTasks(tasks, sort),
+    group as ColumnKey,
+    groupDir,
+    status
+  );
 
   const handleToggle = (idx: number, isOpen: boolean) => {
     setOpenIndexes((prev) =>
@@ -121,52 +126,51 @@ function ListView() {
           </div>
         </div>
       ) : (
-        [...status]
-          .sort((a, b) => (a?.priority || 0) - (b?.priority || 0))
-          .map((_status, id) => (
-            <Collapsible
-              key={_status?._id}
-              open={openIndexes.includes(id)}
-              onOpenChange={(isOpen) => handleToggle(id, isOpen)}
-              className="w-full"
-            >
-              <div className="flex items-center gap-2">
-                <CollapsibleTrigger className="flex items-center justify-center rounded-sm p-2 hover:bg-gray-100 transition-all duration-200">
-                  <Image
-                    src={assets.icons.triangle}
-                    width={10}
-                    height={5}
-                    alt="triangle"
-                    className={cn(
-                      openIndexes.includes(id) ? "rotate-360" : "rotate-270",
-                      "transition-all duration-200"
-                    )}
-                  />
-                </CollapsibleTrigger>
-                <div
-                  className="p-1 pl-3 rounded-sm inline-flex items-center gap-2.5"
-                  style={{ backgroundColor: _status?.color?.bg }}
+        groups.map((_group, id) => (
+          <Collapsible
+            key={_group.key}
+            open={openIndexes.includes(id)}
+            onOpenChange={(isOpen) => handleToggle(id, isOpen)}
+            className="w-full"
+          >
+            <div className="flex items-center gap-2">
+              <CollapsibleTrigger className="flex items-center justify-center rounded-sm p-2 hover:bg-gray-100 transition-all duration-200">
+                <Image
+                  src={assets.icons.triangle}
+                  width={10}
+                  height={5}
+                  alt="triangle"
+                  className={cn(
+                    openIndexes.includes(id) ? "rotate-360" : "rotate-270",
+                    "transition-all duration-200"
+                  )}
+                />
+              </CollapsibleTrigger>
+              <div
+                className="p-1 pl-3 rounded-sm inline-flex items-center gap-2.5"
+                style={{ backgroundColor: _group.bg ?? "#F3F4F6" }}
+              >
+                <h5
+                  className="text-sm font-medium leading-5"
+                  style={{ color: _group.text ?? "#4B5563" }}
                 >
-                  <h5
-                    className="text-sm font-medium leading-5"
-                    style={{ color: _status?.color?.text }}
-                  >
-                    {_status?.title}
-                  </h5>
-                  <Badge
-                    variant="counter"
-                    style={{ backgroundColor: _status?.color?.text }}
-                  >
-                    {tasksForStatus(_status).length}
-                  </Badge>
-                </div>
+                  {_group.label}
+                </h5>
+                <Badge
+                  variant="counter"
+                  style={{ backgroundColor: _group.text ?? "#4B5563" }}
+                >
+                  {_group.tasks.length}
+                </Badge>
+              </div>
+              {_group.statusId && (
                 <Button
                   variant="ghost"
                   className="text-gray-400 text-[12px] self-end"
                   size="sm"
                   onClick={() => {
                     setIsOpen(true);
-                    setSelectedStatus(_status?._id as string);
+                    setSelectedStatus(_group.statusId as string);
                   }}
                 >
                   <Image
@@ -177,15 +181,13 @@ function ListView() {
                   />
                   Add Task
                 </Button>
-              </div>
-              <CollapsibleContent className="pl-7 data-[state=closed]:animate-slideUp data-[state=open]:animate-slideDown max-md:w-[94vw] max-sm:w-[92vw] max-md:overflow-auto scrollbar-hide">
-                <TasksTable
-                  tasks={tasksForStatus(_status)}
-                  isLoading={isLoading}
-                />
-              </CollapsibleContent>
-            </Collapsible>
-          ))
+              )}
+            </div>
+            <CollapsibleContent className="pl-7 data-[state=closed]:animate-slideUp data-[state=open]:animate-slideDown max-md:w-[94vw] max-sm:w-[92vw] max-md:overflow-auto scrollbar-hide">
+              <TasksTable tasks={_group.tasks} isLoading={isLoading} />
+            </CollapsibleContent>
+          </Collapsible>
+        ))
       )}
       <AddTaskSheet
         open={isOpen}

@@ -1,3 +1,4 @@
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -45,9 +46,19 @@ export default function Navbar({
             textSize="text-sm"
           />
           <div className="cursor-pointer text-left max-sm:hidden">
-            <p className="font-semibold text-gray-900 text-xs leading-4.5">
-              {data?.user?.fullName}
-            </p>
+            <div className="flex items-center gap-1.5">
+              <p className="font-semibold text-gray-900 text-xs leading-4.5">
+                {data?.user?.fullName}
+              </p>
+              {data?.user?.role && (
+                <Badge
+                  variant="secondary"
+                  className="capitalize rounded-full py-0 px-1.5 font-archivo font-medium text-[10px] leading-4 text-indigo-600"
+                >
+                  {data.user.role === "user" ? "client" : data.user.role}
+                </Badge>
+              )}
+            </div>
             <p className="text-gray-700 text-xs leading-4">
               {data?.user?.email}
             </p>

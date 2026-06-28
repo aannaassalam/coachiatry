@@ -13,6 +13,7 @@ import { useState } from "react";
 import AddTaskSheet from "./AddTaskSheet";
 import ListView from "./ListView";
 import FilterBox from "./FilterBox";
+import GroupByControl from "@/components/Tasks/GroupByControl";
 
 moment.updateLocale("en", {
   week: {
@@ -48,6 +49,7 @@ function Tasks() {
           Tasks
         </h1>
         <div className="flex items-center justify-start gap-5 ml-auto pb-3 max-sm:mt-3">
+          <GroupByControl />
           <Popover>
             <PopoverTrigger asChild>
               <Button

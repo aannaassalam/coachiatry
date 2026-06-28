@@ -44,10 +44,11 @@ export function SmartAvatar({
         <div className="absolute inset-0 animate-pulse bg-gray-200" />
       )}
 
-      {/* Fade-in image */}
+      {/* Fade-in image — absolutely positioned so it doesn't share flex width
+          with the fallback (which otherwise squashed the initials to one side). */}
       {src && !error && (
         <motion.div
-          className="size-full"
+          className="absolute inset-0 size-full"
           initial={{ opacity: 0 }}
           animate={{ opacity: loaded ? 1 : 0 }}
           transition={{ duration: 0.3 }}
@@ -68,7 +69,7 @@ export function SmartAvatar({
         // Font size tracks the avatar width: 1cqw = 1% of the container's
         // width, so `textScale * 100` cqw == that fraction of the diameter.
         style={{ fontSize: `${textScale * 100}cqw`, lineHeight: 1 }}
-        className="bg-orange-100 flex items-center justify-center font-semibold text-orange-600 leading-none"
+        className="size-full bg-orange-100 flex items-center justify-center font-semibold text-orange-600 leading-none"
       >
         {getInitials(name)}
       </AvatarFallback>

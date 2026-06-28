@@ -1,3 +1,6 @@
+import AssigneeList from "@/components/Tasks/AssigneeList";
+import ColumnSortControl from "@/components/Tasks/ColumnSortControl";
+import { useRowVirtualizer } from "@/components/Tasks/useRowVirtualizer";
 import PriorityFlag from "@/components/Tasks/PriorityFlag";
 import {
   Table,
@@ -8,15 +11,9 @@ import {
   TableRow
 } from "@/components/ui/table";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger
-} from "@/components/ui/tooltip";
-import {
   assignToggle,
   deleteTask,
   getTask,
-  getTaskAssignees,
   markSubtaskAsCompleted
 } from "@/external-api/functions/task.api";
 import assets from "@/json/assets";
@@ -24,17 +21,12 @@ import { cn } from "@/lib/utils";
 import { queryClient } from "@/pages/_app";
 import { Task } from "@/typescript/interface/task.interface";
 import { User } from "@/typescript/interface/user.interface";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { Check, ChevronsUpDown, Ellipsis, Pencil, Trash } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
+import { ChevronsUpDown, Ellipsis, Pencil, Trash } from "lucide-react";
 import { useSession } from "next-auth/react";
 import moment from "moment";
 import Image from "next/image";
-import {
-  parseAsArrayOf,
-  parseAsJson,
-  parseAsString,
-  useQueryState
-} from "nuqs";
+import { parseAsJson, parseAsString, useQueryState } from "nuqs";
 import React, { useEffect, useState } from "react";
 import DeleteDialog from "../../DeleteDialog";
 import { Badge } from "../../ui/badge";
@@ -146,91 +138,6 @@ export const SubTasksTable = ({
   ));
 };
 
-export const RenderTableSortingIcon = ({ name }: { name: string }) => {
-  const [sortBy, setSortBy] = useQueryState(
-    "sort",
-    parseAsArrayOf(parseAsString.withDefault("")).withDefault([])
-  );
-
-  const currentSortItem = Array.isArray(sortBy)
-    ? sortBy.find((item) => typeof item === "string" && item.includes(name))
-    : undefined;
-
-  const handleClick = () => {
-    setSortBy(
-      (prev) => {
-        const idx = prev.findIndex((item) => item.replace("-", "") === name);
-        let next: string[];
-
-        if (idx === -1) {
-          next = [...prev, name]; // not sorted → ascending
-        } else if (prev[idx] === name) {
-          next = [...prev.slice(0, idx), `-${name}`, ...prev.slice(idx + 1)]; // ascending → descending
-        } else {
-          next = [...prev.slice(0, idx), ...prev.slice(idx + 1)]; // descending → remove sort
-        }
-
-        // only update if something actually changed
-        if (
-          prev.length === next.length &&
-          prev.every((v, i) => v === next[i])
-        ) {
-          return prev;
-        }
-
-        return next;
-      },
-      { shallow: true }
-    ); // 👈 if using nuqs, use shallow update to avoid extra pushState
-  };
-
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <div
-          onClick={handleClick}
-          className={cn(
-            "opacity-0 flex items-center justify-center rounded-sm p-[6px] ml-2 hover:bg-gray-100 transition-all duration-200 mr-2 group-hover:opacity-100 cursor-pointer",
-            currentSortItem && "bg-gray-100 opacity-100"
-          )}
-        >
-          <div className="relative w-[12px] h-[12px]">
-            {/* Neutral Sort Icon */}
-            <Image
-              src={assets.icons.tableSort}
-              alt="sort neutral"
-              fill
-              className={cn(
-                "absolute transition-opacity duration-200",
-                currentSortItem ? "opacity-0" : "opacity-100"
-              )}
-            />
-            {/* Arrow Icon */}
-            <Image
-              src={assets.icons.arrowUp}
-              alt="sort arrow"
-              fill
-              className={cn(
-                "absolute transition-all duration-200 ease-in-out",
-                !currentSortItem && "opacity-0 rotate-0",
-                currentSortItem === name && "opacity-100 rotate-0",
-                currentSortItem?.startsWith("-") && "opacity-100 rotate-180"
-              )}
-            />
-          </div>
-        </div>
-      </TooltipTrigger>
-      <TooltipContent>
-        {currentSortItem === undefined
-          ? "Sort"
-          : currentSortItem === name
-            ? "Ascending"
-            : "Descending"}
-      </TooltipContent>
-    </Tooltip>
-  );
-};
-
 function TasksTable({
   tasks,
   isLoading
@@ -251,10 +158,10 @@ function TasksTable({
   const [selectedStatusId, setSelectedStatusId] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
 
-  const [sort] = useQueryState(
-    "sort",
-    parseAsArrayOf(parseAsString.withDefault("")).withDefault([])
-  );
+  // Each group is already a single status, so the Status column is only useful
+  // (and only shown) when the list is grouped by something else.
+  const [group] = useQueryState("group", parseAsString.withDefault("status"));
+  const showStatus = group !== "status";
   const [values] = useQueryState<Filter[]>(
     "filters",
     parseAsJson<Filter[]>((v) =>
@@ -278,12 +185,11 @@ function TasksTable({
     mutationFn: deleteTask,
     onMutate: async (id) => {
       await queryClient.cancelQueries({
-        queryKey: ["tasks", sort, validatedFilters, userId]
+        queryKey: ["tasks", validatedFilters, userId]
       });
 
       const previousResponse = queryClient.getQueryData<Task[]>([
         "tasks",
-        sort,
         validatedFilters,
         userId
       ]);
@@ -292,26 +198,17 @@ function TasksTable({
       const updatedTasks = previousResponse?.filter((task) => task._id !== id);
 
       queryClient.setQueryData(
-        ["tasks", sort, validatedFilters, userId],
+        ["tasks", validatedFilters, userId],
         updatedTasks
       );
       return { previousResponse };
     },
     meta: {
-      invalidateQueries: ["tasks", sort, validatedFilters, userId]
+      invalidateQueries: ["tasks", validatedFilters, userId]
     }
   });
 
-  // Candidate assignees are anchored on the OPEN task's owner hierarchy, so
-  // they're fetched lazily only while a task's assignee popover is open.
-  const { data: assigneeData, isLoading: assigneesLoading } = useQuery({
-    queryKey: ["task-assignees", openAssignFor],
-    queryFn: () => getTaskAssignees(openAssignFor as string),
-    enabled: !!openAssignFor,
-    staleTime: 60 * 1000
-  });
-
-  const tasksKey = ["tasks", sort, validatedFilters, userId];
+  const tasksKey = ["tasks", validatedFilters, userId];
 
   const { mutate: assign, isPending: isAssigning } = useMutation({
     mutationFn: ({
@@ -357,6 +254,11 @@ function TasksTable({
     }
   });
 
+  // Progressive rendering: only the first chunk of a large group mounts; the
+  // rest load as the user scrolls. Small groups render in full.
+  const { renderedTasks, hasMore, sentinelRef } = useRowVirtualizer(tasks);
+  const colCount = showStatus ? 8 : 7;
+
   return (
     <div className="mt-2 w-full tasksTable">
       {tasks.length != 0 && (
@@ -366,27 +268,29 @@ function TasksTable({
         >
           <TableHeader className="">
             <TableRow className="hover:bg-transparent !border-b-1 !border-gray-100">
-              <TableHead className="text-xs text-gray-500 min-w-[200px] flex items-center group">
-                Name
-                <RenderTableSortingIcon name="name" />
+              <TableHead className="text-xs text-gray-500 min-w-[200px]">
+                <ColumnSortControl columnKey="name" />
               </TableHead>
               <TableHead className="text-xs text-gray-400 tracking-[-0.05px]">
-                Owner
+                <ColumnSortControl columnKey="owner" />
               </TableHead>
               <TableHead className="text-xs text-gray-400 tracking-[-0.05px]">
-                Assigned to
-              </TableHead>
-              <TableHead className="text-xs text-gray-400 tracking-[-0.05px] flex items-center group">
-                Due Date
-                <RenderTableSortingIcon name="dueDate" />
+                <ColumnSortControl columnKey="assignedTo" />
               </TableHead>
               <TableHead className="text-xs text-gray-400 tracking-[-0.05px]">
-                Category
+                <ColumnSortControl columnKey="dueDate" />
               </TableHead>
-              <TableHead className="text-xs text-gray-400 tracking-[-0.05px] flex items-center group">
-                Priority
-                {/* <RenderTableSortingIcon /> */}
+              <TableHead className="text-xs text-gray-400 tracking-[-0.05px]">
+                <ColumnSortControl columnKey="category" />
               </TableHead>
+              <TableHead className="text-xs text-gray-400 tracking-[-0.05px]">
+                <ColumnSortControl columnKey="priority" />
+              </TableHead>
+              {showStatus && (
+                <TableHead className="text-xs text-gray-400 tracking-[-0.05px]">
+                  <ColumnSortControl columnKey="status" />
+                </TableHead>
+              )}
               <TableHead className="text-xs text-gray-400 tracking-[-0.05px] !w-[20px]"></TableHead>
             </TableRow>
           </TableHeader>
@@ -398,7 +302,9 @@ function TasksTable({
                     className="!h-[44px] bg-gray-50 animate-pulse"
                   />
                 ))
-              : tasks.map((task) => (
+              : (
+                <>
+                  {renderedTasks.map((task) => (
                   <React.Fragment key={task._id}>
                     <TableRow
                       className="!h-[44px] hover:bg-gray-50 !border-b-1 !border-gray-100 cursor-pointer"
@@ -576,69 +482,21 @@ function TasksTable({
                                 </button>
                               </PopoverTrigger>
                               <PopoverContent
-                                className="w-72 p-2"
+                                className="w-72 p-0"
                                 onClick={(e) => e.stopPropagation()}
                               >
-                                {assigneesLoading ? (
-                                  <div className="px-3 py-2 text-sm text-gray-400">
-                                    Loading…
-                                  </div>
-                                ) : assigneeData && !assigneeData.canAssign ? (
-                                  <div className="px-3 py-2 text-sm text-gray-400">
-                                    You can&apos;t change this task&apos;s
-                                    assignees.
-                                  </div>
-                                ) : (
-                                  (assigneeData?.assignees ?? []).map(
-                                    (coachUser) => {
-                                      const isAssigned = assignees.some(
-                                        (u) => u._id === coachUser._id
-                                      );
-                                      return (
-                                        <button
-                                          onClick={() =>
-                                            assign({
-                                              taskId: task._id,
-                                              coachId: coachUser._id,
-                                              coachUser
-                                            })
-                                          }
-                                          key={coachUser._id}
-                                          className="[all:unset] w-full! !flex !items-center !gap-3 cursor-pointer rounded-md px-3 py-1.5! hover:bg-gray-50"
-                                        >
-                                          <span className="w-4">
-                                            {isAssigned && (
-                                              <Check
-                                                size={14}
-                                                className="text-green-500 shrink-0"
-                                              />
-                                            )}
-                                          </span>
-                                          <SmartAvatar
-                                            src={coachUser?.photo}
-                                            name={coachUser?.fullName}
-                                            key={coachUser?.updatedAt}
-                                            className="size-5"
-                                            textSize="text-[11px]"
-                                          />
-                                          <span className="font-lato font-medium text-sm text-gray-700 flex-1">
-                                            {coachUser?._id === currentUserId
-                                              ? "me"
-                                              : coachUser?.fullName}
-                                          </span>
-                                          {coachUser?.role && (
-                                            <Badge
-                                              variant="outline"
-                                              className="capitalize rounded-full py-0 px-2 font-archivo font-medium text-[10px] leading-4 text-gray-500"
-                                            >
-                                              {coachUser.role}
-                                            </Badge>
-                                          )}
-                                        </button>
-                                      );
-                                    }
-                                  )
-                                )}
+                                <AssigneeList
+                                  taskId={task._id}
+                                  assignees={assignees}
+                                  currentUserId={currentUserId}
+                                  onToggle={(u) =>
+                                    assign({
+                                      taskId: task._id,
+                                      coachId: u._id,
+                                      coachUser: u
+                                    })
+                                  }
+                                />
                               </PopoverContent>
                             </Popover>
                           );
@@ -675,6 +533,19 @@ function TasksTable({
                           {task.priority}
                         </div>
                       </TableCell>
+                      {showStatus && (
+                        <TableCell className="tracking-[-0.05px]">
+                          <Badge
+                            className="rounded-full py-0.5 px-2 font-archivo font-medium text-xs leading-4.5"
+                            style={{
+                              backgroundColor: task.status.color.bg,
+                              color: task.status.color.text
+                            }}
+                          >
+                            {task.status.title}
+                          </Badge>
+                        </TableCell>
+                      )}
                       <TableCell className="">
                         <Popover>
                           <PopoverTrigger asChild>
@@ -728,7 +599,17 @@ function TasksTable({
                         />
                       )}
                   </React.Fragment>
-                ))}
+                  ))}
+                  {hasMore && (
+                    <tr ref={sentinelRef} aria-hidden>
+                      <td
+                        colSpan={colCount}
+                        style={{ height: 1, padding: 0, border: 0 }}
+                      />
+                    </tr>
+                  )}
+                </>
+              )}
           </TableBody>
         </Table>
       )}
