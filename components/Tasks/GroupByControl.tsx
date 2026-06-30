@@ -6,14 +6,19 @@ import {
   CircleDashed,
   Crown,
   Flag,
+  List,
   LucideIcon,
   Tag,
+  Trash2,
   User
 } from "lucide-react";
 import { parseAsString, useQueryState } from "nuqs";
 import { Button } from "../ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { COLUMN_META, ColumnKey, GROUPABLE_COLUMNS } from "./tableColumns";
+
+/** Sentinel `group` value meaning "don't group — show a single flat list". */
+export const NO_GROUP = "none";
 
 /** A representative icon per groupable column, shown in the pill + selector. */
 const GROUP_ICONS: Partial<Record<ColumnKey, LucideIcon>> = {
@@ -31,9 +36,10 @@ const DIRECTIONS: { value: string; label: string }[] = [
 ];
 
 /**
- * Toolbar "Group by" pill. Tasks are always grouped (Status by default) — there
- * is no "ungroup", so no delete affordance is offered. Choosing a field
- * re-buckets the list; the direction orders the groups themselves.
+ * Toolbar "Group by" pill. Tasks group by Status by default; choosing a field
+ * re-buckets the list and the direction orders the groups themselves. Grouping
+ * can also be removed ("No grouping") — the list then renders as a single flat,
+ * createdAt-sorted table.
  */
 function GroupByControl() {
   const [group, setGroup] = useQueryState(
@@ -45,10 +51,14 @@ function GroupByControl() {
     parseAsString.withDefault("asc")
   );
 
-  const current = COLUMN_META[group as ColumnKey] ?? COLUMN_META.status;
+  const isGrouped = group !== NO_GROUP;
+  const current = isGrouped
+    ? (COLUMN_META[group as ColumnKey] ?? COLUMN_META.status)
+    : null;
   const currentDir =
     DIRECTIONS.find((d) => d.value === groupDir) ?? DIRECTIONS[0];
-  const CurrentIcon = GROUP_ICONS[current.key] ?? CircleDashed;
+  const CurrentIcon = current ? (GROUP_ICONS[current.key] ?? CircleDashed) : List;
+  const currentLabel = current ? current.label : "No grouping";
 
   return (
     <Popover>
@@ -59,7 +69,7 @@ function GroupByControl() {
         >
           <CurrentIcon size={15} className="text-indigo-500" />
           {/* <span className="text-[11px] font-normal text-indigo-400">Group:</span> */}
-          {current.label}
+          {currentLabel}
           <ChevronsUpDown
             size={13}
             className="text-indigo-300 transition-colors group-hover:text-indigo-400"
@@ -82,7 +92,7 @@ function GroupByControl() {
               >
                 <span className="flex items-center gap-2">
                   <CurrentIcon size={15} className="text-gray-500" />
-                  {current.label}
+                  {currentLabel}
                 </span>
                 <ChevronsUpDown size={13} className="text-gray-400" />
               </button>
@@ -92,6 +102,20 @@ function GroupByControl() {
               className="w-[220px] p-1"
               collisionPadding={20}
             >
+              <PopoverClose asChild>
+                <button
+                  type="button"
+                  onClick={() => setGroup(NO_GROUP, { shallow: true })}
+                  className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm font-lato text-gray-700 hover:bg-gray-50 cursor-pointer"
+                >
+                  <List size={15} className="text-gray-500" />
+                  <span className="flex-1 text-left">No grouping</span>
+                  {!isGrouped && (
+                    <Check size={14} className="text-indigo-500" />
+                  )}
+                </button>
+              </PopoverClose>
+              <div className="my-1 h-px bg-gray-100" />
               {GROUPABLE_COLUMNS.map((col) => {
                 const Icon = GROUP_ICONS[col.key] ?? CircleDashed;
                 return (
@@ -113,7 +137,8 @@ function GroupByControl() {
             </PopoverContent>
           </Popover>
 
-          {/* Direction selector */}
+          {/* Direction selector — only relevant when actually grouping. */}
+          {isGrouped && (
           <Popover>
             <PopoverTrigger asChild>
               <button
@@ -145,6 +170,21 @@ function GroupByControl() {
               ))}
             </PopoverContent>
           </Popover>
+          )}
+
+          {/* Remove grouping — collapses everything into a single flat list. */}
+          {isGrouped && (
+            <PopoverClose asChild>
+              <button
+                type="button"
+                onClick={() => setGroup(NO_GROUP, { shallow: true })}
+                title="Remove grouping"
+                className="flex items-center justify-center rounded-md border border-gray-200 p-2 text-gray-400 hover:border-gray-300 hover:text-red-600 cursor-pointer"
+              >
+                <Trash2 size={15} />
+              </button>
+            </PopoverClose>
+          )}
         </div>
       </PopoverContent>
     </Popover>

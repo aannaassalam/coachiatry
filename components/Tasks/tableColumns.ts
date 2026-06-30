@@ -29,7 +29,13 @@ export interface ColumnMeta {
 }
 
 export const COLUMN_META: Record<ColumnKey, ColumnMeta> = {
-  name: { key: "name", label: "Name", apiField: "title", sortable: true, groupable: false },
+  name: {
+    key: "name",
+    label: "Name",
+    apiField: "title",
+    sortable: true,
+    groupable: false
+  },
   assignedTo: {
     key: "assignedTo",
     label: "Assignee",
@@ -37,7 +43,13 @@ export const COLUMN_META: Record<ColumnKey, ColumnMeta> = {
     sortable: true,
     groupable: true
   },
-  owner: { key: "owner", label: "Owner", apiField: "user", sortable: true, groupable: true },
+  owner: {
+    key: "owner",
+    label: "Owner",
+    apiField: "user",
+    sortable: true,
+    groupable: true
+  },
   dueDate: {
     key: "dueDate",
     label: "Due Date",
@@ -59,7 +71,13 @@ export const COLUMN_META: Record<ColumnKey, ColumnMeta> = {
     sortable: true,
     groupable: true
   },
-  status: { key: "status", label: "Status", apiField: "status", sortable: true, groupable: true }
+  status: {
+    key: "status",
+    label: "Status",
+    apiField: "status",
+    sortable: true,
+    groupable: true
+  }
 };
 
 /** Columns offered in the toolbar "Group by" selector, in display order. */
@@ -72,7 +90,11 @@ export const GROUPABLE_COLUMNS: ColumnMeta[] = [
   COLUMN_META.priority
 ];
 
-export const PRIORITY_RANK: Record<string, number> = { low: 1, medium: 2, high: 3 };
+export const PRIORITY_RANK: Record<string, number> = {
+  low: 1,
+  medium: 2,
+  high: 3
+};
 
 // ---------------------------------------------------------------------------
 // Sort helpers — all pure, operating on the `string[]` URL value where each
@@ -90,10 +112,17 @@ export interface ColumnSortState {
 
 const baseKey = (entry: string) => entry.replace(/^-/, "");
 
-export function getColumnSortState(sort: string[], key: string): ColumnSortState {
+export function getColumnSortState(
+  sort: string[],
+  key: string
+): ColumnSortState {
   const index = sort.findIndex((entry) => baseKey(entry) === key);
   if (index === -1) return { active: false, dir: null, index: -1 };
-  return { active: true, dir: sort[index].startsWith("-") ? "desc" : "asc", index };
+  return {
+    active: true,
+    dir: sort[index].startsWith("-") ? "desc" : "asc",
+    index
+  };
 }
 
 /** off → ascending → descending → off, preserving the column's slot. */
@@ -106,7 +135,11 @@ export function toggleColumnSort(prev: string[], key: string): string[] {
   return [...prev.slice(0, idx), ...prev.slice(idx + 1)];
 }
 
-export function setColumnSortDir(prev: string[], key: string, dir: SortDir): string[] {
+export function setColumnSortDir(
+  prev: string[],
+  key: string,
+  dir: SortDir
+): string[] {
   const entry = dir === "desc" ? `-${key}` : key;
   const idx = prev.findIndex((e) => baseKey(e) === key);
   if (idx === -1) return [...prev, entry];
@@ -117,8 +150,18 @@ export function removeColumnSort(prev: string[], key: string): string[] {
   return prev.filter((entry) => baseKey(entry) !== key);
 }
 
-export function moveColumnSort(prev: string[], from: number, to: number): string[] {
-  if (from === to || from < 0 || to < 0 || from >= prev.length || to >= prev.length) {
+export function moveColumnSort(
+  prev: string[],
+  from: number,
+  to: number
+): string[] {
+  if (
+    from === to ||
+    from < 0 ||
+    to < 0 ||
+    from >= prev.length ||
+    to >= prev.length
+  ) {
     return prev;
   }
   const next = [...prev];
@@ -132,10 +175,15 @@ export function moveColumnSort(prev: string[], from: number, to: number): string
 // already-cached array here so toggling sort/direction/order is instant. The
 // comparators mirror the server exactly (priority by severity, ref fields by
 // display name, dates by value, missing values last) so the result is identical.
-const strSortValue = (s?: string): { v?: number | string; missing?: boolean } =>
+const strSortValue = (
+  s?: string
+): { v?: number | string; missing?: boolean } =>
   s ? { v: s.toLowerCase() } : { missing: true };
 
-function taskSortValue(key: ColumnKey, t: Task): { v?: number | string; missing?: boolean } {
+function taskSortValue(
+  key: ColumnKey,
+  t: Task
+): { v?: number | string; missing?: boolean } {
   switch (key) {
     case "priority": {
       const rank = PRIORITY_RANK[(t.priority || "").toLowerCase()];
@@ -168,7 +216,14 @@ function taskSortValue(key: ColumnKey, t: Task): { v?: number | string; missing?
 }
 
 export function sortTasks(tasks: Task[], sort: string[]): Task[] {
-  if (!sort.length) return tasks;
+  // No explicit sort → fall back to the default list ordering (newest first).
+  // This is what an ungrouped, flat list shows.
+  if (!sort.length)
+    return [...tasks].sort(
+      (a, b) =>
+        new Date(b.createdAt ?? 0).getTime() -
+        new Date(a.createdAt ?? 0).getTime()
+    );
   const keys = sort.map((entry) => ({
     key: baseKey(entry) as ColumnKey,
     dir: entry.startsWith("-") ? -1 : 1
@@ -189,7 +244,10 @@ export function sortTasks(tasks: Task[], sort: string[]): Task[] {
       if (cmp !== 0) return cmp * dir;
     }
     // Stable tie-break: newest first (matches the default list ordering).
-    return new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime();
+    return (
+      new Date(b.createdAt ?? 0).getTime() -
+      new Date(a.createdAt ?? 0).getTime()
+    );
   });
 }
 
@@ -245,12 +303,21 @@ function bucketFor(task: Task, groupKey: ColumnKey): Bucket {
     case "priority": {
       const p = task.priority?.toLowerCase?.() ?? "";
       if (!p) return { key: NO_VALUE, label: "No Priority", rank: 99 };
-      return { key: p, label: p.charAt(0).toUpperCase() + p.slice(1), rank: PRIORITY_RANK[p] ?? 50 };
+      return {
+        key: p,
+        label: p.charAt(0).toUpperCase() + p.slice(1),
+        rank: PRIORITY_RANK[p] ?? 50
+      };
     }
     case "category": {
       const c = task.category;
       if (!c) return { key: NO_VALUE, label: "No Category" };
-      return { key: c._id, label: c.title, bg: c.color?.bg, text: c.color?.text };
+      return {
+        key: c._id,
+        label: c.title,
+        bg: c.color?.bg,
+        text: c.color?.text
+      };
     }
     case "owner": {
       const u = task.user;
@@ -273,11 +340,13 @@ function dueDateBucket(dueDate?: string): Bucket {
   if (!dueDate) return { key: "no-date", label: "No Due Date", rank: 5 };
   const d = moment(dueDate);
   const today = moment().startOf("day");
-  if (d.isBefore(today, "day")) return { key: "overdue", label: "Overdue", rank: 0 };
+  if (d.isBefore(today, "day"))
+    return { key: "overdue", label: "Overdue", rank: 0 };
   if (d.isSame(today, "day")) return { key: "today", label: "Today", rank: 1 };
   if (d.isSame(today.clone().add(1, "day"), "day"))
     return { key: "tomorrow", label: "Tomorrow", rank: 2 };
-  if (d.isSame(today, "week")) return { key: "this-week", label: "This Week", rank: 3 };
+  if (d.isSame(today, "week"))
+    return { key: "this-week", label: "This Week", rank: 3 };
   return { key: "later", label: "Later", rank: 4 };
 }
 
@@ -319,7 +388,14 @@ export function getGroups(
     const b = bucketFor(task, groupKey);
     let group = buckets.get(b.key);
     if (!group) {
-      group = { key: b.key, label: b.label, bg: b.bg, text: b.text, rank: b.rank, tasks: [] };
+      group = {
+        key: b.key,
+        label: b.label,
+        bg: b.bg,
+        text: b.text,
+        rank: b.rank,
+        tasks: []
+      };
       buckets.set(b.key, group);
       order.push(b.key);
     }

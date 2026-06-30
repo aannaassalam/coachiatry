@@ -34,7 +34,9 @@ function SortOrderPanel() {
 
   return (
     <div className="w-[260px]">
-      <p className="px-3 pt-3 pb-2 text-xs font-medium text-gray-400">Sorting order</p>
+      <p className="px-3 pt-3 pb-2 text-xs font-medium text-gray-400">
+        Sorting order
+      </p>
       <div className="px-1.5 pb-1.5">
         {sort.map((entry, index) => {
           const key = baseKey(entry);
@@ -61,18 +63,31 @@ function SortOrderPanel() {
                 type="button"
                 onClick={() =>
                   setSort(
-                    (prev) => setColumnSortDir(prev, key, dir === "desc" ? "asc" : "desc"),
+                    (prev) =>
+                      setColumnSortDir(
+                        prev,
+                        key,
+                        dir === "desc" ? "asc" : "desc"
+                      ),
                     { shallow: true }
                   )
                 }
                 className="flex items-center justify-center rounded-sm p-1 text-gray-500 hover:bg-gray-100 cursor-pointer"
                 aria-label="Toggle direction"
               >
-                {dir === "desc" ? <ArrowDown size={14} /> : <ArrowUp size={14} />}
+                {dir === "desc" ? (
+                  <ArrowDown size={14} />
+                ) : (
+                  <ArrowUp size={14} />
+                )}
               </button>
               <button
                 type="button"
-                onClick={() => setSort((prev) => removeColumnSort(prev, key), { shallow: true })}
+                onClick={() =>
+                  setSort((prev) => removeColumnSort(prev, key), {
+                    shallow: true
+                  })
+                }
                 className="flex items-center justify-center rounded-sm p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 cursor-pointer"
                 aria-label="Remove sort"
               >

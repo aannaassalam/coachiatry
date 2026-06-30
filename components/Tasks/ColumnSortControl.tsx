@@ -6,7 +6,12 @@ import Image from "next/image";
 import { parseAsArrayOf, parseAsString, useQueryState } from "nuqs";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import SortOrderPanel from "./SortOrderPanel";
-import { COLUMN_META, ColumnKey, getColumnSortState, toggleColumnSort } from "./tableColumns";
+import {
+  COLUMN_META,
+  ColumnKey,
+  getColumnSortState,
+  toggleColumnSort
+} from "./tableColumns";
 
 /**
  * Renders a sortable column header: the title text (click → column menu) plus a
@@ -21,7 +26,10 @@ function ColumnSortControl({ columnKey }: { columnKey: ColumnKey }) {
     "sort",
     parseAsArrayOf(parseAsString.withDefault("")).withDefault([])
   );
-  const [group, setGroup] = useQueryState("group", parseAsString.withDefault("status"));
+  const [group, setGroup] = useQueryState(
+    "group",
+    parseAsString.withDefault("status")
+  );
 
   const { active, dir, index } = getColumnSortState(sort, columnKey);
   const multi = sort.length >= 2;
@@ -40,7 +48,11 @@ function ColumnSortControl({ columnKey }: { columnKey: ColumnKey }) {
             {meta.label}
           </button>
         </PopoverTrigger>
-        <PopoverContent align="start" className="p-0 w-auto" collisionPadding={20}>
+        <PopoverContent
+          align="start"
+          className="p-0 w-auto"
+          collisionPadding={20}
+        >
           {multi ? (
             <SortOrderPanel />
           ) : (
@@ -75,7 +87,9 @@ function ColumnSortControl({ columnKey }: { columnKey: ColumnKey }) {
                   >
                     <Layers
                       size={15}
-                      className={cn(group === columnKey ? "text-gray-300" : "text-gray-500")}
+                      className={cn(
+                        group === columnKey ? "text-gray-300" : "text-gray-500"
+                      )}
                     />
                     Group
                   </button>
@@ -101,7 +115,9 @@ function ColumnSortControl({ columnKey }: { columnKey: ColumnKey }) {
           <>
             {dir === "desc" ? <ArrowDown size={12} /> : <ArrowUp size={12} />}
             {multi && (
-              <span className="text-[11px] font-medium leading-none">{index + 1}</span>
+              <span className="text-[11px] font-medium leading-none">
+                {index + 1}
+              </span>
             )}
           </>
         ) : (

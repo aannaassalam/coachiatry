@@ -4,6 +4,7 @@ import {
 } from "@/typescript/interface/common.interface";
 import { Task, TaskBody } from "@/typescript/interface/task.interface";
 import { User } from "@/typescript/interface/user.interface";
+import { VALUELESS_OPERATORS } from "@/lib/functions/_helpers.lib";
 import axiosInstance from "../axiosInstance";
 import { endpoints } from "../endpoints";
 import moment from "moment";
@@ -50,10 +51,11 @@ function buildFilterQuery(values: Filter[]): Record<string, any> {
   const query: Record<string, any> = {};
 
   values.forEach((filter) => {
+    const valueless = VALUELESS_OPERATORS.includes(filter.selectedOperator);
     if (
       !filter.selectedKey ||
       !filter.selectedOperator ||
-      !filter.selectedValue
+      (!filter.selectedValue && !valueless)
     )
       return;
 
@@ -61,6 +63,18 @@ function buildFilterQuery(values: Filter[]): Record<string, any> {
     const value = filter.selectedValue;
 
     if (key === "dueDate") {
+      // Presence checks ignore the value entirely. dueDate defaults to null in
+      // the schema, so "set" means non-null and "not set" means null/absent —
+      // `$exists` can't be used. The backend coerces the string "null" → null.
+      if (filter.selectedOperator === "isSet") {
+        query.dueDate = { ne: "null" };
+        return;
+      }
+      if (filter.selectedOperator === "isNotSet") {
+        query.dueDate = "null";
+        return;
+      }
+
       const dateRange = getDueDateQuery(value);
       if (!dateRange) return;
 

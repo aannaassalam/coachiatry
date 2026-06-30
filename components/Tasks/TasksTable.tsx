@@ -395,16 +395,16 @@ function TasksTable({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isLoading
-              ? Array.from({ length: 5 }).map((_, idx) => (
-                  <TableRow
-                    key={idx}
-                    className="!h-[44px] bg-gray-50 animate-pulse"
-                  />
-                ))
-              : (
-                <>
-                  {renderedTasks.map((task) => (
+            {isLoading ? (
+              Array.from({ length: 5 }).map((_, idx) => (
+                <TableRow
+                  key={idx}
+                  className="!h-[44px] bg-gray-50 animate-pulse"
+                />
+              ))
+            ) : (
+              <>
+                {renderedTasks.map((task) => (
                   <React.Fragment key={task._id}>
                     <TableRow
                       className="!h-[44px] hover:bg-gray-50 !border-b-1 !border-gray-100 cursor-pointer"
@@ -743,17 +743,17 @@ function TasksTable({
                         />
                       )}
                   </React.Fragment>
-                  ))}
-                  {hasMore && (
-                    <tr ref={sentinelRef} aria-hidden>
-                      <td
-                        colSpan={colCount}
-                        style={{ height: 1, padding: 0, border: 0 }}
-                      />
-                    </tr>
-                  )}
-                </>
-              )}
+                ))}
+                {hasMore && (
+                  <tr ref={sentinelRef} aria-hidden>
+                    <td
+                      colSpan={colCount}
+                      style={{ height: 1, padding: 0, border: 0 }}
+                    />
+                  </tr>
+                )}
+              </>
+            )}
           </TableBody>
         </Table>
       )}

@@ -30,6 +30,7 @@ import {
   getGroups,
   sortTasks
 } from "@/components/Tasks/tableColumns";
+import { NO_GROUP } from "@/components/Tasks/GroupByControl";
 
 function ListView() {
   const [openIndexes, setOpenIndexes] = useState<number[]>([0]);
@@ -43,7 +44,10 @@ function ListView() {
     parseAsArrayOf(parseAsString.withDefault("")).withDefault([])
   );
   const [group] = useQueryState("group", parseAsString.withDefault("status"));
-  const [groupDir] = useQueryState("groupDir", parseAsString.withDefault("asc"));
+  const [groupDir] = useQueryState(
+    "groupDir",
+    parseAsString.withDefault("asc")
+  );
   const [values] = useQueryState<Filter[]>(
     "filters",
     parseAsJson<Filter[]>((v) =>
@@ -80,12 +84,12 @@ function ListView() {
   });
 
   // Sort in memory, then bucket into the chosen grouping (Status by default).
-  const groups = getGroups(
-    sortTasks(tasks, sort),
-    group as ColumnKey,
-    groupDir,
-    status
-  );
+  // When grouping is removed, render a single flat, createdAt-sorted list.
+  const sortedTasks = sortTasks(tasks, sort);
+  const groups =
+    group === NO_GROUP
+      ? []
+      : getGroups(sortedTasks, group as ColumnKey, groupDir, status);
 
   const handleToggle = (idx: number, isOpen: boolean) => {
     setOpenIndexes((prev) =>
@@ -124,6 +128,10 @@ function ListView() {
               <div className="!h-[44px] bg-gray-200/70 animate-pulse rounded-md" />
             </div>
           </div>
+        </div>
+      ) : group === NO_GROUP ? (
+        <div className="max-md:w-[94vw] max-sm:w-[92vw] max-md:overflow-auto scrollbar-hide">
+          <TasksTable tasks={sortedTasks} isLoading={isLoading} />
         </div>
       ) : (
         groups.map((_group, id) => (

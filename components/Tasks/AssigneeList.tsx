@@ -72,22 +72,17 @@ export default function AssigneeList({
   const listRef = useRef<HTMLDivElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
-  const {
-    data,
-    isLoading,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage
-  } = useInfiniteQuery({
-    queryKey: ["task-assignees", taskId, debouncedSearch],
-    queryFn: ({ pageParam }) =>
-      getTaskAssignees({ taskId, page: pageParam, search: debouncedSearch }),
-    initialPageParam: 1,
-    getNextPageParam: (lastPage) =>
-      lastPage.meta && lastPage.meta.currentPage < lastPage.meta.totalPages
-        ? lastPage.meta.currentPage + 1
-        : undefined
-  });
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useInfiniteQuery({
+      queryKey: ["task-assignees", taskId, debouncedSearch],
+      queryFn: ({ pageParam }) =>
+        getTaskAssignees({ taskId, page: pageParam, search: debouncedSearch }),
+      initialPageParam: 1,
+      getNextPageParam: (lastPage) =>
+        lastPage.meta && lastPage.meta.currentPage < lastPage.meta.totalPages
+          ? lastPage.meta.currentPage + 1
+          : undefined
+    });
 
   const canAssign = data?.pages?.[0]?.canAssign ?? true;
 

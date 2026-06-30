@@ -22,6 +22,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger
 } from "../ui/collapsible";
+import { NO_GROUP } from "./GroupByControl";
 import TasksTable from "./TasksTable";
 import { ColumnKey, getGroups, sortTasks } from "./tableColumns";
 
@@ -33,7 +34,10 @@ function ListView({ onAddTask }: { onAddTask: (statusId?: string) => void }) {
     parseAsArrayOf(parseAsString.withDefault("")).withDefault([])
   );
   const [group] = useQueryState("group", parseAsString.withDefault("status"));
-  const [groupDir] = useQueryState("groupDir", parseAsString.withDefault("asc"));
+  const [groupDir] = useQueryState(
+    "groupDir",
+    parseAsString.withDefault("asc")
+  );
   const [values] = useQueryState<Filter[]>(
     "filters",
     parseAsJson<Filter[]>((v) =>
@@ -67,12 +71,12 @@ function ListView({ onAddTask }: { onAddTask: (statusId?: string) => void }) {
   });
 
   // Sort in memory, then bucket into the chosen grouping (Status by default).
-  const groups = getGroups(
-    sortTasks(tasks, sort),
-    group as ColumnKey,
-    groupDir,
-    status
-  );
+  // When grouping is removed, render a single flat, createdAt-sorted list.
+  const sortedTasks = sortTasks(tasks, sort);
+  const groups =
+    group === NO_GROUP
+      ? []
+      : getGroups(sortedTasks, group as ColumnKey, groupDir, status);
 
   const handleToggle = (idx: number, isOpen: boolean) => {
     setOpenIndexes((prev) =>
@@ -111,6 +115,14 @@ function ListView({ onAddTask }: { onAddTask: (statusId?: string) => void }) {
               <div className="!h-[44px] bg-gray-200/70 animate-pulse rounded-md" />
             </div>
           </div>
+        </div>
+      ) : group === NO_GROUP ? (
+        <div className="max-md:w-[94vw] max-sm:w-[92vw] max-md:overflow-auto scrollbar-hide">
+          <TasksTable
+            tasks={sortedTasks}
+            isLoading={isLoading}
+            onAddTask={onAddTask}
+          />
         </div>
       ) : (
         groups.map((_group, id) => (

@@ -53,9 +53,18 @@ export const roleParser = (role: string) => {
   return role.replace("ROLE_", "").replaceAll("_", " ");
 };
 
+/**
+ * Operators that compare against the field's presence rather than a value, so
+ * they're valid without a `selectedValue` (currently only due-date set checks).
+ */
+export const VALUELESS_OPERATORS = ["isSet", "isNotSet"];
+
 export function sanitizeFilters(values: Filter[]): Filter[] {
   return values.filter(
-    (f) => f.selectedKey && f.selectedOperator && f.selectedValue
+    (f) =>
+      f.selectedKey &&
+      f.selectedOperator &&
+      (f.selectedValue || VALUELESS_OPERATORS.includes(f.selectedOperator))
   );
 }
 

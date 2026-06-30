@@ -2,6 +2,7 @@
 
 import { getAllCategories } from "@/external-api/functions/category.api";
 import { getAllStatuses } from "@/external-api/functions/status.api";
+import { VALUELESS_OPERATORS } from "@/lib/functions/_helpers.lib";
 import { Filter } from "@/typescript/interface/common.interface";
 import { PopoverClose } from "@radix-ui/react-popover";
 import { useQueries } from "@tanstack/react-query";
@@ -68,7 +69,9 @@ function FilterBox() {
     dueDate: {
       compareOperator: [
         { label: "is", value: "is" },
-        { label: "is not", value: "is not" }
+        { label: "is not", value: "is not" },
+        { label: "is set", value: "isSet" },
+        { label: "is not set", value: "isNotSet" }
       ],
       compareWith: [
         { label: "Today", value: "today" },
@@ -171,7 +174,8 @@ function FilterBox() {
                   />
                 )}
 
-                {filter.selectedOperator && (
+                {filter.selectedOperator &&
+                  !VALUELESS_OPERATORS.includes(filter.selectedOperator) && (
                   <Combobox
                     options={filterOptions[filter.selectedKey]?.compareWith}
                     placeholder="Select"
