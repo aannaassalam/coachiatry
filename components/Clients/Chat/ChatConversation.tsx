@@ -4,13 +4,15 @@
 
 import { SmartAvatar } from "@/components/ui/smart-avatar";
 import { getConversationByCoach } from "@/external-api/functions/chat.api";
-import { getMessages } from "@/external-api/functions/message.api";
+import { useChatMessages } from "@/hooks/useChatMessages";
+import { useChatSocket } from "@/hooks/useChatSocket";
 import { cn } from "@/lib/utils";
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
+import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
 import { parseAsString, useQueryState } from "nuqs";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { BsChevronLeft } from "react-icons/bs";
 import ChatMessage from "./ChatMessage";
 
@@ -34,24 +36,18 @@ export default function ChatConversation() {
     messageKeyMap.current.clear();
   }, [room]);
 
+  const { data: session } = useSession();
+
   const {
-    data: messagesData,
+    allMessages,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-    isLoading
-  } = useInfiniteQuery({
-    queryKey: ["messages", room],
-    queryFn: getMessages,
-    initialPageParam: 1,
-    enabled: !!room,
-    getNextPageParam: (lastPage) => {
-      if (lastPage.meta.currentPage < lastPage.meta.totalPages) {
-        return lastPage.meta.currentPage + 1;
-      }
-      return undefined;
-    }
-  });
+    isLoading,
+    upsertIncomingMessage,
+    updateReactions,
+    markConversationSeen
+  } = useChatMessages(room, true);
 
   const { data: conversation, isLoading: isConversationLoading } = useQuery({
     queryKey: ["conversations", room, userId],
@@ -73,20 +69,29 @@ export default function ChatConversation() {
     details.name = conversation.name;
   }
 
-  /**
-   * IMPORTANT:
-   * - Backend pages: pages[0] = newest page (messages newest -> oldest within page)
-   * - We want to render oldest -> newest (top -> bottom)
-   * => Reverse pages order and reverse each page.data
-   */
-  const allMessages = useMemo(
-    () =>
-      messagesData?.pages
-        .slice()
-        .reverse()
-        .flatMap((page) => [...page.data].reverse()) ?? [],
-    [messagesData]
-  );
+  // Realtime: receive new messages, reactions and seen-receipts live, and emit
+  // mark_seen on open (inside the hook) so read receipts propagate and the
+  // unread badge clears without a refetch. Mirrors the client-facing chat view.
+  useChatSocket({
+    room,
+    conversation,
+    friendId: friend?.user?._id,
+    handlers: {
+      onNewMessage: (msg) => {
+        if (msg.tempId && msg._id) {
+          const oldKey = messageKeyMap.current.get(msg.tempId);
+          if (oldKey) messageKeyMap.current.set(msg._id, oldKey);
+        }
+        upsertIncomingMessage(msg, session?.user?._id, room);
+      },
+      onReactionUpdate: (messageId, reactions) => {
+        updateReactions(messageId, reactions);
+      },
+      onSeenBulk: ({ chatId, userId: seenUserId }) => {
+        markConversationSeen(chatId, seenUserId, session?.user?._id);
+      }
+    }
+  });
 
   useEffect(() => {
     // Reset scroll state on room change
@@ -156,7 +161,7 @@ export default function ChatConversation() {
   return (
     <div
       className={cn(
-        "flex flex-col h-full max-h-140 border-r border-l border-gray-200 relative max-md:absolute max-md:w-full max-md:min-h-[500px]",
+        "flex flex-col min-h-0 border-r border-l border-gray-200 relative max-md:absolute max-md:w-full max-md:min-h-[500px]",
         room ? "max-md:left-0" : "max-md:left-[110%]"
       )}
     >
@@ -209,7 +214,9 @@ export default function ChatConversation() {
         onDragOver={() => setChatDragShow(true)}
         onDragEnd={() => setChatDragShow(false)}
       >
-        <div className="flex flex-col">
+        {/* min-h-full + justify-end anchors messages to the bottom so short
+            conversations don't float to the top with empty space below. */}
+        <div className="flex flex-col min-h-full justify-end">
           <div ref={topRef} />
           {isFetchingNextPage && (
             <p className="text-center text-xs">Loading older messages…</p>

@@ -14,7 +14,7 @@ export default function ChatCoach() {
   const [room, setRoom] = useQueryState("room", parseAsString.withDefault(""));
 
   return (
-    <div className="max-md:min-h-[500px]">
+    <div className="max-md:min-h-[500px] md:flex md:flex-col md:flex-1 md:min-h-0">
       <div className="flex justify-between items-center mb-2 max-sm:gap-2">
         <div className="flex items-center justify-between gap-5 ">
           <h1 className="font-semibold text-gray-900 text-2xl leading-7 tracking-[-3%] max-sm:text-xl">
@@ -50,7 +50,7 @@ export default function ChatCoach() {
       </div>
       <Separator />
       {tab === "chats" ? (
-        <div className="w-full grid grid-cols-[0.3fr_auto] flex-1 min-h-0 max-md:grid-cols-1 max-md:relative">
+        <div className="w-full grid grid-cols-[0.3fr_auto] md:flex-1 md:min-h-0 md:grid-rows-[minmax(0,1fr)] max-md:grid-cols-1 max-md:relative">
           <ChatList />
           {room && <ChatConversation />}
         </div>

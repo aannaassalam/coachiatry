@@ -57,7 +57,9 @@ function GroupByControl() {
     : null;
   const currentDir =
     DIRECTIONS.find((d) => d.value === groupDir) ?? DIRECTIONS[0];
-  const CurrentIcon = current ? (GROUP_ICONS[current.key] ?? CircleDashed) : List;
+  const CurrentIcon = current
+    ? (GROUP_ICONS[current.key] ?? CircleDashed)
+    : List;
   const currentLabel = current ? current.label : "No grouping";
 
   return (
@@ -139,37 +141,37 @@ function GroupByControl() {
 
           {/* Direction selector — only relevant when actually grouping. */}
           {isGrouped && (
-          <Popover>
-            <PopoverTrigger asChild>
-              <button
-                type="button"
-                className="flex items-center justify-between gap-2 rounded-md border border-gray-200 px-3 py-2 text-sm font-lato text-gray-700 hover:border-gray-300 cursor-pointer"
+            <Popover>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  className="flex items-center justify-between gap-2 rounded-md border border-gray-200 px-3 py-2 text-sm font-lato text-gray-700 hover:border-gray-300 cursor-pointer"
+                >
+                  {currentDir.label}
+                  <ChevronsUpDown size={13} className="text-gray-400" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent
+                align="end"
+                className="w-[180px] p-1"
+                collisionPadding={20}
               >
-                {currentDir.label}
-                <ChevronsUpDown size={13} className="text-gray-400" />
-              </button>
-            </PopoverTrigger>
-            <PopoverContent
-              align="end"
-              className="w-[180px] p-1"
-              collisionPadding={20}
-            >
-              {DIRECTIONS.map((d) => (
-                <PopoverClose asChild key={d.value}>
-                  <button
-                    type="button"
-                    onClick={() => setGroupDir(d.value, { shallow: true })}
-                    className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm font-lato text-gray-700 hover:bg-gray-50 cursor-pointer"
-                  >
-                    <span className="flex-1 text-left">{d.label}</span>
-                    {groupDir === d.value && (
-                      <Check size={14} className="text-indigo-500" />
-                    )}
-                  </button>
-                </PopoverClose>
-              ))}
-            </PopoverContent>
-          </Popover>
+                {DIRECTIONS.map((d) => (
+                  <PopoverClose asChild key={d.value}>
+                    <button
+                      type="button"
+                      onClick={() => setGroupDir(d.value, { shallow: true })}
+                      className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm font-lato text-gray-700 hover:bg-gray-50 cursor-pointer"
+                    >
+                      <span className="flex-1 text-left">{d.label}</span>
+                      {groupDir === d.value && (
+                        <Check size={14} className="text-indigo-500" />
+                      )}
+                    </button>
+                  </PopoverClose>
+                ))}
+              </PopoverContent>
+            </Popover>
           )}
 
           {/* Remove grouping — collapses everything into a single flat list. */}

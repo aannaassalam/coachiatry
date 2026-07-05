@@ -218,6 +218,15 @@ export default function ChatConversation() {
 
     insertOptimisticMessage(optimisticMessage as unknown as Message);
 
+    // Server-side send failures (removed from chat, DB error, …) come back via
+    // the ack callback; mark the optimistic bubble failed instead of leaving it
+    // stuck as "sent".
+    const onSendAck = (res?: { success?: boolean; error?: string }) => {
+      if (res && res.success === false) {
+        updateMessageByTempId(tempId, (m) => ({ ...m, status: "failed" }));
+      }
+    };
+
     if (incomingFiles.length > 0) {
       await uploadFiles(tempId, incomingFiles, {
         chatId: room,
@@ -246,16 +255,20 @@ export default function ChatConversation() {
           }));
 
           if (uploadedFiles.length > 0) {
-            socket.emit("send_message", {
-              ...optimisticMessage,
-              files: uploadedFiles,
-              status: "sent"
-            });
+            socket.emit(
+              "send_message",
+              {
+                ...optimisticMessage,
+                files: uploadedFiles,
+                status: "sent"
+              },
+              onSendAck
+            );
           }
         }
       });
     } else {
-      socket.emit("send_message", optimisticMessage);
+      socket.emit("send_message", optimisticMessage, onSendAck);
     }
 
     setTimeout(() => {

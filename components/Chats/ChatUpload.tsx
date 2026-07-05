@@ -1,4 +1,10 @@
-import { useState, DragEvent, ChangeEvent } from "react";
+import {
+  useState,
+  useMemo,
+  useEffect,
+  DragEvent,
+  ChangeEvent
+} from "react";
 import { RxCross1 } from "react-icons/rx";
 import { FaFileAlt } from "react-icons/fa";
 import Image from "next/image";
@@ -20,6 +26,25 @@ export default function ChatUploadWithPreview({
 
   const [, setShowPreview] = useState(false);
   const [selectedFileIndex, setSelectedFileIndex] = useState(0);
+
+  // Create one object URL per media file and revoke them when the file set
+  // changes or the component unmounts. Previously URL.createObjectURL was
+  // called inline during render for every preview/thumbnail, leaking a fresh
+  // blob URL on each render (and reloading images/videos every render).
+  const fileUrls = useMemo(
+    () =>
+      files.map((f) =>
+        f.type.includes("image") || f.type.includes("video")
+          ? URL.createObjectURL(f)
+          : null
+      ),
+    [files]
+  );
+  useEffect(() => {
+    return () => {
+      fileUrls.forEach((u) => u && URL.revokeObjectURL(u));
+    };
+  }, [fileUrls]);
 
   const resetAll = () => {
     setFiles([]);
@@ -96,13 +121,13 @@ export default function ChatUploadWithPreview({
                 key={selectedFileIndex}
               >
                 <source
-                  src={URL.createObjectURL(files[selectedFileIndex])}
+                  src={fileUrls[selectedFileIndex] ?? ""}
                   type={files[selectedFileIndex].type}
                 />
               </video>
             ) : files[selectedFileIndex]?.type.includes("image") ? (
               <Image
-                src={URL.createObjectURL(files[selectedFileIndex])}
+                src={fileUrls[selectedFileIndex] ?? ""}
                 alt="Preview"
                 className="max-w-[70%] max-h-[100%] rounded-lg shadow-md object-contain"
                 width={100}
@@ -130,7 +155,7 @@ export default function ChatUploadWithPreview({
               >
                 {file.type.includes("image") ? (
                   <Image
-                    src={URL.createObjectURL(file)}
+                    src={fileUrls[i] ?? ""}
                     alt="thumb"
                     className="w-[50px] h-[50px] object-cover rounded-md"
                     width={100}
@@ -138,7 +163,7 @@ export default function ChatUploadWithPreview({
                   />
                 ) : file.type.includes("video") ? (
                   <video
-                    src={URL.createObjectURL(file)}
+                    src={fileUrls[i] ?? ""}
                     className="w-[50px] h-[50px] object-cover rounded-md"
                   />
                 ) : (

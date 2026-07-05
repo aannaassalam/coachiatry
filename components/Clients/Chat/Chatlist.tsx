@@ -38,7 +38,7 @@ moment.updateLocale("en", {
 const skeletons = Array.from({ length: 5 });
 
 export default function ChatList() {
-  const [, setSelectedChat] = useQueryState(
+  const [room, setSelectedChat] = useQueryState(
     "room",
     parseAsString.withDefault("")
   );
@@ -123,7 +123,7 @@ export default function ChatList() {
       <ul
         ref={listRef}
         onScroll={handleScroll}
-        className="space-y-2 overflow-y-auto pr-2 pb-6 max-h-[calc(100vh-200px)] max-md:w-full"
+        className="space-y-2 overflow-y-auto pr-2 pb-6 md:flex-1 md:min-h-0 max-md:max-h-[calc(100vh-200px)] max-md:w-full"
       >
         {isLoading ? (
           <div className="space-y-2">
@@ -159,7 +159,12 @@ export default function ChatList() {
               return (
                 <li
                   key={_chat._id}
-                  className="flex cursor-pointer items-start justify-between gap-2 py-2.5 px-3 rounded-[8px] hover:bg-gray-100 transition"
+                  className={cn(
+                    "flex cursor-pointer items-start justify-between gap-2 py-2.5 px-3 rounded-[8px] transition",
+                    _chat._id === room
+                      ? "bg-primary/10"
+                      : "hover:bg-gray-100"
+                  )}
                   onClick={() => setSelectedChat(_chat._id!)}
                   onMouseEnter={() => prefetchChatRoom(_chat._id!)}
                 >

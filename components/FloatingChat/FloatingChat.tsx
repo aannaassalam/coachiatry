@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import FloatingChatLauncher from "./FloatingChatLauncher";
 import FloatingChatPanel from "./FloatingChatPanel";
+import FloatingConversationsSync from "./FloatingConversationsSync";
 
 const HIDDEN_PATH_PREFIXES = ["/auth", "/chat"];
 
@@ -18,5 +19,11 @@ export default function FloatingChat() {
     return null;
   }
 
-  return isOpen ? <FloatingChatPanel /> : <FloatingChatLauncher />;
+  return (
+    <>
+      {isOpen ? <FloatingChatPanel /> : <FloatingChatLauncher />}
+      {/* Keeps the badge/list live off /chat; renders nothing. */}
+      <FloatingConversationsSync />
+    </>
+  );
 }

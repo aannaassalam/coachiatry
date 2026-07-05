@@ -16,6 +16,7 @@ import { getAllTranscriptionsByCoach } from "@/external-api/functions/transcript
 import { getUserById } from "@/external-api/functions/user.api";
 import assets from "@/json/assets";
 import AppLayout from "@/layouts/AppLayout";
+import { cn } from "@/lib/utils";
 import { User } from "@/typescript/interface/user.interface";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
@@ -199,7 +200,14 @@ function ClientDetails() {
       <Tabs
         value={tab}
         onValueChange={(value) => setTab(value)}
-        className="mt-6 "
+        className={cn(
+          "mt-6",
+          // On the chat tab (desktop), let the tabs region fill the remaining
+          // viewport so the list + conversation share that height (each scrolls
+          // internally) instead of growing the page. Other tabs — and mobile,
+          // which uses an absolute overlay layout — keep their normal flow.
+          tab === "chat" && "md:flex-1 md:min-h-0 md:flex md:flex-col"
+        )}
       >
         <TabsList className="h-auto bg-white max-sm:w-[95vw] overflow-auto scrollbar-hide justify-start">
           <TabsTrigger
@@ -237,7 +245,10 @@ function ClientDetails() {
         <TabsContent value="documents">
           <Documents />
         </TabsContent>
-        <TabsContent value="chat" className="px-3">
+        <TabsContent
+          value="chat"
+          className="px-3 md:flex-1 md:min-h-0 md:flex md:flex-col"
+        >
           <ChatCoach />
         </TabsContent>
         <TabsContent value="task" className="px-3">

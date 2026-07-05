@@ -65,6 +65,7 @@ export default function ChatList() {
       lastMessage: Message;
       updatedAt: string;
     }) => {
+      let found = false;
       queryClient.setQueryData<{
         pages: PaginatedResponse<ChatConversation[]>[];
         pageParams: unknown[];
@@ -77,6 +78,7 @@ export default function ChatList() {
         const allChats = old.pages.flatMap((p) => p.data);
         const idx = allChats.findIndex((c) => c._id === update.chatId);
         if (idx === -1) return old;
+        found = true;
 
         const current = allChats[idx];
         const isMyMessage = update.lastMessage?.sender?._id === data?.user?._id;
@@ -101,14 +103,31 @@ export default function ChatList() {
             moment(a.lastMessage?.createdAt ?? a.createdAt).valueOf()
         );
 
-        return {
-          ...old,
-          pages: [
-            { ...firstPage, data: newList },
-            ...old.pages.slice(1).map((p) => ({ ...p, data: [] }))
-          ]
-        };
+        // Re-chunk preserving page sizes (don't collapse into page 0, which
+        // desyncs pagination and duplicates rows on the next fetch).
+        let offset = 0;
+        const pages = old.pages.map((p) => {
+          const size = p.data.length;
+          const dataSlice = newList.slice(offset, offset + size);
+          offset += size;
+          return { ...p, data: dataSlice };
+        });
+        if (offset < newList.length) {
+          const l = pages.length - 1;
+          pages[l] = {
+            ...pages[l],
+            data: [...pages[l].data, ...newList.slice(offset)]
+          };
+        }
+
+        return { ...old, pages };
       });
+
+      // Not in any loaded page → refetch so a brand-new/unloaded conversation
+      // isn't silently dropped.
+      if (!found) {
+        queryClient.invalidateQueries({ queryKey: ["conversations"] });
+      }
     };
 
     socket.on("conversation_updated", handleConversationUpdated);
@@ -287,7 +306,10 @@ export default function ChatList() {
               return (
                 <li
                   key={chat._id}
-                  className="flex cursor-pointer items-start justify-between gap-2 py-2.5 px-3 rounded-[8px] hover:bg-gray-100 transition"
+                  className={cn(
+                    "flex cursor-pointer items-start justify-between gap-2 py-2.5 px-3 rounded-[8px] transition",
+                    room === chat._id ? "bg-primary/10" : "hover:bg-gray-100"
+                  )}
                   onClick={() => {
                     if (!chat._id) return;
                     clearUnreadOptimistic(chat._id);

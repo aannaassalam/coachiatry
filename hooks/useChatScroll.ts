@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { Message } from "@/typescript/interface/message.interface";
 
 export type ChatScrollRefs = {
@@ -20,16 +20,25 @@ export const useChatScroll = ({ room, messages }: UseChatScrollOptions) => {
   const didInitialScroll = useRef(false);
   const needsInitialScroll = useRef(false);
   const prevMessageCount = useRef(0);
+  const roomRef = useRef<string | null>(null);
   const [isAtBottom, setIsAtBottom] = useState(true);
 
-  useEffect(() => {
-    didInitialScroll.current = false;
-    needsInitialScroll.current = true;
-    prevMessageCount.current = 0;
-  }, [room]);
-
   useLayoutEffect(() => {
-    if (!messages || !bottomRef.current) return;
+    if (!messages) return;
+
+    // Detect the room change HERE (not in a separate useEffect) so the reset
+    // and the initial-scroll consumption happen in the same layout phase. When
+    // switching to an already-cached room, `room` and `messages` change in the
+    // same commit; a reset in a post-paint useEffect would run too late and the
+    // room would open scrolled to the wrong position.
+    if (roomRef.current !== room) {
+      roomRef.current = room;
+      didInitialScroll.current = false;
+      needsInitialScroll.current = true;
+      prevMessageCount.current = 0;
+    }
+
+    if (!bottomRef.current) return;
 
     const newCount = messages.length;
 
@@ -58,7 +67,7 @@ export const useChatScroll = ({ room, messages }: UseChatScrollOptions) => {
     }
 
     prevMessageCount.current = newCount;
-  }, [messages, isAtBottom]);
+  }, [room, messages, isAtBottom]);
 
   const scrollToBottom = (opts?: { immediate?: boolean }) => {
     const behavior: ScrollBehavior = opts?.immediate ? "auto" : "smooth";

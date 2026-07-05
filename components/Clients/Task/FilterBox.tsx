@@ -179,22 +179,22 @@ function FilterBox() {
 
                 {filter.selectedOperator &&
                   !VALUELESS_OPERATORS.includes(filter.selectedOperator) && (
-                  <Combobox
-                    options={filterOptions[filter.selectedKey]?.compareWith}
-                    placeholder="Select"
-                    onChange={(e) => {
-                      const next = [...values];
-                      next[index] = {
-                        ...next[index],
-                        selectedValue: e.toString()
-                      };
-                      setValues(next);
-                    }}
-                    isLoading={isCategoryLoading || isStatusLoading}
-                    value={filter.selectedValue}
-                    className="flex-1 max-w-[200px] max-sm:max-w-full max-sm:w-full"
-                  />
-                )}
+                    <Combobox
+                      options={filterOptions[filter.selectedKey]?.compareWith}
+                      placeholder="Select"
+                      onChange={(e) => {
+                        const next = [...values];
+                        next[index] = {
+                          ...next[index],
+                          selectedValue: e.toString()
+                        };
+                        setValues(next);
+                      }}
+                      isLoading={isCategoryLoading || isStatusLoading}
+                      value={filter.selectedValue}
+                      className="flex-1 max-w-[200px] max-sm:max-w-full max-sm:w-full"
+                    />
+                  )}
 
                 <Tooltip>
                   <TooltipTrigger asChild>

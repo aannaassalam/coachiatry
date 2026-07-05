@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useSocket } from "@/lib/socketContext";
 import { Message } from "@/typescript/interface/message.interface";
@@ -28,22 +28,32 @@ export const useChatSocket = ({
 }: Props) => {
   const socket = useSocket();
   const { data } = useSession();
+  const userId = data?.user?._id;
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
   const [friendStatus, setFriendStatus] = useState<"online" | "offline">(
     "offline"
   );
 
+  // Keep the latest handlers in a ref so the main socket effect does NOT list
+  // `handlers` as a dependency. Consumers pass a fresh inline `handlers` object
+  // on every render, which previously tore down and re-created all listeners
+  // (and re-emitted join/leave/mark_seen) on every scroll, typing tick and
+  // incoming message — spamming the server and risking dropped messages during
+  // the leave→join gap.
+  const handlersRef = useRef(handlers);
+  handlersRef.current = handlers;
+
   // presence (direct chats only)
   useEffect(() => {
     if (!socket || conversation?.type === "group") return;
     const handleStatusUpdate = ({
-      userId,
+      userId: uid,
       status
     }: {
       userId: string;
       status: "online" | "offline";
     }) => {
-      if (userId === friendId) setFriendStatus(status);
+      if (uid === friendId) setFriendStatus(status);
     };
 
     socket.on("user_status_update", handleStatusUpdate);
@@ -52,13 +62,28 @@ export const useChatSocket = ({
     };
   }, [socket, friendId, conversation?.type]);
 
+  // Reset transient per-room UI state when the room changes so a stale
+  // "typing…"/presence from the previous room can't leak into the new one.
+  useEffect(() => {
+    setTypingUsers([]);
+    setFriendStatus("offline");
+  }, [room]);
+
+  // Emit mark_seen once when the room opens (its own effect so it doesn't
+  // re-fire on every render). For coach/staff viewing a non-member chat the
+  // backend ignores this, keeping their view read-only.
+  useEffect(() => {
+    if (!socket || !room || !userId) return;
+    socket.emit("mark_seen", { chatId: room, userId });
+  }, [socket, room, userId]);
+
   useEffect(() => {
     if (!socket || !room) return;
 
     const joinRoom = () => {
       socket.emit("join_room", {
         chatId: room,
-        userId: data?.user?._id,
+        userId,
         friendId,
         isGroup: conversation?.type === "group"
       });
@@ -68,11 +93,13 @@ export const useChatSocket = ({
     joinRoom();
     socket.on("connect", joinRoom);
 
-    socket.emit("mark_seen", { chatId: room, userId: data?.user?._id });
-
     const handleNewMessage = (msg: Message) => {
       if (msg.chat !== room) return;
-      handlers.onNewMessage(msg);
+      // Room is open → advance read receipts for messages arriving from others.
+      if (userId && msg.sender?._id !== userId) {
+        socket.emit("mark_seen", { chatId: room, userId });
+      }
+      handlersRef.current.onNewMessage(msg);
     };
 
     const handleReaction = ({
@@ -82,28 +109,42 @@ export const useChatSocket = ({
       messageId: string;
       reactions: Message["reactions"];
     }) => {
-      handlers.onReactionUpdate(messageId, reactions);
+      handlersRef.current.onReactionUpdate(messageId, reactions);
     };
 
-    const handleTyping = ({ userId }: { userId: string }) => {
-      if (data?.user?._id !== userId) {
-        setTypingUsers((prev) => [...new Set([...prev, userId])]);
-      }
-    };
-
-    const handleStopTyping = ({ userId }: { userId: string }) => {
-      setTypingUsers((prev) => prev.filter((id) => id !== userId));
-    };
-
-    const handleSeenBulk = ({
+    const handleTyping = ({
       chatId,
-      userId
+      userId: uid
     }: {
       chatId: string;
       userId: string;
     }) => {
       if (chatId !== room) return;
-      handlers.onSeenBulk({ chatId, userId });
+      if (uid && uid !== userId) {
+        setTypingUsers((prev) => [...new Set([...prev, uid])]);
+      }
+    };
+
+    const handleStopTyping = ({
+      chatId,
+      userId: uid
+    }: {
+      chatId: string;
+      userId: string;
+    }) => {
+      if (chatId !== room) return;
+      setTypingUsers((prev) => prev.filter((id) => id !== uid));
+    };
+
+    const handleSeenBulk = ({
+      chatId,
+      userId: uid
+    }: {
+      chatId: string;
+      userId: string;
+    }) => {
+      if (chatId !== room) return;
+      handlersRef.current.onSeenBulk({ chatId, userId: uid });
     };
 
     socket.on("new_message", handleNewMessage);
@@ -114,14 +155,14 @@ export const useChatSocket = ({
 
     return () => {
       socket.off("connect", joinRoom);
-      socket.emit("leave_room", { chatId: room, userId: data?.user?._id });
+      socket.emit("leave_room", { chatId: room, userId });
       socket.off("new_message", handleNewMessage);
       socket.off("reaction_updated", handleReaction);
       socket.off("user_typing", handleTyping);
       socket.off("user_stop_typing", handleStopTyping);
       socket.off("message_seen_update_bulk", handleSeenBulk);
     };
-  }, [socket, room, data?.user?._id, friendId, conversation?.type, handlers]);
+  }, [socket, room, userId, friendId, conversation?.type]);
 
   return { typingUsers, friendStatus } as const;
 };

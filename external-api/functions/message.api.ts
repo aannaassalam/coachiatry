@@ -19,6 +19,25 @@ export const getMessages = async (
   return res.data;
 };
 
+// Coach/admin/manager reading a client's room. Same shape as getMessages, but
+// hits the role-gated coach route since the coach isn't a member of the chat.
+export const getMessagesByCoach = async (
+  ctx: QueryFunctionContext<string[], number>
+): Promise<PaginatedResponse<Message[]>> => {
+  const room = ctx.queryKey[1];
+  const page = ctx.pageParam ?? 1;
+  const res = await axiosInstance.get(
+    endpoints.messages.getMessagesByCoach(room),
+    {
+      params: {
+        page,
+        limit: 25
+      }
+    }
+  );
+  return res.data;
+};
+
 export const scheduleMessage = async (body: {
   message: string;
   // Absolute send time as an ISO/UTC string, computed from the user's local

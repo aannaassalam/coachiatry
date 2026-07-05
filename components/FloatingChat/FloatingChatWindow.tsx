@@ -147,6 +147,13 @@ export default function FloatingChatWindow({ roomId }: Props) {
 
     insertOptimisticMessage(optimisticMessage as unknown as Message);
 
+    // Surface server-side send failures instead of a stuck "sent" bubble.
+    const onSendAck = (res?: { success?: boolean; error?: string }) => {
+      if (res && res.success === false) {
+        updateMessageByTempId(tempId, (m) => ({ ...m, status: "failed" }));
+      }
+    };
+
     if (incomingFiles.length > 0) {
       await uploadFiles(tempId, incomingFiles, {
         chatId: roomId,
@@ -174,16 +181,20 @@ export default function FloatingChatWindow({ roomId }: Props) {
             overallProgress: 100
           }));
           if (uploadedFiles.length > 0) {
-            socket.emit("send_message", {
-              ...optimisticMessage,
-              files: uploadedFiles,
-              status: "sent"
-            });
+            socket.emit(
+              "send_message",
+              {
+                ...optimisticMessage,
+                files: uploadedFiles,
+                status: "sent"
+              },
+              onSendAck
+            );
           }
         }
       });
     } else {
-      socket.emit("send_message", optimisticMessage);
+      socket.emit("send_message", optimisticMessage, onSendAck);
     }
 
     setReplyingTo(null);

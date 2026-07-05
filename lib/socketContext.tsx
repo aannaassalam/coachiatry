@@ -20,13 +20,16 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     // ⚠️ Only connect if user is logged in
     const userId = data?.user?._id;
-    if (!userId) return;
+    const token = data?.token;
+    // The chat socket namespace now requires the same JWT as the REST API.
+    if (!userId || !token) return;
 
     initWebPush().catch((err) =>
       console.warn("Web push registration skipped:", err)
     );
 
     const s = io(process.env.NEXT_APP_BASE_URL!, {
+      auth: { token },
       query: { userId },
       transports: ["websocket"],
       reconnection: true,
@@ -57,7 +60,7 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
       s.disconnect();
       setSocket(null);
     };
-  }, [data?.user?._id]);
+  }, [data?.user?._id, data?.token]);
 
   return (
     <SocketContext.Provider value={socket}>{children}</SocketContext.Provider>

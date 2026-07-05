@@ -1,7 +1,10 @@
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo } from "react";
 import moment from "moment";
-import { getMessages } from "@/external-api/functions/message.api";
+import {
+  getMessages,
+  getMessagesByCoach
+} from "@/external-api/functions/message.api";
 import { ChatConversation as Conversation } from "@/typescript/interface/chat.interface";
 import {
   Message,
@@ -21,16 +24,30 @@ const updateConversationPages = (
   if (!old?.pages?.length) return old;
   const allChats = old.pages.flatMap((p) => p.data);
   const updated = updater(allChats);
-  return {
-    ...old,
-    pages: [
-      { ...old.pages[0], data: updated },
-      ...old.pages.slice(1).map((p) => ({ ...p, data: [] as Conversation[] }))
-    ]
-  };
+
+  // Re-chunk the updated flat list back into pages, preserving each page's
+  // original size. Previously everything was collapsed into page 0 and the
+  // remaining pages emptied — which desynced infinite pagination (meta still
+  // claimed more pages) and produced duplicate rows the next time the list
+  // fetched a further page.
+  let offset = 0;
+  const pages = old.pages.map((p) => {
+    const size = p.data.length;
+    const data = updated.slice(offset, offset + size);
+    offset += size;
+    return { ...p, data };
+  });
+  // If the updater grew the list (e.g. a brand-new conversation), keep the
+  // extra items rather than dropping them off the end.
+  if (offset < updated.length) {
+    const last = pages.length - 1;
+    pages[last] = { ...pages[last], data: [...pages[last].data, ...updated.slice(offset)] };
+  }
+
+  return { ...old, pages };
 };
 
-export const useChatMessages = (room: string) => {
+export const useChatMessages = (room: string, byCoach = false) => {
   const queryClient = useQueryClient();
 
   const {
@@ -41,7 +58,9 @@ export const useChatMessages = (room: string) => {
     isLoading
   } = useInfiniteQuery({
     queryKey: ["messages", room],
-    queryFn: getMessages,
+    // Coaches aren't members of a client's chat, so they must use the
+    // role-gated coach route or the membership-guarded default 403s.
+    queryFn: byCoach ? getMessagesByCoach : getMessages,
     initialPageParam: 1,
     enabled: !!room,
     getNextPageParam: (lastPage) => {
@@ -287,8 +306,11 @@ export const useChatMessages = (room: string) => {
 
   // Optimistically zero the unread badge as soon as a room opens so the badge
   // disappears before the server confirms the seen-bulk event.
+  // Skip entirely for coach/staff views: a higher-up merely viewing a client's
+  // chat must NOT change the client's unread count (mirrors the backend
+  // mark_seen membership guard).
   useEffect(() => {
-    if (!room) return;
+    if (!room || byCoach) return;
     queryClient.setQueriesData<ConversationInfiniteData>(
       { queryKey: ["conversations"] },
       (old) =>
