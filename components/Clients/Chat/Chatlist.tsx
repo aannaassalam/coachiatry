@@ -161,9 +161,7 @@ export default function ChatList() {
                   key={_chat._id}
                   className={cn(
                     "flex cursor-pointer items-start justify-between gap-2 py-2.5 px-3 rounded-[8px] transition",
-                    _chat._id === room
-                      ? "bg-primary/10"
-                      : "hover:bg-gray-100"
+                    _chat._id === room ? "bg-primary/10" : "hover:bg-gray-100"
                   )}
                   onClick={() => setSelectedChat(_chat._id!)}
                   onMouseEnter={() => prefetchChatRoom(_chat._id!)}

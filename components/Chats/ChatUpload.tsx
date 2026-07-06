@@ -1,10 +1,4 @@
-import {
-  useState,
-  useMemo,
-  useEffect,
-  DragEvent,
-  ChangeEvent
-} from "react";
+import { useState, useMemo, useEffect, DragEvent, ChangeEvent } from "react";
 import { RxCross1 } from "react-icons/rx";
 import { FaFileAlt } from "react-icons/fa";
 import Image from "next/image";

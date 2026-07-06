@@ -41,7 +41,10 @@ const updateConversationPages = (
   // extra items rather than dropping them off the end.
   if (offset < updated.length) {
     const last = pages.length - 1;
-    pages[last] = { ...pages[last], data: [...pages[last].data, ...updated.slice(offset)] };
+    pages[last] = {
+      ...pages[last],
+      data: [...pages[last].data, ...updated.slice(offset)]
+    };
   }
 
   return { ...old, pages };
