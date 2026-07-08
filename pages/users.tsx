@@ -612,7 +612,7 @@ export default function Users() {
                                                   id="r4"
                                                 />
                                                 <Label htmlFor="r4">
-                                                  Patient
+                                                  Client
                                                 </Label>
                                               </div>
                                             </RadioGroup>

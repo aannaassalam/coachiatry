@@ -89,9 +89,7 @@ function Clients() {
         </div>
       </div>
       <Separator />
-      {isCoach && (
-        <AddUserModal open={isAddOpen} onOpenChange={setIsAddOpen} />
-      )}
+      {isCoach && <AddUserModal open={isAddOpen} onOpenChange={setIsAddOpen} />}
       <div className="mt-4 max-md:w-[95vw] max-md:overflow-auto scrollbar-hide max-[480px]:!w-[93vw]">
         <Table>
           <TableHeader className="bg-gray-100">
