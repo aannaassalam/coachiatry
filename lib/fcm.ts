@@ -84,14 +84,18 @@ export const initWebPush = async (): Promise<string | null> => {
   }
 
   // FCM fires onMessage (not the SW's onBackgroundMessage) whenever ANY tab of
-  // the app is open — even if that tab is unfocused or hidden in the
-  // background. So we branch on visibility:
-  //   - tab visible  → in-app toast (the user is looking at the app)
-  //   - tab hidden   → render a real OS notification ourselves via the SW,
-  //                    exactly like the background path. Without this, an
-  //                    open-but-unfocused tab would only get an invisible
-  //                    in-tab toast and the user would see nothing until they
-  //                    closed the tab.
+  // the app is open — even if that tab is unfocused or the browser is in the
+  // background. So we branch on whether the app is genuinely in front:
+  //   - app in front → in-app toast (the user is looking at the app)
+  //   - otherwise    → render a real OS notification ourselves via the SW,
+  //                    exactly like the background path.
+  //
+  // IMPORTANT: `visibilityState` alone is NOT enough. When the user switches to
+  // another application, the browser window loses OS focus but the tab stays
+  // `visible` (it's still the active tab of its window). Relying only on
+  // visibility would then show an invisible in-app toast and the user would see
+  // nothing. `document.hasFocus()` goes false when the browser window isn't the
+  // foreground app, so we require BOTH to treat the app as "in front".
   if (foregroundUnsubscribe) foregroundUnsubscribe();
   foregroundUnsubscribe = onMessage(messaging, (payload) => {
     const data = payload.data || {};
@@ -101,12 +105,16 @@ export const initWebPush = async (): Promise<string | null> => {
         ? `${data.senderName}: ${data.body || ""}`
         : data.body || "";
 
-    if (document.visibilityState === "visible") {
+    const isInForeground =
+      document.visibilityState === "visible" && document.hasFocus();
+
+    if (isInForeground) {
       toast(title, { description: body });
       return;
     }
 
-    // Tab is hidden/unfocused — show a system notification through the SW.
+    // App isn't in front (hidden tab, other tab active, or browser in the
+    // background) — show a system notification through the SW.
     swRegistration
       .showNotification(title, {
         body,

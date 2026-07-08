@@ -4,6 +4,7 @@ import Sidebar from "./Sidebar";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { SessionGuard } from "@/components/SessionGuard";
+import NotificationBanner from "@/components/NotificationBanner";
 
 export default function AppLayout({
   children,
@@ -30,6 +31,7 @@ export default function AppLayout({
               !isPaddingBottom && "pb-0"
             )}
           >
+            <NotificationBanner />
             {children}
           </Card>
         </div>

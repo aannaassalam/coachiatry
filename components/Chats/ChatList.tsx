@@ -340,7 +340,7 @@ export default function ChatList() {
                       {renderLastMessage()}
                     </p>
                   </div>
-                  <div className="flex flex-col items-center justify-between gap-1">
+                  <div className="flex flex-col items-end justify-between gap-1">
                     <span
                       className={cn("text-xs text-gray-500 whitespace-nowrap", {
                         "font-semibold": chat.unreadCount > 0

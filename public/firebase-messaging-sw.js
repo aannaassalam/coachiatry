@@ -1,11 +1,14 @@
 // Service workers run outside the Next.js bundle and cannot read process.env,
 // so the Firebase web config is inlined here. These values are public — they
 // already ship in the client JS bundle.
+// Keep this SDK version in sync with the `firebase` package in package.json.
+// A large skew between the page SDK (which mints the token) and the SW SDK
+// (which handles background messages) can make web push silently misbehave.
 importScripts(
-  "https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"
+  "https://www.gstatic.com/firebasejs/12.13.0/firebase-app-compat.js"
 );
 importScripts(
-  "https://www.gstatic.com/firebasejs/10.13.2/firebase-messaging-compat.js"
+  "https://www.gstatic.com/firebasejs/12.13.0/firebase-messaging-compat.js"
 );
 
 firebase.initializeApp({

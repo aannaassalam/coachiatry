@@ -1,10 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
+import AddUserModal from "@/components/Clients/AddUserModal";
 import ProfileModal from "@/components/Clients/ProfileModal";
 import PageTitle from "@/components/Seo/PageTitle";
 import EmptyTable from "@/components/Table/EmptyTable";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { SmartAvatar } from "@/components/ui/smart-avatar";
 import {
   Table,
@@ -17,19 +19,35 @@ import {
 import { getClients } from "@/external-api/functions/coach.api";
 import AppLayout from "@/layouts/AppLayout";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Ellipsis } from "lucide-react";
+import { Ellipsis, Plus, Search } from "lucide-react";
+import { useSession } from "next-auth/react";
 import moment from "moment";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { getUserById } from "@/external-api/functions/user.api";
 
 function Clients() {
   const queryClient = useQueryClient();
+  const { data: session } = useSession();
+  const isCoach = session?.user?.role === "coach";
+
   const [clientId, setClientId] = useState("");
+  const [search, setSearch] = useState("");
+  const [isAddOpen, setIsAddOpen] = useState(false);
 
   const { data = [], isLoading } = useQuery({
     queryKey: ["clients"],
     queryFn: getClients
   });
+
+  const filteredClients = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    if (!term) return data;
+    return data.filter(
+      (client) =>
+        client.fullName?.toLowerCase().includes(term) ||
+        client.email?.toLowerCase().includes(term)
+    );
+  }, [data, search]);
 
   const prefetchOnMouseEnter = (id: string) => {
     queryClient.prefetchQuery({
@@ -42,23 +60,38 @@ function Clients() {
   return (
     <AppLayout>
       <PageTitle title="Clients" />
-      <div className="mb-4 flex items-center justify-between max-sm:flex-col max-sm:items-start max-sm:mb-2">
-        <h1 className="text-2xl leading-7 tracking-[-3%] font-semibold text-gray-900 mb-2">
+      <div className="mb-4 flex items-center justify-between gap-3 max-sm:flex-col max-sm:items-start max-sm:mb-2">
+        <h1 className="text-2xl leading-7 tracking-[-3%] font-semibold text-gray-900">
           All Clients
         </h1>
-        {/* <div className="flex gap-3 max-sm:w-full max-sm:gap-1 max-sm:mt-1">
-          <Button variant="ghost">
-            <Image src={assets.icons.sort} alt="sort" width={18} height={18} />
-            Sort
-          </Button>
-          <Button variant="ghost" className="gap-1.5 font-semibold mr-2">
-            <ListFilter />
-            Filter
-          </Button>
-          <Button className="max-sm:ml-auto">Add a New Client</Button>
-        </div> */}
+        <div className="flex items-center gap-3 max-sm:w-full max-sm:gap-2">
+          <div className="relative">
+            <Search
+              size={15}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            />
+            <Input
+              placeholder="Search clients..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9 h-9 w-64 max-sm:w-full"
+            />
+          </div>
+          {isCoach && (
+            <Button
+              className="shrink-0 whitespace-nowrap"
+              onClick={() => setIsAddOpen(true)}
+            >
+              <Plus size={16} />
+              Add User
+            </Button>
+          )}
+        </div>
       </div>
       <Separator />
+      {isCoach && (
+        <AddUserModal open={isAddOpen} onOpenChange={setIsAddOpen} />
+      )}
       <div className="mt-4 max-md:w-[95vw] max-md:overflow-auto scrollbar-hide max-[480px]:!w-[93vw]">
         <Table>
           <TableHeader className="bg-gray-100">
@@ -100,8 +133,8 @@ function Clients() {
                   </TableCell>
                 </TableRow>
               </>
-            ) : data?.length > 0 ? (
-              data.map((client, index) => (
+            ) : filteredClients?.length > 0 ? (
+              filteredClients.map((client, index) => (
                 <TableRow key={index} className="cursor-pointer">
                   <TableCell
                     className="py-3.5"
@@ -147,7 +180,14 @@ function Clients() {
                 </TableRow>
               ))
             ) : (
-              <EmptyTable message="No clients found" colSpan={4} />
+              <EmptyTable
+                message={
+                  search.trim()
+                    ? "No clients match your search"
+                    : "No clients found"
+                }
+                colSpan={4}
+              />
             )}
           </TableBody>
         </Table>
