@@ -19,6 +19,7 @@ import { useSession } from "next-auth/react";
 import { parseAsString, useQueryState } from "nuqs";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChatHeader } from "./ChatHeader";
+import AttachmentPreview from "./AttachmentPreview";
 import ChatInput from "./ChatInput";
 import ChatUploadWithPreview from "./ChatUpload";
 import { MessageList } from "./MessageList";
@@ -296,6 +297,7 @@ export default function ChatConversation() {
         }
       />
 
+      <div className="relative flex-1 flex flex-col min-h-0">
       <div
         ref={containerRef}
         className={cn(
@@ -380,10 +382,25 @@ export default function ChatConversation() {
           setReplyingTo={setReplyingTo}
           files={files}
           setFiles={setFiles}
-          setChatDragShow={setChatDragShow}
           receiverName={conversation?.name ?? friend?.user?.fullName ?? ""}
         />
       )}
+
+      {/* WhatsApp-style full preview: overlays the body (header stays visible)
+          whenever there are pending attachments, with its own caption + send. */}
+      {files.length > 0 && conversation?.isDeletable && (
+        <AttachmentPreview
+          files={files}
+          setFiles={setFiles}
+          onClose={() => setFiles([])}
+          onSend={(caption) => {
+            const toSend = files;
+            setFiles([]);
+            handleSend(caption, toSend);
+          }}
+        />
+      )}
+      </div>
     </div>
   );
 }

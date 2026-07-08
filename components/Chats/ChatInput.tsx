@@ -36,15 +36,13 @@ const InputButtons = ({
   setModalOpen,
   insertEmoji,
   files,
-  setFiles,
-  setChatDragShow
+  setFiles
 }: {
   handleSubmit: () => void;
   setModalOpen: Dispatch<SetStateAction<boolean>>;
   insertEmoji: (emoji: string) => void;
   files: File[];
   setFiles: React.Dispatch<React.SetStateAction<File[]>>;
-  setChatDragShow: (show: boolean) => void;
 }) => {
   const [room] = useQueryState("room", parseAsString.withDefault(""));
   const [open, setOpen] = useState(false);
@@ -53,9 +51,9 @@ const InputButtons = ({
     setOpen(false);
     const selectedFiles = Array.from(e.target.files || []);
     if (selectedFiles.length > 0) {
-      const updated = [...files, ...selectedFiles];
-      setFiles(updated);
-      setChatDragShow(true); // show upload preview
+      // Selected files show as a compact tray in the composer (below) — no
+      // full-screen preview takeover of the message pane.
+      setFiles([...files, ...selectedFiles]);
     }
     e.target.value = "";
   };
@@ -233,7 +231,6 @@ export default function ChatInput({
   setReplyingTo,
   files,
   setFiles,
-  setChatDragShow,
   receiverName
 }: {
   onSend: (msg: string, files: File[]) => void;
@@ -241,7 +238,6 @@ export default function ChatInput({
   setReplyingTo: React.Dispatch<React.SetStateAction<Message | null>>;
   files: File[];
   setFiles: React.Dispatch<React.SetStateAction<File[]>>;
-  setChatDragShow: (show: boolean) => void;
   receiverName: string;
 }) {
   const { data } = useSession();
@@ -398,7 +394,6 @@ export default function ChatInput({
               insertEmoji={insertEmoji}
               files={files}
               setFiles={setFiles}
-              setChatDragShow={setChatDragShow}
             />
             {/* </motion.div> */}
 
