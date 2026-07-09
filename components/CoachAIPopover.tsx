@@ -462,23 +462,26 @@ export default function CoachAI({
     <div
       className={cn(
         "flex flex-col mx-auto rounded-2xl shadow-lg border border-gray-200 bg-white overflow-hidden",
-        "w-full h-[72vh] max-h-[640px] max-w-[520px]",
-        "sm:w-[420px] sm:h-[600px] sm:max-h-[640px]",
-        "md:w-[460px] md:h-[640px]",
-        "max-sm:w-[94vw] max-sm:h-[85vh] max-sm:max-w-[94vw]",
-        size === "large" && "max-w-[560px] h-[78vh] max-sm:w-[96vw]"
+        // Width is driven by the PopoverContent wrapper (90vw, capped). Fill it
+        // so the card can never be wider than its popover / the screen.
+        "w-full max-w-[520px]",
+        // Fixed target height, but never taller than the space Radix has to
+        // place the popover in — so it shrinks to fit and the body scrolls
+        // instead of being cut off the top/bottom of the viewport on mobile.
+        "h-[640px] max-h-[calc(var(--radix-popover-content-available-height,100vh)-0.5rem)]",
+        size === "large" && "max-w-[560px] h-[720px]"
       )}
     >
       {/* Header */}
-      <div className="bg-[url('/assets/images/ai-background.png')] bg-right bg-cover text-white p-6">
-        <div className="mb-9 flex w-full justify-between">
-          <RiDvdAiFill className=" size-9" />
+      <div className="bg-[url('/assets/images/ai-background.png')] bg-right bg-cover text-white p-6 max-sm:p-5">
+        <div className="mb-9 max-sm:mb-6 flex w-full justify-between">
+          <RiDvdAiFill className="size-9 max-sm:size-8" />
           <PopoverClose className="cursor-pointer">
             <X />
           </PopoverClose>
         </div>
-        <h1 className="text-3xl font-semibold">Hello</h1>
-        <p className="text-3xl font-semibold mt-1 opacity-90">
+        <h1 className="text-3xl max-sm:text-2xl font-semibold">Hello</h1>
+        <p className="text-3xl max-sm:text-2xl font-semibold mt-1 opacity-90">
           How can I help you
         </p>
       </div>
@@ -486,7 +489,7 @@ export default function CoachAI({
       {/* Body */}
       <div
         ref={bodyRef}
-        className="flex-1 flex flex-col pt-6 p-5 overflow-y-auto max-h-[calc(100%-160px)] max-md:max-h-[calc(100%-140px)] max-sm:max-h-[calc(100%-130px)]"
+        className="flex-1 min-h-0 flex flex-col pt-6 p-5 overflow-y-auto"
       >
         <div className="flex items-start gap-2 mb-6">
           <RiDvdAiFill className="size-6 text-black mt-0.5" />

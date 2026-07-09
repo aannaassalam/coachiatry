@@ -146,7 +146,10 @@ export default function AttachmentPreview({
             const isMedia =
               file.type.includes("image") || file.type.includes("video");
             return (
-              <div key={`${file.name}-${i}`} className="relative shrink-0 group">
+              <div
+                key={`${file.name}-${i}`}
+                className="relative shrink-0 group"
+              >
                 <button
                   type="button"
                   onClick={() => setSelected(i)}
@@ -164,7 +167,10 @@ export default function AttachmentPreview({
                       className="size-full object-cover"
                     />
                   ) : file.type.includes("video") && url ? (
-                    <video src={url} className="size-full object-cover bg-black" />
+                    <video
+                      src={url}
+                      className="size-full object-cover bg-black"
+                    />
                   ) : (
                     <span className="flex size-full items-center justify-center bg-gray-100">
                       <FileText size={18} className="text-gray-500" />

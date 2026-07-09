@@ -68,7 +68,9 @@ export default function ChatUploadWithPreview({
       >
         <div
           className={`flex size-12 items-center justify-center rounded-full transition-colors ${
-            dragActive ? "bg-primary/10 text-primary" : "bg-gray-100 text-gray-500"
+            dragActive
+              ? "bg-primary/10 text-primary"
+              : "bg-gray-100 text-gray-500"
           }`}
         >
           <Upload size={22} />

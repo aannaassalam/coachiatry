@@ -467,9 +467,11 @@ export default function DocumentSheet({
                         </button>
                       </PopoverTrigger>
                       <PopoverContent
-                        className="border-none shadow-none bg-transparent"
+                        className="border-none shadow-none bg-transparent px-0 sm:px-2 w-[90vw] max-w-[min(520px,var(--radix-popover-content-available-width))]"
                         side="top"
                         align="end"
+                        collisionPadding={16}
+                        sideOffset={8}
                       >
                         <CoachAI id={documentId} page="document" />
                       </PopoverContent>

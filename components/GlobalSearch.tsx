@@ -119,7 +119,7 @@ export function GlobalSearch() {
             </div>
           </PopoverTrigger>
           <PopoverContent
-            className="border-none shadow-none bg-transparent px-0 sm:px-2 w-[90vw] max-w-[520px]"
+            className="border-none shadow-none bg-transparent px-0 sm:px-2 w-[90vw] max-w-[min(520px,var(--radix-popover-content-available-width))]"
             side="bottom"
             align="center"
             collisionPadding={12}

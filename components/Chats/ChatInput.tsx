@@ -200,7 +200,7 @@ const InputButtons = ({
           </Button>
         </PopoverTrigger>
         <PopoverContent
-          className="border-none shadow-none bg-transparent w-[90vw] max-w-[520px] px-0 sm:px-2"
+          className="border-none shadow-none bg-transparent w-[90vw] max-w-[min(520px,var(--radix-popover-content-available-width))] px-0 sm:px-2"
           side="bottom"
           align="center"
           collisionPadding={16}

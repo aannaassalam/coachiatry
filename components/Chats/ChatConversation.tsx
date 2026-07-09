@@ -298,108 +298,108 @@ export default function ChatConversation() {
       />
 
       <div className="relative flex-1 flex flex-col min-h-0">
-      <div
-        ref={containerRef}
-        className={cn(
-          "flex-1 min-h-0 overflow-y-auto p-4 bg-gray-50 relative flex flex-col",
-          {
-            "p-0": chatDragShow
-          }
-        )}
-        onScroll={() => {
-          if (!containerRef.current) return;
-          const { scrollTop, scrollHeight, clientHeight } =
-            containerRef.current;
-          setIsAtBottom(scrollHeight - scrollTop - clientHeight < 50);
-          updateStickyDay();
-          setStickyVisible(true);
-          if (stickyFadeTimer.current) clearTimeout(stickyFadeTimer.current);
-          stickyFadeTimer.current = setTimeout(
-            () => setStickyVisible(false),
-            2500
-          );
-        }}
-        onDragOver={(e) => {
-          if (e.dataTransfer.types.includes("Files")) setChatDragShow(true);
-        }}
-        onDragEnd={() => setChatDragShow(false)}
-      >
-        {stickyDay && (
-          <div
-            className={cn(
-              "sticky top-2 z-10 flex justify-center pointer-events-none transition-opacity duration-300",
-              stickyVisible ? "opacity-100" : "opacity-0"
-            )}
-          >
-            <span className="px-3 py-1 bg-white border border-gray-200 text-gray-700 text-[11px] rounded-full shadow-sm">
-              {formatChatDayLabel(stickyDay)}
-            </span>
-          </div>
-        )}
-        {/* mt-auto pushes the message stream against the bottom of the
+        <div
+          ref={containerRef}
+          className={cn(
+            "flex-1 min-h-0 overflow-y-auto p-4 bg-gray-50 relative flex flex-col",
+            {
+              "p-0": chatDragShow
+            }
+          )}
+          onScroll={() => {
+            if (!containerRef.current) return;
+            const { scrollTop, scrollHeight, clientHeight } =
+              containerRef.current;
+            setIsAtBottom(scrollHeight - scrollTop - clientHeight < 50);
+            updateStickyDay();
+            setStickyVisible(true);
+            if (stickyFadeTimer.current) clearTimeout(stickyFadeTimer.current);
+            stickyFadeTimer.current = setTimeout(
+              () => setStickyVisible(false),
+              2500
+            );
+          }}
+          onDragOver={(e) => {
+            if (e.dataTransfer.types.includes("Files")) setChatDragShow(true);
+          }}
+          onDragEnd={() => setChatDragShow(false)}
+        >
+          {stickyDay && (
+            <div
+              className={cn(
+                "sticky top-2 z-10 flex justify-center pointer-events-none transition-opacity duration-300",
+                stickyVisible ? "opacity-100" : "opacity-0"
+              )}
+            >
+              <span className="px-3 py-1 bg-white border border-gray-200 text-gray-700 text-[11px] rounded-full shadow-sm">
+                {formatChatDayLabel(stickyDay)}
+              </span>
+            </div>
+          )}
+          {/* mt-auto pushes the message stream against the bottom of the
             scroll container so empty / short chats start at the bottom (like
             WhatsApp). Once content overflows, mt-auto collapses and the
             stream scrolls normally. */}
-        <div className="mt-auto">
-          <MessageList
-            messages={allMessages}
-            isLoading={isMessageLoading}
-            isFetchingNextPage={isFetchingNextPage}
-            topRef={topRef}
-            conversation={conversation}
-            currentUserId={data?.user?._id}
-            onReply={setReplyingTo}
-            getKey={(msg) => getStableMessageKey(messageKeyMap, msg)}
-          />
-          <div ref={bottomRef} />
+          <div className="mt-auto">
+            <MessageList
+              messages={allMessages}
+              isLoading={isMessageLoading}
+              isFetchingNextPage={isFetchingNextPage}
+              topRef={topRef}
+              conversation={conversation}
+              currentUserId={data?.user?._id}
+              onReply={setReplyingTo}
+              getKey={(msg) => getStableMessageKey(messageKeyMap, msg)}
+            />
+            <div ref={bottomRef} />
+          </div>
+          {chatDragShow && conversation?.isDeletable && (
+            <ChatUploadWithPreview
+              files={files}
+              handleUpload={handleUpload}
+              setFiles={setFiles}
+              setChatDragShow={setChatDragShow}
+            />
+          )}
         </div>
-        {chatDragShow && conversation?.isDeletable && (
-          <ChatUploadWithPreview
+
+        <TypingIndicator
+          text={
+            typingUsers.length > 0
+              ? conversation?.type === "direct"
+                ? "Typing..."
+                : "Someone is typing..."
+              : ""
+          }
+        />
+
+        <ScrollToBottomButton visible={isAtBottom} onClick={scrollToBottom} />
+
+        {conversation?.isDeletable && (
+          <ChatInput
+            onSend={handleSend}
+            replyingTo={replyingTo}
+            setReplyingTo={setReplyingTo}
             files={files}
-            handleUpload={handleUpload}
             setFiles={setFiles}
-            setChatDragShow={setChatDragShow}
+            receiverName={conversation?.name ?? friend?.user?.fullName ?? ""}
           />
         )}
-      </div>
 
-      <TypingIndicator
-        text={
-          typingUsers.length > 0
-            ? conversation?.type === "direct"
-              ? "Typing..."
-              : "Someone is typing..."
-            : ""
-        }
-      />
-
-      <ScrollToBottomButton visible={isAtBottom} onClick={scrollToBottom} />
-
-      {conversation?.isDeletable && (
-        <ChatInput
-          onSend={handleSend}
-          replyingTo={replyingTo}
-          setReplyingTo={setReplyingTo}
-          files={files}
-          setFiles={setFiles}
-          receiverName={conversation?.name ?? friend?.user?.fullName ?? ""}
-        />
-      )}
-
-      {/* WhatsApp-style full preview: overlays the body (header stays visible)
+        {/* WhatsApp-style full preview: overlays the body (header stays visible)
           whenever there are pending attachments, with its own caption + send. */}
-      {files.length > 0 && conversation?.isDeletable && (
-        <AttachmentPreview
-          files={files}
-          setFiles={setFiles}
-          onClose={() => setFiles([])}
-          onSend={(caption) => {
-            const toSend = files;
-            setFiles([]);
-            handleSend(caption, toSend);
-          }}
-        />
-      )}
+        {files.length > 0 && conversation?.isDeletable && (
+          <AttachmentPreview
+            files={files}
+            setFiles={setFiles}
+            onClose={() => setFiles([])}
+            onSend={(caption) => {
+              const toSend = files;
+              setFiles([]);
+              handleSend(caption, toSend);
+            }}
+          />
+        )}
       </div>
     </div>
   );
