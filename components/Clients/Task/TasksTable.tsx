@@ -553,6 +553,7 @@ function TasksTable({
                               variant="ghost"
                               size="sm"
                               className="hover:bg-secondary"
+                              onClick={(e) => e.stopPropagation()}
                             >
                               <Ellipsis className="text-gray-500" />
                             </Button>
@@ -560,6 +561,7 @@ function TasksTable({
                           <PopoverContent
                             className="p-1 w-30"
                             collisionPadding={20}
+                            onClick={(e) => e.stopPropagation()}
                           >
                             <Button
                               variant="ghost"

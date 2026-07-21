@@ -18,6 +18,7 @@ import assets from "@/json/assets";
 import { cn } from "@/lib/utils";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { CalendarIcon } from "lucide-react";
 import moment from "moment";
 import Image from "next/image";
@@ -52,16 +53,23 @@ import { Textarea } from "../ui/textarea";
 const schema = yup.object().shape({
   message: yup.string().required("Message is required"),
   date: yup.date().required("Scheduled Date is required"),
-  frequency: yup.string().default(""),
+  frequency: yup.string().required("Please select a frequency"),
   time: yup.string().default("")
 });
 
+// "Once" is a one-time send (backend `none`).
 const frequency = [
+  { label: "Once", value: "none" },
   { label: "Daily", value: "daily" },
   { label: "Weekly", value: "weekly" },
   { label: "Monthly", value: "monthly" },
   { label: "Yearly", value: "yearly" }
 ];
+
+// Next full hour, so the default is always in the future (avoids scheduling in
+// the past and sending immediately).
+const defaultTime = () =>
+  moment().add(1, "hour").startOf("hour").format("HH:mm");
 
 export default function ScheduleMessageModal({
   message = "",
@@ -112,8 +120,8 @@ export default function ScheduleMessageModal({
     defaultValues: {
       message: selectedMessage ? selectedMessage.message : message,
       date: selectedMessage ? selectedMessage.date : new Date(),
-      frequency: "",
-      time: selectedMessage ? selectedMessage.time : "12:00"
+      frequency: selectedMessage ? selectedMessage.repeat : "none",
+      time: selectedMessage ? selectedMessage.time : defaultTime()
     },
     disabled: isPending || isEditPending
   });
@@ -127,6 +135,11 @@ export default function ScheduleMessageModal({
       `${moment(data.date).format("YYYY-MM-DD")} ${data.time || "00:00"}`,
       "YYYY-MM-DD HH:mm"
     ).toISOString();
+
+    if (moment(scheduledAt).valueOf() <= Date.now()) {
+      toast.error("Scheduled time must be in the future");
+      return;
+    }
 
     if (editing) {
       edit({
@@ -169,8 +182,8 @@ export default function ScheduleMessageModal({
       form.reset({
         message,
         date: new Date(),
-        frequency: "",
-        time: "12:00"
+        frequency: "none",
+        time: defaultTime()
       });
     }
   }, [selectedMessage, form, message]);
@@ -319,7 +332,7 @@ export default function ScheduleMessageModal({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-sm text-gray-500">
-                      Repeat
+                      Repeat <span className="text-red-500">*</span>
                     </FormLabel>
                     <FormControl>
                       <Combobox

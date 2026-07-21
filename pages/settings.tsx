@@ -809,7 +809,10 @@ export default function Settings() {
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel type="button" disabled={isDeletingAccount}>
+                    <AlertDialogCancel
+                      type="button"
+                      disabled={isDeletingAccount}
+                    >
                       Cancel
                     </AlertDialogCancel>
                     <AlertDialogAction
