@@ -368,6 +368,11 @@ export default function AddTaskSheet({
                       </FormItem>
                     )}
                   />
+                  {/* When viewing a saved task, subtasks sit ABOVE the
+                      description; while editing/adding they sit BELOW it. */}
+                  {disabledAll && (
+                    <SubtaskList disabled={disabledAll || isPending} />
+                  )}
                   <FormField
                     control={form.control}
                     name="description"
@@ -388,7 +393,9 @@ export default function AddTaskSheet({
                       </FormItem>
                     )}
                   />
-                  <SubtaskList disabled={disabledAll || isPending} />
+                  {!disabledAll && (
+                    <SubtaskList disabled={disabledAll || isPending} />
+                  )}
                   <div className="grid grid-cols-2 max-sm:grid-cols-1 max-sm:gap-2 space-y-2 gap-3 pt-4 mt-4 border-t border-gray-100 items-start">
                     <FormField
                       control={form.control}

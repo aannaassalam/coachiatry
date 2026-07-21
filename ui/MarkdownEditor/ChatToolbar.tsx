@@ -52,19 +52,8 @@ export default function ChatToolbar({
   const isActive = (name: string, attrs?: Record<string, any>) =>
     editor.isActive(name, attrs as any);
 
-  const debugToggleBullet = () => {
-    console.log("isEditable:", editor?.isEditable);
-    console.log("isActive codeBlock:", editor?.isActive("codeBlock"));
-    console.log("selection:", editor?.state.selection.toJSON());
-    console.log("schema nodes:", Object.keys(editor?.state.schema.nodes || {}));
-    console.log("schema marks:", Object.keys(editor?.state.schema.marks || {}));
-    // try command directly and log result
-    try {
-      editor?.chain().focus().toggleBulletList().run();
-      console.log("After attempt HTML:", editor?.getHTML());
-    } catch (e) {
-      console.error("toggleBulletList error", e);
-    }
+  const toggleBullet = () => {
+    editor?.chain().focus().toggleBulletList().run();
   };
 
   return (
@@ -154,7 +143,7 @@ export default function ChatToolbar({
       )}
 
       {/* Lists *
-      {button("• List", debugToggleBullet, isActive("bulletList"))}
+      {button("• List", toggleBullet, isActive("bulletList"))}
       {button(
         "1. List",
         () => editor.chain().focus().toggleOrderedList().run(),

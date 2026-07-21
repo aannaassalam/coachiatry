@@ -35,9 +35,7 @@ function fixSSRLayout() {
   // suppress useLayoutEffect (and its warnings) when not running in a browser
   // hence when running in SSR mode
   if (!checkWindow()) {
-    React.useLayoutEffect = () => {
-      // console.log("layout effect")
-    };
+    React.useLayoutEffect = () => {};
   }
 }
 

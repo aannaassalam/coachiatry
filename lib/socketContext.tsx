@@ -41,17 +41,11 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
     setSocket(s);
 
     s.on("connect", () => {
-      console.log("✅ Connected:", s.id);
       s.emit("user_online", { userId });
-    });
-
-    s.on("disconnect", () => {
-      console.log("❌ Disconnected");
     });
 
     // re-emit online after reconnection
     s.io.on("reconnect", () => {
-      console.log("🔁 Reconnected");
       s.emit("user_online", { userId });
     });
 

@@ -281,6 +281,16 @@ export default function ChatList() {
                       name: chatUser?.user?.fullName
                     };
 
+              // Direct chat with a deleted account. Soft-deleted keeps its real
+              // name (append "(deleted)"); hard-deleted already shows
+              // "Deleted user".
+              const isDeletedChatUser =
+                chat.type !== "group" &&
+                (chatUser?.user?.active === false ||
+                  chatUser?.user?.deleted === true);
+              const showDeletedSuffix =
+                chat.type !== "group" && chatUser?.user?.active === false;
+
               const renderLastMessage = () => {
                 const last = chat.lastMessage;
                 if (!last) return "";
@@ -325,11 +335,14 @@ export default function ChatList() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center">
                       <span
-                        className={cn("font-medium text-sm text-gray-900", {
+                        className={cn("font-medium text-sm", {
+                          "text-gray-400": isDeletedChatUser,
+                          "text-gray-900": !isDeletedChatUser,
                           "font-bold": chat.unreadCount > 0
                         })}
                       >
                         {details.name}
+                        {showDeletedSuffix ? " (deleted)" : ""}
                       </span>
                     </div>
                     <p

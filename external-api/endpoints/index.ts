@@ -76,6 +76,7 @@ export const endpoints = {
     getUsers: "/user/get-users",
     getProfile: "/user/me",
     updateProfile: "/user/me",
+    deleteAccount: "/user/me",
     updateProfilePicture: "/user/me/update-profile-picture",
     getAllWatching: "/user/get-all-watching",
     suggestUsers: "/user/suggestions",
@@ -98,6 +99,7 @@ export const endpoints = {
     createGroup: "/chat/group",
     editGroup: "/chat/group/edit",
     leaveGroup: (chatId: string) => `/chat/leave-group/${chatId}`,
+    deleteConversation: (chatId: string) => `/chat/conversation/${chatId}`,
     inviteToGroup: "/chat/group/invite",
     getGroupInvite: (token: string) => `/chat/group/invite/${token}`,
     acceptGroupInvite: (token: string) => `/chat/group/invite/${token}/accept`

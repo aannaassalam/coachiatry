@@ -47,18 +47,20 @@ import {
   getAllStatuses
 } from "@/external-api/functions/status.api";
 import {
+  deleteMyAccount,
   getMyProfile,
   revokeViewAccess,
   updateProfile,
   updateProfilePicture
 } from "@/external-api/functions/user.api";
+import { teardownWebPush } from "@/lib/fcm";
 import { Category } from "@/typescript/interface/category.interface";
 import { Status } from "@/typescript/interface/status.interface";
 import AppLayout from "@/layouts/AppLayout";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Camera, Link2, Plus, Trash2 } from "lucide-react";
-import { useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -180,6 +182,20 @@ export default function Settings() {
       invalidateQueries: ["settings-profile"]
     }
   });
+
+  const { mutate: deleteAccountMutate, isPending: isDeletingAccount } =
+    useMutation({
+      mutationFn: deleteMyAccount,
+      onSuccess: async () => {
+        toast.success("Your account has been deleted.");
+        // Tear down push registration, then clear the session and bounce to
+        // login. queryClient.clear() drops any cached data for the dead account.
+        await teardownWebPush();
+        queryClient.clear();
+        signOut({ callbackUrl: "/auth/login" });
+      },
+      meta: { showToast: false }
+    });
 
   // Watcher add/invite flow lives in the <AddWatchers /> component.
 
@@ -759,6 +775,58 @@ export default function Settings() {
             </div>
           </div>
           {/* /Statuses & Categories grid */}
+
+          {/* Danger Zone — delete account */}
+          <div className="border border-red-200 rounded-2xl p-5 mb-20">
+            <div className="flex items-center justify-between gap-4 max-sm:flex-col max-sm:items-start">
+              <div>
+                <h2 className="font-lato font-semibold text-lg tracking-[-2%] text-red-600">
+                  Delete Account
+                </h2>
+                <p className="text-sm text-gray-600 mt-1 max-w-xl">
+                  Permanently delete your account. You will be signed out and
+                  lose access immediately, and your email will be freed for
+                  reuse. This action cannot be undone.
+                </p>
+              </div>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="bg-red-500 text-white hover:bg-red-600 hover:text-white shrink-0 max-sm:self-end"
+                  >
+                    <Trash2 />
+                    Delete Account
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="sm:max-w-md">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete your account?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will permanently delete your account and sign you
+                      out. This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel type="button" disabled={isDeletingAccount}>
+                      Cancel
+                    </AlertDialogCancel>
+                    <AlertDialogAction
+                      className="bg-red-500 text-white hover:bg-red-600 hover:text-white"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        deleteAccountMutate();
+                      }}
+                      disabled={isDeletingAccount}
+                    >
+                      {isDeletingAccount ? "Deleting…" : "Delete Account"}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+          </div>
 
           {/* Delete category dialog */}
           <Dialog

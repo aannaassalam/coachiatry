@@ -6,6 +6,7 @@ import {
 } from "@/components/ui/popover";
 import { SmartAvatar } from "@/components/ui/smart-avatar";
 import assets from "@/json/assets";
+import { linkifyText } from "@/lib/linkify";
 import { useSocket } from "@/lib/socketContext";
 import { cn } from "@/lib/utils";
 import { queryClient } from "@/pages/_app";
@@ -210,7 +211,7 @@ export default function TextMessage({
               </div>
             )}
           <p className="wrap-break-word">
-            {message.content}
+            {linkifyText(message.content)}
             <span
               className={cn(
                 "text-[10px] float-right mt-1.5 ml-2 select-none leading-none",

@@ -21,6 +21,7 @@ import { useRouter } from "next/router";
 
 const TaskBox = ({
   title,
+  statusId,
   tasks,
   isHighlighted,
   titleColor,
@@ -28,6 +29,7 @@ const TaskBox = ({
   bgColor
 }: {
   title: string;
+  statusId: string;
   tasks: Task[];
   isHighlighted?: boolean;
   titleColor: string;
@@ -36,11 +38,16 @@ const TaskBox = ({
 }) => {
   const router = useRouter();
 
+  // Open the Tasks list grouped by status with ONLY this status expanded.
+  const openStatus = () =>
+    router.push(`/tasks?group=status&expandStatus=${statusId}`);
+
   return (
     <div className="space-y-2">
       <div
-        className="p-1 pl-3 rounded-sm inline-flex items-center gap-2.5"
+        className="p-1 pl-3 rounded-sm inline-flex items-center gap-2.5 cursor-pointer"
         style={{ backgroundColor: bgColor }}
+        onClick={openStatus}
       >
         <h5
           className="text-sm font-medium leading-5"
@@ -60,7 +67,7 @@ const TaskBox = ({
               ? "bg-gray-100/90 rounded-sm"
               : "border border-gray-200 rounded-sm"
           }
-          onClick={() => router.push("/tasks")}
+          onClick={openStatus}
         >
           {tasks.map((task, index) => (
             <div
@@ -214,6 +221,7 @@ export default function Home() {
                   return (
                     <TaskBox
                       title={_status.title}
+                      statusId={_status._id}
                       tasks={
                         slicedTasks?.filter(
                           (_task) => _task.status._id === _status._id

@@ -87,6 +87,16 @@ export const leaveGroup = async (chatId: string) => {
   return res;
 };
 
+// Delete a single direct conversation (with a deleted user) and all its
+// messages. The backend only allows this when the other member is a deleted
+// account.
+export const deleteDirectConversation = async (chatId: string) => {
+  const res = await axiosInstance.delete(
+    endpoints.chat.deleteConversation(chatId)
+  );
+  return res.data;
+};
+
 export const inviteToGroupByEmail = async (body: {
   chatId: string;
   emails: string[];

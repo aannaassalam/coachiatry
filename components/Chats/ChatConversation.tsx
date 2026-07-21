@@ -2,6 +2,7 @@
 
 "use client";
 
+import { deleteDirectConversation } from "@/external-api/functions/chat.api";
 import { useChatMessages } from "@/hooks/useChatMessages";
 import { useChatScroll } from "@/hooks/useChatScroll";
 import { useChatSocket } from "@/hooks/useChatSocket";
@@ -15,9 +16,12 @@ import {
   Message,
   MessageStatus
 } from "@/typescript/interface/message.interface";
+import { useMutation } from "@tanstack/react-query";
+import { queryClient } from "@/pages/_app";
 import { useSession } from "next-auth/react";
 import { parseAsString, useQueryState } from "nuqs";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import { ChatHeader } from "./ChatHeader";
 import AttachmentPreview from "./AttachmentPreview";
 import ChatInput from "./ChatInput";
@@ -48,6 +52,25 @@ export default function ChatConversation() {
     details,
     isLoading: isConversationLoading
   } = useConversationDetails(room);
+
+  // The other member's account has been deleted (soft-deleted → active:false, or
+  // hard-deleted → the `deleted` placeholder). Only then do we offer to delete
+  // the conversation.
+  const isDeletedUserChat =
+    conversation?.type === "direct" &&
+    (friend?.user?.active === false || friend?.user?.deleted === true);
+
+  const { mutate: deleteConversation, isPending: isDeletingConversation } =
+    useMutation({
+      mutationFn: () => deleteDirectConversation(room),
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["conversations"] });
+        toast.success("Conversation deleted.");
+        setSelectedChat("");
+      },
+      onError: () =>
+        toast.error("Could not delete the conversation. Please try again.")
+    });
 
   const {
     allMessages,
@@ -295,6 +318,9 @@ export default function ChatConversation() {
             (_mem) => _mem.user?._id === data?.user?._id
           )?.role === "owner"
         }
+        isDeletedUserChat={!!isDeletedUserChat}
+        onDeleteConversation={() => deleteConversation()}
+        isDeletingConversation={isDeletingConversation}
       />
 
       <div className="relative flex-1 flex flex-col min-h-0">

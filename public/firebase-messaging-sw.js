@@ -22,8 +22,6 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-console.log("[fcm-sw] loaded");
-
 // Activate a new SW version immediately instead of waiting for all tabs to
 // close, and take control of open pages. Without this, a deployed SW update
 // can sit in "waiting" while the old one keeps handling (or mishandling) push.
@@ -32,24 +30,9 @@ self.addEventListener("activate", (event) =>
   event.waitUntil(self.clients.claim())
 );
 
-// Raw push listener for debugging: fires for EVERY push, even if Firebase's
-// onBackgroundMessage doesn't pick it up. Helps us tell "no push arrived" from
-// "push arrived but Firebase didn't dispatch".
-self.addEventListener("push", (event) => {
-  let parsed = null;
-  try {
-    parsed = event.data ? event.data.json() : null;
-  } catch (e) {
-    parsed = event.data ? event.data.text() : null;
-  }
-  console.log("[fcm-sw] raw push event:", parsed);
-});
-
 // Backend sends a data-only message for Android compatibility, and we mirror
 // that for web. The SW must render the notification itself.
 messaging.onBackgroundMessage((payload) => {
-  console.log("[fcm-sw] onBackgroundMessage:", payload);
-
   const data = payload.data || {};
   const title = data.chatName || "New message";
   const body =

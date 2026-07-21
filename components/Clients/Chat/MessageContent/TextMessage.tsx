@@ -1,4 +1,5 @@
 import { SmartAvatar } from "@/components/ui/smart-avatar";
+import { linkifyText } from "@/lib/linkify";
 import { cn } from "@/lib/utils";
 import { Message } from "@/typescript/interface/message.interface";
 import { User } from "@/typescript/interface/user.interface";
@@ -84,7 +85,7 @@ export default function TextMessage({
               </div>
             )}
           <p className="wrap-break-word">
-            {message.content}
+            {linkifyText(message.content)}
             <span
               className={cn(
                 "text-[10px] float-right mt-1.5 ml-2 select-none leading-none",

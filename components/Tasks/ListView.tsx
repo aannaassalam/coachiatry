@@ -14,7 +14,7 @@ import {
   parseAsString,
   useQueryState
 } from "nuqs";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import {
@@ -34,6 +34,12 @@ function ListView({ onAddTask }: { onAddTask: (statusId?: string) => void }) {
     parseAsArrayOf(parseAsString.withDefault("")).withDefault([])
   );
   const [group] = useQueryState("group", parseAsString.withDefault("status"));
+  // Set when arriving from a Dashboard status tap — expand ONLY this status
+  // group and collapse the rest, then clear the param so it doesn't stick.
+  const [expandStatus, setExpandStatus] = useQueryState(
+    "expandStatus",
+    parseAsString.withDefault("")
+  );
   const [groupDir] = useQueryState(
     "groupDir",
     parseAsString.withDefault("asc")
@@ -83,6 +89,18 @@ function ListView({ onAddTask }: { onAddTask: (statusId?: string) => void }) {
       isOpen ? [...prev, idx] : prev.filter((i) => i !== idx)
     );
   };
+
+  // Open only the requested status group once it exists in the current groups
+  // (waits for tasks/statuses to load), then clear the URL param.
+  const groupsSignature = groups.map((g) => g.key).join("|");
+  useEffect(() => {
+    if (!expandStatus) return;
+    const idx = groups.findIndex((g) => g.key === expandStatus);
+    if (idx === -1) return;
+    setOpenIndexes([idx]);
+    setExpandStatus(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [expandStatus, groupsSignature]);
 
   return (
     <div className="py-4 flex flex-col gap-6">
