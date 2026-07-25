@@ -130,7 +130,7 @@ function ListView() {
           </div>
         </div>
       ) : group === NO_GROUP ? (
-        <div className="max-md:w-[94vw] max-sm:w-[92vw] max-md:overflow-auto scrollbar-hide">
+        <div className="w-full min-w-0 overflow-x-auto">
           <TasksTable tasks={sortedTasks} isLoading={isLoading} />
         </div>
       ) : (
@@ -191,7 +191,7 @@ function ListView() {
                 </Button>
               )}
             </div>
-            <CollapsibleContent className="pl-7 data-[state=closed]:animate-slideUp data-[state=open]:animate-slideDown max-md:w-[94vw] max-sm:w-[92vw] max-md:overflow-auto scrollbar-hide">
+            <CollapsibleContent className="pl-7 data-[state=closed]:animate-slideUp data-[state=open]:animate-slideDown w-full min-w-0 overflow-x-auto max-sm:pl-0">
               <TasksTable tasks={_group.tasks} isLoading={isLoading} />
             </CollapsibleContent>
           </Collapsible>

@@ -1,11 +1,23 @@
 import assets from "@/json/assets";
 import { cn } from "@/lib/utils";
 import { PopoverClose } from "@radix-ui/react-popover";
-import { ArrowDown, ArrowUp, ChevronsUpDown, Layers, X } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowLeft,
+  ArrowRight,
+  ArrowUp,
+  ChevronsUpDown,
+  EyeOff,
+  Layers,
+  MoveHorizontal,
+  X
+} from "lucide-react";
 import Image from "next/image";
 import { parseAsArrayOf, parseAsString, useQueryState } from "nuqs";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import ColumnResizer from "./ColumnResizer";
 import SortOrderPanel from "./SortOrderPanel";
+import { useTableLayout } from "./TableLayoutContext";
 import {
   COLUMN_META,
   ColumnKey,
@@ -18,9 +30,18 @@ import {
  * sort affordance (click → toggle asc/desc/off). With a single active sort the
  * affordance is a coloured up/down arrow; with two or more it becomes an
  * "↑/↓ <priority>" badge and the menu turns into the reorderable sort panel.
+ *
+ * Also owns the column's resize handle, so the header cell it lives in must be
+ * positioned (`relative`).
  */
 function ColumnSortControl({ columnKey }: { columnKey: ColumnKey }) {
   const meta = COLUMN_META[columnKey];
+  const { order, toggleColumn, resetWidth, moveColumn } = useTableLayout();
+
+  // Slot 0 holds the pinned primary column, so the first movable column is 1.
+  const position = order.indexOf(columnKey);
+  const canMoveLeft = position > 1;
+  const canMoveRight = position >= 1 && position < order.length - 1;
 
   const [sort, setSort] = useQueryState(
     "sort",
@@ -95,6 +116,55 @@ function ColumnSortControl({ columnKey }: { columnKey: ColumnKey }) {
                   </button>
                 </PopoverClose>
               )}
+              {(canMoveLeft || canMoveRight) && (
+                <div className="my-1 border-t border-gray-100" />
+              )}
+              {canMoveLeft && (
+                <PopoverClose asChild>
+                  <button
+                    type="button"
+                    onClick={() => moveColumn(position, position - 1)}
+                    className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm font-lato text-gray-700 hover:bg-gray-50 cursor-pointer"
+                  >
+                    <ArrowLeft size={15} className="text-gray-500" />
+                    Move left
+                  </button>
+                </PopoverClose>
+              )}
+              {canMoveRight && (
+                <PopoverClose asChild>
+                  <button
+                    type="button"
+                    onClick={() => moveColumn(position, position + 1)}
+                    className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm font-lato text-gray-700 hover:bg-gray-50 cursor-pointer"
+                  >
+                    <ArrowRight size={15} className="text-gray-500" />
+                    Move right
+                  </button>
+                </PopoverClose>
+              )}
+              <PopoverClose asChild>
+                <button
+                  type="button"
+                  onClick={() => resetWidth(columnKey)}
+                  className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm font-lato text-gray-700 hover:bg-gray-50 cursor-pointer"
+                >
+                  <MoveHorizontal size={15} className="text-gray-500" />
+                  Reset width
+                </button>
+              </PopoverClose>
+              {meta.hideable && (
+                <PopoverClose asChild>
+                  <button
+                    type="button"
+                    onClick={() => toggleColumn(columnKey)}
+                    className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm font-lato text-gray-700 hover:bg-gray-50 cursor-pointer"
+                  >
+                    <EyeOff size={15} className="text-gray-500" />
+                    Hide column
+                  </button>
+                </PopoverClose>
+              )}
             </div>
           )}
         </PopoverContent>
@@ -126,6 +196,8 @@ function ColumnSortControl({ columnKey }: { columnKey: ColumnKey }) {
           </span>
         )}
       </button>
+
+      <ColumnResizer columnKey={columnKey} />
     </div>
   );
 }

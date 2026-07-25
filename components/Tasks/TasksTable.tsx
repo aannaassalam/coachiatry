@@ -47,13 +47,21 @@ import { useSession } from "next-auth/react";
 import { Filter } from "@/typescript/interface/common.interface";
 import { sanitizeFilters } from "@/lib/functions/_helpers.lib";
 import { User } from "@/typescript/interface/user.interface";
+import { useTableLayout } from "./TableLayoutContext";
+import {
+  ACTIONS_COLUMN_WIDTH,
+  ColumnKey,
+  getTaskTableGeometry
+} from "./tableColumns";
 
 export const SubTasksTable = ({
   subTasks,
-  taskId
+  taskId,
+  colSpan
 }: {
   subTasks: { _id: string; title: string; completed: boolean }[];
   taskId: string;
+  colSpan: number;
 }) => {
   const [localCompleted, setLocalCompleted] = useState<Record<string, boolean>>(
     () => Object.fromEntries(subTasks.map((s) => [s._id, s.completed ?? false]))
@@ -122,7 +130,7 @@ export const SubTasksTable = ({
       )}
     >
       <TableCell
-        colSpan={8}
+        colSpan={colSpan}
         className="font-medium text-sm leading-5 flex items-center font-lato tracking-[-0.05px] pl-10 my-auto w-full"
       >
         <label
@@ -264,6 +272,18 @@ function TasksTable({
     ])
   );
 
+  // Column widths / visibility, shared across every group's table.
+  const { visibleColumns, widthStyle, hasCustomWidths } = useTableLayout();
+  const columns = visibleColumns.filter(
+    (key) => key !== "status" || showStatus
+  );
+  const { colSpan, colStyle, tableMinWidth, tableWidth } = getTaskTableGeometry(
+    columns,
+    widthStyle,
+    // Fill the container until the user sets widths of their own.
+    { fill: !hasCustomWidths }
+  );
+
   const validatedFilters = sanitizeFilters(values);
 
   const prefetchOnMouseEnter = (id: string) => {
@@ -357,41 +377,355 @@ function TasksTable({
   // rest load as the user scrolls (see useRowVirtualizer). Small groups render
   // in full (renderedTasks === tasks).
   const { renderedTasks, hasMore, sentinelRef } = useRowVirtualizer(tasks);
-  const colCount = showStatus ? 8 : 7;
+
+  /**
+   * One cell per column key. Driving the body off the same ordered key list as
+   * the header is what makes hiding a column a single-source change.
+   */
+  const renderCell = (key: ColumnKey, task: Task) => {
+    switch (key) {
+      case "name":
+        return (
+          <TableCell
+            key={key}
+            className={cn(
+              "font-medium text-sm leading-5 font-lato tracking-[-0.05px] relative overflow-hidden",
+              task.subtasks &&
+                task.subtasks.length <= 0 &&
+                "pl-[42px] max-sm:pl-2"
+            )}
+          >
+            <div className="flex items-center">
+              {task.subtasks && task.subtasks.length > 0 && (
+                <div
+                  className="flex items-center justify-center rounded-sm p-2 hover:bg-gray-100 transition-all duration-200 mr-2"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setOpenTasksIndex((prev) => {
+                      if (prev.includes(task._id)) {
+                        return prev.filter((i) => i !== task._id);
+                      } else {
+                        return [...prev, task._id];
+                      }
+                    });
+                  }}
+                >
+                  <Image
+                    src={assets.icons.triangle}
+                    width={10}
+                    height={5}
+                    alt="triangle"
+                    className={cn(
+                      openTasksIndex.includes(task._id)
+                        ? "rotate-360"
+                        : "rotate-270",
+                      "transition-all duration-200 shrink-0"
+                    )}
+                  />
+                </div>
+              )}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <div
+                    className={cn(
+                      "size-4 shrink-0 rounded-full mr-3 flex items-center justify-center",
+                      {
+                        "border-2 border-gray-300 border-dotted":
+                          task.status.title === "Todo"
+                      }
+                    )}
+                    style={{
+                      backgroundColor:
+                        task.status.title === "Todo"
+                          ? "white"
+                          : task.status.color.text
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setStatusBoxIndex(
+                        statusBoxIndex === task._id ? null : task._id
+                      );
+                    }}
+                  >
+                    <div className="size-3.5 rounded-full border-1 border-white bg-transparent" />
+                  </div>
+                </PopoverTrigger>
+                <PopoverContent
+                  className="w-[245px] p-0 relative left-[111px] max-sm:left-[50px]"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <StatusBox
+                    taskId={task._id}
+                    selectedStatus={task.status._id}
+                  />
+                </PopoverContent>
+              </Popover>
+              <p className="flex-1 truncate" title={task.title}>
+                {task.title}
+              </p>
+            </div>
+          </TableCell>
+        );
+
+      case "assignedTo":
+        return (
+          <TableCell
+            key={key}
+            className="tracking-[-0.05px] overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {(() => {
+              const currentUserId = data?.user?._id;
+              const isOwner = task.user?._id === currentUserId;
+              const assignees = Array.isArray(task.assignedTo)
+                ? task.assignedTo
+                : task.assignedTo
+                  ? [task.assignedTo as unknown as User]
+                  : [];
+              // Anyone in the owner's management hierarchy can edit
+              // — in the personal list that's the owner plus anyone
+              // currently assigned (assignees always come from the
+              // owner's tree). The backend re-validates on toggle.
+              const isAssignee = assignees.some((u) => u._id === currentUserId);
+              const canEdit = isOwner || isAssignee;
+
+              const assigneeDisplay = (
+                <div className="flex min-w-0 items-center gap-2">
+                  {assignees.length === 0 ? (
+                    <span className="font-lato font-medium text-sm text-gray-400">
+                      Unassigned
+                    </span>
+                  ) : assignees.length === 1 ? (
+                    <>
+                      <SmartAvatar
+                        src={assignees[0]?.photo}
+                        name={assignees[0]?.fullName}
+                        key={assignees[0]?.updatedAt}
+                        className="size-5 shrink-0"
+                        textSize="text-[10px]"
+                      />
+                      <span className="font-lato font-medium text-sm text-gray-700 truncate">
+                        {assignees[0]?._id === data?.user?._id
+                          ? "me"
+                          : assignees[0]?.fullName}
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex shrink-0 items-center">
+                        {assignees.slice(0, 2).map((u, i) => (
+                          <div key={u._id} className={cn(i > 0 && "-ml-2")}>
+                            <SmartAvatar
+                              src={u.photo}
+                              name={u.fullName}
+                              key={u.updatedAt}
+                              className="size-5 ring-1 ring-white"
+                              textSize="text-[10px]"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                      <span className="font-lato font-medium text-sm text-gray-700 truncate">
+                        {assignees.length} people
+                      </span>
+                    </>
+                  )}
+                  {canEdit && (
+                    <ChevronsUpDown
+                      size={14}
+                      color="#777"
+                      className="shrink-0"
+                    />
+                  )}
+                </div>
+              );
+
+              if (canEdit) {
+                return (
+                  <Popover
+                    open={openAssignFor === task._id}
+                    onOpenChange={(open) =>
+                      setOpenAssignFor(open ? task._id : null)
+                    }
+                  >
+                    <PopoverTrigger asChild>
+                      <button
+                        className="[all:unset] !flex !items-center !gap-2 !max-w-full disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
+                        disabled={isAssigning}
+                      >
+                        {assigneeDisplay}
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-72 p-0">
+                      <AssigneeList
+                        taskId={task._id}
+                        assignees={assignees}
+                        currentUserId={currentUserId}
+                        onToggle={(u) =>
+                          assign({
+                            taskId: task._id,
+                            coachId: u._id,
+                            coachUser: u
+                          })
+                        }
+                      />
+                    </PopoverContent>
+                  </Popover>
+                );
+              }
+
+              // Non-owner: grayed out, hover tooltip shows assignees
+              return (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex items-center gap-2 opacity-50 cursor-not-allowed">
+                      {assigneeDisplay}
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="p-2">
+                    {assignees.length === 0 ? (
+                      <p className="text-xs">No one assigned</p>
+                    ) : (
+                      <div className="space-y-1.5">
+                        {assignees.map((u) => (
+                          <div key={u._id} className="flex items-center gap-2">
+                            <SmartAvatar
+                              src={u.photo}
+                              name={u.fullName}
+                              className="size-4"
+                              textSize="text-[8px]"
+                            />
+                            <span className="text-xs">
+                              {u._id === data?.user?._id ? "me" : u.fullName}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </TooltipContent>
+                </Tooltip>
+              );
+            })()}
+          </TableCell>
+        );
+
+      case "dueDate":
+        return (
+          <TableCell
+            key={key}
+            className="font-lato text-sm text-gray-600 tracking-[-0.05px]"
+          >
+            {formatDateOrEmpty(task.dueDate, "DD-MM-YYYY") || "-"}
+          </TableCell>
+        );
+
+      case "owner":
+        return (
+          <TableCell key={key} className="tracking-[-0.05px] overflow-hidden">
+            <div className="flex min-w-0 items-center gap-2">
+              <SmartAvatar
+                src={task.user?.photo}
+                name={task.user?.fullName}
+                key={task.user?.updatedAt}
+                className="size-5 shrink-0"
+                textSize="text-[10px]"
+              />
+              <span className="font-lato font-medium text-sm text-gray-700 truncate">
+                {task.user?._id === data?.user?._id
+                  ? "me"
+                  : task.user?.fullName || "-"}
+              </span>
+            </div>
+          </TableCell>
+        );
+
+      case "category":
+        return (
+          <TableCell key={key} className="tracking-[-0.05px] overflow-hidden">
+            <Badge
+              className="max-w-full rounded-full py-0.5 px-2 flex items-center gap-1.5 font-archivo font-medium text-xs leading-4.5"
+              style={{
+                backgroundColor: task.category.color.bg,
+                color: task.category.color.text
+              }}
+              key={task.category?.title}
+            >
+              <div
+                className="size-1.5 shrink-0 rounded-full"
+                style={{ backgroundColor: task.category.color.text }}
+              ></div>
+              <span className="truncate">{task.category?.title}</span>
+            </Badge>
+          </TableCell>
+        );
+
+      case "priority":
+        return (
+          <TableCell key={key} className="tracking-[-0.05px] capitalize">
+            <div className="flex items-center gap-2">
+              <PriorityFlag priority={task.priority.toLocaleLowerCase()} />
+              {task.priority}
+            </div>
+          </TableCell>
+        );
+
+      case "status":
+        return (
+          <TableCell key={key} className="tracking-[-0.05px] overflow-hidden">
+            <Badge
+              className="max-w-full rounded-full py-0.5 px-2 font-archivo font-medium text-xs leading-4.5"
+              style={{
+                backgroundColor: task.status.color.bg,
+                color: task.status.color.text
+              }}
+            >
+              <span className="truncate">{task.status.title}</span>
+            </Badge>
+          </TableCell>
+        );
+
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="mt-2 w-full tasksTable">
       {tasks.length != 0 && (
         <Table
-          style={{ overflow: "visible" }}
-          className="w-full !overflow-visible table-container"
+          style={{
+            overflow: "visible",
+            minWidth: tableMinWidth,
+            width: tableWidth
+          }}
+          className="table-fixed !overflow-visible table-container"
         >
+          {/* Fixed layout + explicit widths is what makes the columns
+              resizable; see getTaskTableGeometry for why the first column is
+              left width-less. */}
+          <colgroup>
+            {columns.map((key) => (
+              <col key={key} style={colStyle(key)} />
+            ))}
+            <col style={{ width: ACTIONS_COLUMN_WIDTH }} />
+          </colgroup>
           <TableHeader className="">
-            <TableRow className="hover:bg-transparent !border-b-1 !border-gray-100">
-              <TableHead className="text-xs text-gray-500 min-w-[200px]">
-                <ColumnSortControl columnKey="name" />
-              </TableHead>
-              <TableHead className="text-xs text-gray-400 tracking-[-0.05px]">
-                <ColumnSortControl columnKey="assignedTo" />
-              </TableHead>
-              <TableHead className="text-xs text-gray-400 tracking-[-0.05px]">
-                <ColumnSortControl columnKey="dueDate" />
-              </TableHead>
-              <TableHead className="text-xs text-gray-400 tracking-[-0.05px]">
-                <ColumnSortControl columnKey="owner" />
-              </TableHead>
-              <TableHead className="text-xs text-gray-400 tracking-[-0.05px]">
-                <ColumnSortControl columnKey="category" />
-              </TableHead>
-              <TableHead className="text-xs text-gray-400 tracking-[-0.05px]">
-                <ColumnSortControl columnKey="priority" />
-              </TableHead>
-              {showStatus && (
-                <TableHead className="text-xs text-gray-400 tracking-[-0.05px]">
-                  <ColumnSortControl columnKey="status" />
+            <TableRow className="group/head hover:bg-transparent !border-b-1 !border-gray-100">
+              {columns.map((key) => (
+                <TableHead
+                  key={key}
+                  // Lets ColumnResizer map rendered header cells back to
+                  // column keys when it freezes the layout for a drag.
+                  data-column-key={key}
+                  className={cn(
+                    "relative text-xs tracking-[-0.05px]",
+                    key === "name" ? "text-gray-500" : "text-gray-400"
+                  )}
+                >
+                  <ColumnSortControl columnKey={key} />
                 </TableHead>
-              )}
-              <TableHead className="text-xs text-gray-400 tracking-[-0.05px] !w-[20px]"></TableHead>
+              ))}
+              <TableHead />
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -411,289 +745,8 @@ function TasksTable({
                       onClick={() => setSelectedTask(task._id)}
                       onMouseEnter={() => prefetchOnMouseEnter(task._id)}
                     >
-                      <TableCell
-                        className={cn(
-                          "font-medium text-sm leading-5 font-lato tracking-[-0.05px] relative",
-                          task.subtasks &&
-                            task.subtasks.length <= 0 &&
-                            "pl-[42px] max-sm:pl-2"
-                        )}
-                      >
-                        <div className="flex items-center">
-                          {task.subtasks && task.subtasks.length > 0 && (
-                            <div
-                              className="flex items-center justify-center rounded-sm p-2 hover:bg-gray-100 transition-all duration-200 mr-2"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setOpenTasksIndex((prev) => {
-                                  if (prev.includes(task._id)) {
-                                    return prev.filter((i) => i !== task._id);
-                                  } else {
-                                    return [...prev, task._id];
-                                  }
-                                });
-                              }}
-                            >
-                              <Image
-                                src={assets.icons.triangle}
-                                width={10}
-                                height={5}
-                                alt="triangle"
-                                className={cn(
-                                  openTasksIndex.includes(task._id)
-                                    ? "rotate-360"
-                                    : "rotate-270",
-                                  "transition-all duration-200 shrink-0"
-                                )}
-                              />
-                            </div>
-                          )}
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <div
-                                className={cn(
-                                  "size-4 rounded-full mr-3 flex items-center justify-center",
-                                  {
-                                    "border-2 border-gray-300 border-dotted":
-                                      task.status.title === "Todo"
-                                  }
-                                )}
-                                style={{
-                                  backgroundColor:
-                                    task.status.title === "Todo"
-                                      ? "white"
-                                      : task.status.color.text
-                                }}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setStatusBoxIndex(
-                                    statusBoxIndex === task._id
-                                      ? null
-                                      : task._id
-                                  );
-                                }}
-                              >
-                                <div className="size-3.5 rounded-full border-1 border-white bg-transparent" />
-                              </div>
-                            </PopoverTrigger>
-                            <PopoverContent
-                              className="w-[245px] p-0 relative left-[111px] max-sm:left-[50px]"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <StatusBox
-                                taskId={task._id}
-                                selectedStatus={task.status._id}
-                              />
-                            </PopoverContent>
-                          </Popover>
-                          <p className="flex-1">{task.title}</p>
-                        </div>
-                      </TableCell>
-                      <TableCell
-                        className="tracking-[-0.05px]"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        {(() => {
-                          const currentUserId = data?.user?._id;
-                          const isOwner = task.user?._id === currentUserId;
-                          const assignees = Array.isArray(task.assignedTo)
-                            ? task.assignedTo
-                            : task.assignedTo
-                              ? [task.assignedTo as unknown as User]
-                              : [];
-                          // Anyone in the owner's management hierarchy can edit
-                          // — in the personal list that's the owner plus anyone
-                          // currently assigned (assignees always come from the
-                          // owner's tree). The backend re-validates on toggle.
-                          const isAssignee = assignees.some(
-                            (u) => u._id === currentUserId
-                          );
-                          const canEdit = isOwner || isAssignee;
-
-                          const assigneeDisplay = (
-                            <div className="flex items-center gap-2">
-                              {assignees.length === 0 ? (
-                                <span className="font-lato font-medium text-sm text-gray-400">
-                                  Unassigned
-                                </span>
-                              ) : assignees.length === 1 ? (
-                                <>
-                                  <SmartAvatar
-                                    src={assignees[0]?.photo}
-                                    name={assignees[0]?.fullName}
-                                    key={assignees[0]?.updatedAt}
-                                    className="size-5"
-                                    textSize="text-[10px]"
-                                  />
-                                  <span className="font-lato font-medium text-sm text-gray-700">
-                                    {assignees[0]?._id === data?.user?._id
-                                      ? "me"
-                                      : assignees[0]?.fullName}
-                                  </span>
-                                </>
-                              ) : (
-                                <>
-                                  <div className="flex items-center">
-                                    {assignees.slice(0, 2).map((u, i) => (
-                                      <div
-                                        key={u._id}
-                                        className={cn(i > 0 && "-ml-2")}
-                                      >
-                                        <SmartAvatar
-                                          src={u.photo}
-                                          name={u.fullName}
-                                          key={u.updatedAt}
-                                          className="size-5 ring-1 ring-white"
-                                          textSize="text-[10px]"
-                                        />
-                                      </div>
-                                    ))}
-                                  </div>
-                                  <span className="font-lato font-medium text-sm text-gray-700">
-                                    {assignees.length} people
-                                  </span>
-                                </>
-                              )}
-                              {canEdit && (
-                                <ChevronsUpDown size={14} color="#777" />
-                              )}
-                            </div>
-                          );
-
-                          if (canEdit) {
-                            return (
-                              <Popover
-                                open={openAssignFor === task._id}
-                                onOpenChange={(open) =>
-                                  setOpenAssignFor(open ? task._id : null)
-                                }
-                              >
-                                <PopoverTrigger asChild>
-                                  <button
-                                    className="[all:unset] !flex !items-center !gap-2 disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
-                                    disabled={isAssigning}
-                                  >
-                                    {assigneeDisplay}
-                                  </button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-72 p-0">
-                                  <AssigneeList
-                                    taskId={task._id}
-                                    assignees={assignees}
-                                    currentUserId={currentUserId}
-                                    onToggle={(u) =>
-                                      assign({
-                                        taskId: task._id,
-                                        coachId: u._id,
-                                        coachUser: u
-                                      })
-                                    }
-                                  />
-                                </PopoverContent>
-                              </Popover>
-                            );
-                          }
-
-                          // Non-owner: grayed out, hover tooltip shows assignees
-                          return (
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <div className="flex items-center gap-2 opacity-50 cursor-not-allowed">
-                                  {assigneeDisplay}
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent side="bottom" className="p-2">
-                                {assignees.length === 0 ? (
-                                  <p className="text-xs">No one assigned</p>
-                                ) : (
-                                  <div className="space-y-1.5">
-                                    {assignees.map((u) => (
-                                      <div
-                                        key={u._id}
-                                        className="flex items-center gap-2"
-                                      >
-                                        <SmartAvatar
-                                          src={u.photo}
-                                          name={u.fullName}
-                                          className="size-4"
-                                          textSize="text-[8px]"
-                                        />
-                                        <span className="text-xs">
-                                          {u._id === data?.user?._id
-                                            ? "me"
-                                            : u.fullName}
-                                        </span>
-                                      </div>
-                                    ))}
-                                  </div>
-                                )}
-                              </TooltipContent>
-                            </Tooltip>
-                          );
-                        })()}
-                      </TableCell>
-                      <TableCell className="font-lato text-sm text-gray-600 tracking-[-0.05px]">
-                        {formatDateOrEmpty(task.dueDate, "DD-MM-YYYY") || "-"}
-                      </TableCell>
-                      <TableCell className="tracking-[-0.05px]">
-                        <div className="flex items-center gap-2">
-                          <SmartAvatar
-                            src={task.user?.photo}
-                            name={task.user?.fullName}
-                            key={task.user?.updatedAt}
-                            className="size-5"
-                            textSize="text-[10px]"
-                          />
-                          <span className="font-lato font-medium text-sm text-gray-700">
-                            {task.user?._id === data?.user?._id
-                              ? "me"
-                              : task.user?.fullName || "-"}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="tracking-[-0.05px]">
-                        <Badge
-                          className="rounded-full py-0.5 px-2 flex items-center gap-1.5 font-archivo font-medium text-xs leading-4.5"
-                          style={{
-                            backgroundColor: task.category.color.bg,
-                            color: task.category.color.text
-                          }}
-                          key={task.category?.title}
-                        >
-                          <div
-                            className="size-1.5 rounded-full"
-                            style={{
-                              backgroundColor: task.category.color.text
-                            }}
-                          ></div>
-                          {task.category?.title}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="tracking-[-0.05px capitalize">
-                        <div className="flex items-center gap-2">
-                          <PriorityFlag
-                            priority={task.priority.toLocaleLowerCase()}
-                          />
-                          {task.priority}
-                        </div>
-                      </TableCell>
-                      {showStatus && (
-                        <TableCell className="tracking-[-0.05px]">
-                          <Badge
-                            className="rounded-full py-0.5 px-2 font-archivo font-medium text-xs leading-4.5"
-                            style={{
-                              backgroundColor: task.status.color.bg,
-                              color: task.status.color.text
-                            }}
-                          >
-                            {task.status.title}
-                          </Badge>
-                        </TableCell>
-                      )}
-                      <TableCell
-                        className=""
-                        onClick={(e) => e.stopPropagation()}
-                      >
+                      {columns.map((key) => renderCell(key, task))}
+                      <TableCell onClick={(e) => e.stopPropagation()}>
                         <Popover>
                           <PopoverTrigger asChild>
                             <Button
@@ -740,6 +793,7 @@ function TasksTable({
                         <SubTasksTable
                           subTasks={task.subtasks}
                           taskId={task._id}
+                          colSpan={colSpan}
                         />
                       )}
                   </React.Fragment>
@@ -747,7 +801,7 @@ function TasksTable({
                 {hasMore && (
                   <tr ref={sentinelRef} aria-hidden>
                     <td
-                      colSpan={colCount}
+                      colSpan={colSpan}
                       style={{ height: 1, padding: 0, border: 0 }}
                     />
                   </tr>

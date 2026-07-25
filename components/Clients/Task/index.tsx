@@ -6,14 +6,17 @@ import {
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { Filter } from "@/typescript/interface/common.interface";
-import { ListFilter } from "lucide-react";
+import { Columns3, ListFilter } from "lucide-react";
 import moment from "moment";
 import { parseAsJson, useQueryState } from "nuqs";
 import { useState } from "react";
 import AddTaskSheet from "./AddTaskSheet";
 import ListView from "./ListView";
 import FilterBox from "./FilterBox";
+import ColumnBox from "@/components/Tasks/ColumnBox";
 import GroupByControl from "@/components/Tasks/GroupByControl";
+import { TableLayoutProvider } from "@/components/Tasks/TableLayoutContext";
+import { CLIENT_TASK_COLUMN_ORDER } from "@/components/Tasks/tableColumns";
 
 moment.updateLocale("en", {
   week: {
@@ -42,7 +45,12 @@ function Tasks() {
   const validatedFilters = sanitizeFilters(values);
 
   return (
-    <>
+    // Owns column widths / visibility for the table below and for the Columns
+    // popover in the header.
+    <TableLayoutProvider
+      scope="client-tasks"
+      defaultOrder={CLIENT_TASK_COLUMN_ORDER}
+    >
       {/* header */}
       <div className="mb-0 flex items-center justify-between">
         <h1 className="text-2xl leading-7 tracking-[-3%] font-semibold text-gray-900 mb-2 max-sm:mb-0">
@@ -50,6 +58,21 @@ function Tasks() {
         </h1>
         <div className="flex items-center justify-start gap-5 ml-auto pb-3 max-sm:mt-3">
           <GroupByControl />
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="ghost">
+                <Columns3 />
+                Columns
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent
+              className="w-[260px] p-0"
+              align="end"
+              collisionPadding={20}
+            >
+              <ColumnBox />
+            </PopoverContent>
+          </Popover>
           <Popover>
             <PopoverTrigger asChild>
               <Button
@@ -72,42 +95,12 @@ function Tasks() {
         </div>
       </div>
       <div>
-        {/* <div className="flex items-center justify-start gap-5 pb-3 max-sm:mt-3">
-          <div className="ml-auto">
-            {/* <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="ghost">
-                    <Image
-                      src={assets.icons.column}
-                      alt="column"
-                      width={15}
-                      height={15}
-                    />
-                    Column
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-[245px] p-0 ">
-                  <ColumnBox />
-                </PopoverContent>
-              </Popover> *
-            {/* <Button variant="ghost">
-                <Image
-                  src={assets.icons.sort}
-                  alt="sort"
-                  width={18}
-                  height={18}
-                />
-                Sort
-              </Button> *
-          </div>
-        </div> */}
-
         <Separator />
         <ListView />
       </div>
 
       <AddTaskSheet open={isOpen} onOpenChange={setIsOpen} />
-    </>
+    </TableLayoutProvider>
   );
 }
 

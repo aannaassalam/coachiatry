@@ -8,7 +8,7 @@ import {
 import { SmartAvatar } from "@/components/ui/smart-avatar";
 import assets from "@/json/assets";
 import Logo from "@/ui/Logo/Logo";
-import { Menu, Search } from "lucide-react";
+import { Menu } from "lucide-react";
 import { getInitials } from "@/lib/functions/_helpers.lib";
 import { teardownWebPush } from "@/lib/fcm";
 import { signOut, useSession } from "next-auth/react";

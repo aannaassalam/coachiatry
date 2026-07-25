@@ -1,5 +1,11 @@
 import AssigneeList from "@/components/Tasks/AssigneeList";
 import ColumnSortControl from "@/components/Tasks/ColumnSortControl";
+import { useTableLayout } from "@/components/Tasks/TableLayoutContext";
+import {
+  ACTIONS_COLUMN_WIDTH,
+  ColumnKey,
+  getTaskTableGeometry
+} from "@/components/Tasks/tableColumns";
 import { useRowVirtualizer } from "@/components/Tasks/useRowVirtualizer";
 import PriorityFlag from "@/components/Tasks/PriorityFlag";
 import {
@@ -42,10 +48,12 @@ import { sanitizeFilters } from "@/lib/functions/_helpers.lib";
 
 export const SubTasksTable = ({
   subTasks,
-  taskId
+  taskId,
+  colSpan
 }: {
   subTasks: { _id: string; title: string; completed: boolean }[];
   taskId: string;
+  colSpan: number;
 }) => {
   const [localCompleted, setLocalCompleted] = useState<Record<string, boolean>>(
     () => Object.fromEntries(subTasks.map((s) => [s._id, s.completed ?? false]))
@@ -114,7 +122,7 @@ export const SubTasksTable = ({
       )}
     >
       <TableCell
-        colSpan={7}
+        colSpan={colSpan}
         className="font-medium text-sm leading-5 flex items-center font-lato tracking-[-0.05px] pl-10 my-auto w-full"
       >
         <label
@@ -169,6 +177,18 @@ function TasksTable({
     ).withDefault([
       { selectedKey: "", selectedOperator: "", selectedValue: "" }
     ])
+  );
+
+  // Column widths / visibility, shared across every group's table.
+  const { visibleColumns, widthStyle, hasCustomWidths } = useTableLayout();
+  const columns = visibleColumns.filter(
+    (key) => key !== "status" || showStatus
+  );
+  const { colSpan, colStyle, tableMinWidth, tableWidth } = getTaskTableGeometry(
+    columns,
+    widthStyle,
+    // Fill the container until the user sets widths of their own.
+    { fill: !hasCustomWidths }
   );
 
   const validatedFilters = sanitizeFilters(values);
@@ -257,41 +277,309 @@ function TasksTable({
   // Progressive rendering: only the first chunk of a large group mounts; the
   // rest load as the user scrolls. Small groups render in full.
   const { renderedTasks, hasMore, sentinelRef } = useRowVirtualizer(tasks);
-  const colCount = showStatus ? 8 : 7;
+
+  /**
+   * One cell per column key. Driving the body off the same ordered key list as
+   * the header is what makes hiding a column a single-source change.
+   */
+  const renderCell = (key: ColumnKey, task: Task) => {
+    switch (key) {
+      case "name":
+        return (
+          <TableCell
+            key={key}
+            className={cn(
+              "font-medium text-sm leading-5 font-lato tracking-[-0.05px] relative overflow-hidden",
+              task.subtasks && task.subtasks.length <= 0 && "pl-[42px]"
+            )}
+          >
+            <div className="flex items-center">
+              {task.subtasks && task.subtasks.length > 0 && (
+                <div
+                  className="flex items-center justify-center rounded-sm p-2 hover:bg-gray-100 transition-all duration-200 mr-2"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setOpenTasksIndex((prev) => {
+                      if (prev.includes(task._id)) {
+                        return prev.filter((i) => i !== task._id);
+                      } else {
+                        return [...prev, task._id];
+                      }
+                    });
+                  }}
+                >
+                  <Image
+                    src={assets.icons.triangle}
+                    width={10}
+                    height={5}
+                    alt="triangle"
+                    className={cn(
+                      openTasksIndex.includes(task._id)
+                        ? "rotate-360"
+                        : "rotate-270",
+                      "transition-all duration-200 shrink-0"
+                    )}
+                  />
+                </div>
+              )}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <div
+                    className={cn(
+                      "size-4 shrink-0 rounded-full mr-3 flex items-center justify-center",
+                      {
+                        "border-2 border-gray-300 border-dotted":
+                          task.status.title === "Todo"
+                      }
+                    )}
+                    style={{
+                      backgroundColor:
+                        task.status.title === "Todo"
+                          ? "white"
+                          : task.status.color.text
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setStatusBoxIndex(
+                        statusBoxIndex === task._id ? null : task._id
+                      );
+                    }}
+                  >
+                    <div className="h-3.5 w-3.5 rounded-full border-1 border-white bg-transparent" />
+                  </div>
+                </PopoverTrigger>
+                <PopoverContent
+                  className="w-[245px] p-0 relative left-[111px] max-sm:left-[50px]"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <StatusBox
+                    taskId={task._id}
+                    selectedStatus={task.status._id}
+                  />
+                </PopoverContent>
+              </Popover>
+              <p
+                className="flex-1 truncate"
+                title={task.title}
+                onClick={() => {
+                  setSelectedTask(task._id);
+                  setIsOpen(true);
+                }}
+              >
+                {task.title}
+              </p>
+            </div>
+          </TableCell>
+        );
+
+      case "owner":
+        return (
+          <TableCell key={key} className="tracking-[-0.05px] overflow-hidden">
+            <div className="flex min-w-0 items-center gap-2">
+              <SmartAvatar
+                src={task?.user?.photo}
+                name={task?.user?.fullName}
+                key={task?.user?.updatedAt}
+                className="size-5 shrink-0"
+                textSize="text-[10px]"
+              />
+              <span className="font-lato font-medium text-sm text-gray-700 truncate">
+                {task?.user?.fullName ?? "-"}
+              </span>
+            </div>
+          </TableCell>
+        );
+
+      case "assignedTo":
+        return (
+          <TableCell key={key} className="tracking-[-0.05px] overflow-hidden">
+            {(() => {
+              const assignees = Array.isArray(task.assignedTo)
+                ? task.assignedTo
+                : [];
+
+              return (
+                // Assignees — editable by the owner's management
+                // hierarchy (coach / manager / admin). The backend
+                // re-validates on toggle.
+                <Popover
+                  open={openAssignFor === task._id}
+                  onOpenChange={(open) =>
+                    setOpenAssignFor(open ? task._id : null)
+                  }
+                >
+                  <PopoverTrigger asChild>
+                    <button
+                      onClick={(e) => e.stopPropagation()}
+                      disabled={isAssigning}
+                      className="[all:unset] !flex !items-center !gap-2 !max-w-full disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
+                    >
+                      {assignees.length === 0 ? (
+                        <span className="font-lato font-medium text-sm text-gray-400">
+                          Unassigned
+                        </span>
+                      ) : assignees.length === 1 ? (
+                        <div className="flex min-w-0 items-center gap-2">
+                          <SmartAvatar
+                            src={assignees[0]?.photo}
+                            name={assignees[0]?.fullName}
+                            key={assignees[0]?.updatedAt}
+                            className="size-5 shrink-0"
+                            textSize="text-[10px]"
+                          />
+                          <span className="font-lato font-medium text-sm text-gray-700 truncate">
+                            {assignees[0]?._id === currentUserId
+                              ? "me"
+                              : assignees[0]?.fullName}
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="flex min-w-0 items-center gap-2">
+                          <div className="flex shrink-0 items-center">
+                            {assignees.slice(0, 2).map((u, i) => (
+                              <div key={u._id} className={cn(i > 0 && "-ml-2")}>
+                                <SmartAvatar
+                                  src={u.photo}
+                                  name={u.fullName}
+                                  key={u.updatedAt}
+                                  className="size-5 ring-1 ring-white"
+                                  textSize="text-[10px]"
+                                />
+                              </div>
+                            ))}
+                          </div>
+                          <span className="font-lato font-medium text-sm text-gray-700 truncate">
+                            {assignees.length} people
+                          </span>
+                        </div>
+                      )}
+                      <ChevronsUpDown
+                        size={14}
+                        color="#777"
+                        className="shrink-0"
+                      />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    className="w-72 p-0"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <AssigneeList
+                      taskId={task._id}
+                      assignees={assignees}
+                      currentUserId={currentUserId}
+                      onToggle={(u) =>
+                        assign({
+                          taskId: task._id,
+                          coachId: u._id,
+                          coachUser: u
+                        })
+                      }
+                    />
+                  </PopoverContent>
+                </Popover>
+              );
+            })()}
+          </TableCell>
+        );
+
+      case "dueDate":
+        return (
+          <TableCell
+            key={key}
+            className="font-lato text-sm text-gray-600 tracking-[-0.05px]"
+          >
+            {task.dueDate ? moment(task.dueDate).format("DD-MM-YYYY") : "-"}
+          </TableCell>
+        );
+
+      case "category":
+        return (
+          <TableCell key={key} className="tracking-[-0.05px] overflow-hidden">
+            <Badge
+              className="max-w-full rounded-full py-0.5 px-2 flex items-center gap-1.5 font-archivo font-medium text-xs leading-4.5"
+              style={{
+                backgroundColor: task.category.color.bg,
+                color: task.category.color.text
+              }}
+              key={task.category?.title}
+            >
+              <div
+                className="size-1.5 shrink-0 rounded-full"
+                style={{ backgroundColor: task.category.color.text }}
+              ></div>
+              <span className="truncate">{task.category?.title}</span>
+            </Badge>
+          </TableCell>
+        );
+
+      case "priority":
+        return (
+          <TableCell key={key} className="tracking-[-0.05px] capitalize">
+            <div className="flex items-center gap-2">
+              <PriorityFlag priority={task.priority.toLocaleLowerCase()} />
+              {task.priority}
+            </div>
+          </TableCell>
+        );
+
+      case "status":
+        return (
+          <TableCell key={key} className="tracking-[-0.05px] overflow-hidden">
+            <Badge
+              className="max-w-full rounded-full py-0.5 px-2 font-archivo font-medium text-xs leading-4.5"
+              style={{
+                backgroundColor: task.status.color.bg,
+                color: task.status.color.text
+              }}
+            >
+              <span className="truncate">{task.status.title}</span>
+            </Badge>
+          </TableCell>
+        );
+
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="mt-2 w-full tasksTable">
       {tasks.length != 0 && (
         <Table
-          style={{ overflow: "visible" }}
-          className="w-full !overflow-visible table-container"
+          style={{
+            overflow: "visible",
+            minWidth: tableMinWidth,
+            width: tableWidth
+          }}
+          className="table-fixed !overflow-visible table-container"
         >
+          {/* Fixed layout + explicit widths is what makes the columns
+              resizable; see getTaskTableGeometry for why the first column is
+              left width-less. */}
+          <colgroup>
+            {columns.map((key) => (
+              <col key={key} style={colStyle(key)} />
+            ))}
+            <col style={{ width: ACTIONS_COLUMN_WIDTH }} />
+          </colgroup>
           <TableHeader className="">
-            <TableRow className="hover:bg-transparent !border-b-1 !border-gray-100">
-              <TableHead className="text-xs text-gray-500 min-w-[200px]">
-                <ColumnSortControl columnKey="name" />
-              </TableHead>
-              <TableHead className="text-xs text-gray-400 tracking-[-0.05px]">
-                <ColumnSortControl columnKey="owner" />
-              </TableHead>
-              <TableHead className="text-xs text-gray-400 tracking-[-0.05px]">
-                <ColumnSortControl columnKey="assignedTo" />
-              </TableHead>
-              <TableHead className="text-xs text-gray-400 tracking-[-0.05px]">
-                <ColumnSortControl columnKey="dueDate" />
-              </TableHead>
-              <TableHead className="text-xs text-gray-400 tracking-[-0.05px]">
-                <ColumnSortControl columnKey="category" />
-              </TableHead>
-              <TableHead className="text-xs text-gray-400 tracking-[-0.05px]">
-                <ColumnSortControl columnKey="priority" />
-              </TableHead>
-              {showStatus && (
-                <TableHead className="text-xs text-gray-400 tracking-[-0.05px]">
-                  <ColumnSortControl columnKey="status" />
+            <TableRow className="group/head hover:bg-transparent !border-b-1 !border-gray-100">
+              {columns.map((key) => (
+                <TableHead
+                  key={key}
+                  // Lets ColumnResizer map rendered header cells back to
+                  // column keys when it freezes the layout for a drag.
+                  data-column-key={key}
+                  className={cn(
+                    "relative text-xs tracking-[-0.05px]",
+                    key === "name" ? "text-gray-500" : "text-gray-400"
+                  )}
+                >
+                  <ColumnSortControl columnKey={key} />
                 </TableHead>
-              )}
-              <TableHead className="text-xs text-gray-400 tracking-[-0.05px] !w-[20px]"></TableHead>
+              ))}
+              <TableHead />
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -314,238 +602,7 @@ function TasksTable({
                       }}
                       onMouseEnter={() => prefetchOnMouseEnter(task._id)}
                     >
-                      <TableCell
-                        className={cn(
-                          "font-medium text-sm leading-5 font-lato tracking-[-0.05px] relative",
-                          task.subtasks &&
-                            task.subtasks.length <= 0 &&
-                            "pl-[42px]"
-                        )}
-                      >
-                        <div className="flex items-center">
-                          {task.subtasks && task.subtasks.length > 0 && (
-                            <div
-                              className="flex items-center justify-center rounded-sm p-2 hover:bg-gray-100 transition-all duration-200 mr-2"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setOpenTasksIndex((prev) => {
-                                  if (prev.includes(task._id)) {
-                                    return prev.filter((i) => i !== task._id);
-                                  } else {
-                                    return [...prev, task._id];
-                                  }
-                                });
-                              }}
-                            >
-                              <Image
-                                src={assets.icons.triangle}
-                                width={10}
-                                height={5}
-                                alt="triangle"
-                                className={cn(
-                                  openTasksIndex.includes(task._id)
-                                    ? "rotate-360"
-                                    : "rotate-270",
-                                  "transition-all duration-200 shrink-0"
-                                )}
-                              />
-                            </div>
-                          )}
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <div
-                                className={cn(
-                                  "size-4 rounded-full mr-3 flex items-center justify-center",
-                                  {
-                                    "border-2 border-gray-300 border-dotted":
-                                      task.status.title === "Todo"
-                                  }
-                                )}
-                                style={{
-                                  backgroundColor:
-                                    task.status.title === "Todo"
-                                      ? "white"
-                                      : task.status.color.text
-                                }}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setStatusBoxIndex(
-                                    statusBoxIndex === task._id
-                                      ? null
-                                      : task._id
-                                  );
-                                }}
-                              >
-                                <div className="h-3.5 w-3.5 rounded-full border-1 border-white bg-transparent" />
-                              </div>
-                            </PopoverTrigger>
-                            <PopoverContent
-                              className="w-[245px] p-0 relative left-[111px] max-sm:left-[50px]"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <StatusBox
-                                taskId={task._id}
-                                selectedStatus={task.status._id}
-                              />
-                            </PopoverContent>
-                          </Popover>
-                          <p
-                            className="flex-1"
-                            onClick={() => {
-                              setSelectedTask(task._id);
-                              setIsOpen(true);
-                            }}
-                          >
-                            {task.title}
-                          </p>
-                        </div>
-                      </TableCell>
-                      <TableCell className="tracking-[-0.05px]">
-                        <div className="flex items-center gap-2">
-                          <SmartAvatar
-                            src={task?.user?.photo}
-                            name={task?.user?.fullName}
-                            key={task?.user?.updatedAt}
-                            className="size-5"
-                            textSize="text-[10px]"
-                          />
-                          <span className="font-lato font-medium text-sm text-gray-700">
-                            {task?.user?.fullName ?? "-"}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="tracking-[-0.05px]">
-                        {(() => {
-                          const assignees = Array.isArray(task.assignedTo)
-                            ? task.assignedTo
-                            : [];
-
-                          return (
-                            // Assignees — editable by the owner's management
-                            // hierarchy (coach / manager / admin). The backend
-                            // re-validates on toggle.
-                            <Popover
-                              open={openAssignFor === task._id}
-                              onOpenChange={(open) =>
-                                setOpenAssignFor(open ? task._id : null)
-                              }
-                            >
-                              <PopoverTrigger asChild>
-                                <button
-                                  onClick={(e) => e.stopPropagation()}
-                                  disabled={isAssigning}
-                                  className="[all:unset] !flex !items-center !gap-2 disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
-                                >
-                                  {assignees.length === 0 ? (
-                                    <span className="font-lato font-medium text-sm text-gray-400">
-                                      Unassigned
-                                    </span>
-                                  ) : assignees.length === 1 ? (
-                                    <div className="flex items-center gap-2">
-                                      <SmartAvatar
-                                        src={assignees[0]?.photo}
-                                        name={assignees[0]?.fullName}
-                                        key={assignees[0]?.updatedAt}
-                                        className="size-5"
-                                        textSize="text-[10px]"
-                                      />
-                                      <span className="font-lato font-medium text-sm text-gray-700">
-                                        {assignees[0]?._id === currentUserId
-                                          ? "me"
-                                          : assignees[0]?.fullName}
-                                      </span>
-                                    </div>
-                                  ) : (
-                                    <div className="flex items-center gap-2">
-                                      <div className="flex items-center">
-                                        {assignees.slice(0, 2).map((u, i) => (
-                                          <div
-                                            key={u._id}
-                                            className={cn(i > 0 && "-ml-2")}
-                                          >
-                                            <SmartAvatar
-                                              src={u.photo}
-                                              name={u.fullName}
-                                              key={u.updatedAt}
-                                              className="size-5 ring-1 ring-white"
-                                              textSize="text-[10px]"
-                                            />
-                                          </div>
-                                        ))}
-                                      </div>
-                                      <span className="font-lato font-medium text-sm text-gray-700">
-                                        {assignees.length} people
-                                      </span>
-                                    </div>
-                                  )}
-                                  <ChevronsUpDown size={14} color="#777" />
-                                </button>
-                              </PopoverTrigger>
-                              <PopoverContent
-                                className="w-72 p-0"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                <AssigneeList
-                                  taskId={task._id}
-                                  assignees={assignees}
-                                  currentUserId={currentUserId}
-                                  onToggle={(u) =>
-                                    assign({
-                                      taskId: task._id,
-                                      coachId: u._id,
-                                      coachUser: u
-                                    })
-                                  }
-                                />
-                              </PopoverContent>
-                            </Popover>
-                          );
-                        })()}
-                      </TableCell>
-                      <TableCell className="font-lato text-sm text-gray-600 tracking-[-0.05px]">
-                        {task.dueDate
-                          ? moment(task.dueDate).format("DD-MM-YYYY")
-                          : "-"}
-                      </TableCell>
-                      <TableCell className="tracking-[-0.05px]">
-                        <Badge
-                          className="rounded-full py-0.5 px-2 flex items-center gap-1.5 font-archivo font-medium text-xs leading-4.5"
-                          style={{
-                            backgroundColor: task.category.color.bg,
-                            color: task.category.color.text
-                          }}
-                          key={task.category?.title}
-                        >
-                          <div
-                            className="size-1.5 rounded-full"
-                            style={{
-                              backgroundColor: task.category.color.text
-                            }}
-                          ></div>
-                          {task.category?.title}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="tracking-[-0.05px capitalize">
-                        <div className="flex items-center gap-2">
-                          <PriorityFlag
-                            priority={task.priority.toLocaleLowerCase()}
-                          />
-                          {task.priority}
-                        </div>
-                      </TableCell>
-                      {showStatus && (
-                        <TableCell className="tracking-[-0.05px]">
-                          <Badge
-                            className="rounded-full py-0.5 px-2 font-archivo font-medium text-xs leading-4.5"
-                            style={{
-                              backgroundColor: task.status.color.bg,
-                              color: task.status.color.text
-                            }}
-                          >
-                            {task.status.title}
-                          </Badge>
-                        </TableCell>
-                      )}
+                      {columns.map((key) => renderCell(key, task))}
                       <TableCell className="">
                         <Popover>
                           <PopoverTrigger asChild>
@@ -598,6 +655,7 @@ function TasksTable({
                         <SubTasksTable
                           subTasks={task.subtasks}
                           taskId={task._id}
+                          colSpan={colSpan}
                         />
                       )}
                   </React.Fragment>
@@ -605,7 +663,7 @@ function TasksTable({
                 {hasMore && (
                   <tr ref={sentinelRef} aria-hidden>
                     <td
-                      colSpan={colCount}
+                      colSpan={colSpan}
                       style={{ height: 1, padding: 0, border: 0 }}
                     />
                   </tr>

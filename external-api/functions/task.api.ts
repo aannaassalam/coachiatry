@@ -224,8 +224,10 @@ export const getAllSharedTasks = async ({
 
   const res = await axiosInstance.get(endpoints.task.shared(shareId), {
     params: {
+      // slim=true is what selects the trimmed, assignedTo-inclusive populate
+      // server-side; the populate list only matters if slim is ever dropped.
       slim: "true",
-      populate: "category,status,user",
+      populate: "category,status,user,assignedTo",
       sort,
       ...filterQuery,
       dueDate:

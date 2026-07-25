@@ -2,6 +2,7 @@ import { Task } from "@/typescript/interface/task.interface";
 import { Status } from "@/typescript/interface/status.interface";
 import { User } from "@/typescript/interface/user.interface";
 import moment from "moment";
+import type { CSSProperties } from "react";
 
 /**
  * Single source of truth for the sortable / groupable task table columns.
@@ -26,6 +27,12 @@ export interface ColumnMeta {
   apiField: string;
   sortable: boolean;
   groupable: boolean;
+  /** Width used until the user drags the column's resize handle. */
+  defaultWidth: number;
+  /** Floor a resize drag can reach, so a column can never be dragged away. */
+  minWidth: number;
+  /** Name anchors every row, so it is the one column that can't be hidden. */
+  hideable: boolean;
 }
 
 export const COLUMN_META: Record<ColumnKey, ColumnMeta> = {
@@ -34,51 +41,168 @@ export const COLUMN_META: Record<ColumnKey, ColumnMeta> = {
     label: "Name",
     apiField: "title",
     sortable: true,
-    groupable: false
+    groupable: false,
+    defaultWidth: 300,
+    minWidth: 120,
+    hideable: false
   },
   assignedTo: {
     key: "assignedTo",
     label: "Assignee",
     apiField: "assignedTo",
     sortable: true,
-    groupable: true
+    groupable: true,
+    defaultWidth: 170,
+    minWidth: 88,
+    hideable: true
   },
   owner: {
     key: "owner",
     label: "Owner",
     apiField: "user",
     sortable: true,
-    groupable: true
+    groupable: true,
+    defaultWidth: 170,
+    minWidth: 88,
+    hideable: true
   },
   dueDate: {
     key: "dueDate",
     label: "Due Date",
     apiField: "dueDate",
     sortable: true,
-    groupable: true
+    groupable: true,
+    defaultWidth: 120,
+    minWidth: 84,
+    hideable: true
   },
   category: {
     key: "category",
     label: "Category",
     apiField: "category",
     sortable: true,
-    groupable: true
+    groupable: true,
+    defaultWidth: 150,
+    minWidth: 84,
+    hideable: true
   },
   priority: {
     key: "priority",
     label: "Priority",
     apiField: "priority",
     sortable: true,
-    groupable: true
+    groupable: true,
+    defaultWidth: 120,
+    minWidth: 80,
+    hideable: true
   },
   status: {
     key: "status",
     label: "Status",
     apiField: "status",
     sortable: true,
-    groupable: true
+    groupable: true,
+    defaultWidth: 130,
+    minWidth: 80,
+    hideable: true
   }
 };
+
+/**
+ * Column order rendered by the personal / shared task tables and by the
+ * per-client table. Both drive their <colgroup> and header cells from these, so
+ * adding a column here is the only place order needs to change.
+ */
+export const TASK_COLUMN_ORDER: ColumnKey[] = [
+  "name",
+  "assignedTo",
+  "dueDate",
+  "owner",
+  "category",
+  "priority",
+  "status"
+];
+
+export const CLIENT_TASK_COLUMN_ORDER: ColumnKey[] = [
+  "name",
+  "owner",
+  "assignedTo",
+  "dueDate",
+  "category",
+  "priority",
+  "status"
+];
+
+/**
+ * Read-only shared view — same columns as the client table. Assignee is display
+ * only here: the cell has no popover, since a shared viewer can't reassign.
+ */
+export const SHARED_TASK_COLUMN_ORDER: ColumnKey[] = [
+  "name",
+  "owner",
+  "assignedTo",
+  "dueDate",
+  "category",
+  "priority",
+  "status"
+];
+
+/** Width of the trailing row-actions column; not user-resizable. */
+export const ACTIONS_COLUMN_WIDTH = 56;
+
+/** CSS custom property carrying a column's width. */
+export const columnWidthVar = (key: ColumnKey) => `--tcol-${key}`;
+
+export interface TaskTableGeometry {
+  /** Real columns plus the actions column, when there is one. */
+  colSpan: number;
+  /** Live `calc()` summing every column's width variable. */
+  tableMinWidth: string;
+  /** `100%` while filling, `max-content` once widths are the user's. */
+  tableWidth: string;
+  colStyle: (key: ColumnKey) => CSSProperties;
+}
+
+/**
+ * Sizing for a task table's `<colgroup>`, given the columns it currently shows.
+ * Every column carries an explicit width and the table is `table-layout: fixed`;
+ * what changes is how the table itself is sized:
+ *
+ *  - **Untouched (`fill: true`)** — `width: 100%`, so when the default widths add
+ *    up to less than the container the browser shares the slack out across all
+ *    the columns. Opening the list therefore shows columns spread over the full
+ *    width, rather than bunched to the left with dead space beside them.
+ *  - **User has set widths (`fill: false`)** — `width: max-content`, so columns
+ *    sit at exactly the widths they were dragged to. Narrower than the container
+ *    just means some empty space to the right, which is the accepted trade for
+ *    dragging that tracks the pointer 1:1.
+ *
+ * `tableMinWidth` is the sum of the same widths, so in either mode the table
+ * stops shrinking once the columns outgrow the container and the wrapper scrolls
+ * instead of squeezing anything.
+ */
+export function getTaskTableGeometry(
+  columns: ColumnKey[],
+  widthStyle: (key: ColumnKey) => string,
+  {
+    hasActionsColumn = true,
+    fill = true
+  }: {
+    /** The read-only shared table has no row-actions column. */
+    hasActionsColumn?: boolean;
+    fill?: boolean;
+  } = {}
+): TaskTableGeometry {
+  const widths = columns.map(widthStyle);
+  if (hasActionsColumn) widths.push(`${ACTIONS_COLUMN_WIDTH}px`);
+
+  return {
+    colSpan: columns.length + (hasActionsColumn ? 1 : 0),
+    tableMinWidth: `calc(${widths.join(" + ")})`,
+    tableWidth: fill ? "100%" : "max-content",
+    colStyle: (key) => ({ width: widthStyle(key) })
+  };
+}
 
 /** Columns offered in the toolbar "Group by" selector, in display order. */
 export const GROUPABLE_COLUMNS: ColumnMeta[] = [

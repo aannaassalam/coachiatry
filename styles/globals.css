@@ -252,9 +252,16 @@ h6 {
 .tasksTable .table-container {
   overflow: visible !important;
 }
+/* The <Table> primitive wraps itself in a scroll container. Task tables scroll
+   from their own outer wrapper instead (see ListView), so neutralise the inner
+   one to avoid nested horizontal scrollbars. */
+.tasksTable [data-slot="table-container"] {
+  overflow: visible !important;
+}
 /* For WebKit browsers */
 ::-webkit-scrollbar {
   width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -281,6 +288,11 @@ h6 {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+/* --sidebar-width is set by AppLayout and shrinks when the sidebar collapses;
+   56px accounts for the card's horizontal padding. Custom properties can't be
+   transitioned, so the resulting max-width is eased instead — matching the
+   sidebar's own 300ms so the week view keeps pace with the rail. */
 .weekContainer {
-  max-width: calc(100vw - 368px);
+  max-width: calc(100vw - var(--sidebar-width, 312px) - 56px);
+  transition: max-width 300ms ease-in-out;
 }
