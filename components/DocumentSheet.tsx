@@ -1,13 +1,16 @@
 "use client";
 
-import { getAllCategories } from "@/external-api/functions/category.api";
+import {
+  getAllCategories,
+  getAllCategoriesByCoach
+} from "@/external-api/functions/category.api";
 import {
   createDocument,
+  createDocumentByCoach,
   editDocument,
   getDocument
 } from "@/external-api/functions/document.api";
 import assets from "@/json/assets";
-import { generateMarkdownPDF } from "@/lib/functions/documentPdf";
 import { cn } from "@/lib/utils";
 import Toolbar from "@/ui/MarkdownEditor/Toolbar";
 import { DialogTrigger } from "@radix-ui/react-dialog";
@@ -27,6 +30,7 @@ import { BsCalendar2 } from "react-icons/bs";
 import { GoPencil } from "react-icons/go";
 import { IoIosShareAlt } from "react-icons/io";
 import { toast } from "sonner";
+import { useParams } from "next/navigation";
 import CoachAI from "./CoachAIPopover";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
@@ -52,6 +56,9 @@ export default function DocumentSheet({
   onOpenChange: (toggle: boolean) => void;
   documentId: string;
 }) {
+  // Present only under /clients/[userId] — that route's copy of this sheet was
+  // an otherwise identical fork, so the param is what selects the coach APIs.
+  const { userId } = useParams();
   const [isEditing, setIsEditing] = useState(!documentId);
   const [downloading, setDownloading] = useState(false);
   const [errorState, setErrorState] = useState({
@@ -76,8 +83,11 @@ export default function DocumentSheet({
         enabled: !!documentId
       },
       {
-        queryKey: ["categories"],
-        queryFn: getAllCategories
+        queryKey: ["categories", userId ?? null],
+        queryFn: () =>
+          userId
+            ? getAllCategoriesByCoach(userId as string)
+            : getAllCategories()
       }
     ]
   });
@@ -135,7 +145,10 @@ export default function DocumentSheet({
   }, [documentData?.content, editor]);
 
   const { mutate, isPending } = useMutation({
-    mutationFn: createDocument,
+    mutationFn: (body: { title: string; content: string; tag: string }) =>
+      userId
+        ? createDocumentByCoach({ ...body, user: userId as string })
+        : createDocument(body),
     onSuccess: () => {
       onOpenChange(false);
       editor?.commands.setContent("");
@@ -201,6 +214,12 @@ export default function DocumentSheet({
   async function handleDownload() {
     setDownloading(true);
     if (data) {
+      // Imported on click, not at module scope: pdfmake + its base64 font VFS is
+      // ~800kB, and a static import put all of it in the page bundle of every
+      // route that reaches this sheet.
+      const { generateMarkdownPDF } = await import(
+        "@/lib/functions/documentPdf"
+      );
       await generateMarkdownPDF(
         data.content,
         data.title,

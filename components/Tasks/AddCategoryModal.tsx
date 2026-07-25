@@ -1,7 +1,11 @@
-import { addCategory } from "@/external-api/functions/category.api";
+import {
+  addCategory,
+  addCategoryByCoach
+} from "@/external-api/functions/category.api";
 import { useMutation } from "@tanstack/react-query";
 import { Archivo, Lato } from "next/font/google";
 import React, { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import { Button } from "../ui/button";
 import { Dialog, DialogContent } from "../ui/dialog";
 import { Input } from "../ui/input";
@@ -37,13 +41,22 @@ function AddCategoryModal({
   isOpen: boolean;
   onClose: () => void;
 }) {
+  // Present only under /clients/[userId]; picks the coach-scoped endpoints so
+  // this component serves both the personal and per-client pages.
+  const { userId } = useParams();
   const [title, setTitle] = useState("");
   const [selectedColor, setSelectedColor] = useState<
     (typeof predefinedColors)[0]
   >(predefinedColors[0]);
 
   const { mutate, isPending } = useMutation({
-    mutationFn: addCategory,
+    mutationFn: (body: {
+      title: string;
+      color: { bg: string; text: string };
+    }) =>
+      userId
+        ? addCategoryByCoach({ ...body, user: userId as string })
+        : addCategory(body),
     onSuccess: (data) => {
       setTitle("");
       setSelectedColor(predefinedColors[0]);
@@ -51,7 +64,7 @@ function AddCategoryModal({
       onClose();
     },
     meta: {
-      invalidateQueries: ["categories"]
+      invalidateQueries: userId ? ["categories", userId] : ["categories"]
     }
   });
 

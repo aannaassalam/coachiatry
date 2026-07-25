@@ -1,5 +1,8 @@
 "use client";
-import { getAllStatuses } from "@/external-api/functions/status.api";
+import {
+  getAllStatuses,
+  getAllStatusesByCoach
+} from "@/external-api/functions/status.api";
 import { moveToStatus } from "@/external-api/functions/task.api";
 import assets from "@/json/assets";
 import { cn } from "@/lib/utils";
@@ -9,6 +12,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { Check } from "lucide-react";
 import Image from "next/image";
 import { useMemo, useState } from "react";
+import { useParams } from "next/navigation";
 import { Input } from "../ui/input";
 
 function StatusBox({
@@ -18,11 +22,15 @@ function StatusBox({
   taskId: string;
   selectedStatus: string;
 }) {
+  // Present only under /clients/[userId]; picks the coach-scoped endpoints so
+  // this component serves both the personal and per-client pages.
+  const { userId } = useParams();
   const [searchTerm, setSearchTerm] = useState("");
 
   const { data = [] } = useQuery({
-    queryKey: ["status"],
-    queryFn: getAllStatuses
+    queryKey: ["status", userId ?? null],
+    queryFn: () =>
+      userId ? getAllStatusesByCoach(userId as string) : getAllStatuses()
   });
 
   // Filtered list based on search
@@ -71,7 +79,7 @@ function StatusBox({
       return { previousData };
     },
     meta: {
-      invalidateQueries: ["tasks"]
+      invalidateQueries: userId ? ["tasks", userId] : ["tasks"]
     }
   });
 

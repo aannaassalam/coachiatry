@@ -1,7 +1,11 @@
-import { addStatus } from "@/external-api/functions/status.api";
+import {
+  addStatus,
+  addStatusByCoach
+} from "@/external-api/functions/status.api";
 import { useMutation } from "@tanstack/react-query";
 import { Archivo, Lato } from "next/font/google";
 import React, { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import { Button } from "../ui/button";
 import { Dialog, DialogContent } from "../ui/dialog";
 import { Input } from "../ui/input";
@@ -39,13 +43,22 @@ function AddStatusModal({
   isOpen: boolean;
   onClose: () => void;
 }) {
+  // Present only under /clients/[userId]; picks the coach-scoped endpoints so
+  // this component serves both the personal and per-client pages.
+  const { userId } = useParams();
   const [title, setTitle] = useState("");
   const [selectedColor, setSelectedColor] = useState<
     (typeof predefinedColors)[0]
   >(predefinedColors[0]);
 
   const { mutate, isPending } = useMutation({
-    mutationFn: addStatus,
+    mutationFn: (body: {
+      title: string;
+      color: { bg: string; text: string };
+    }) =>
+      userId
+        ? addStatusByCoach({ ...body, user: userId as string })
+        : addStatus(body),
     onSuccess: (data) => {
       setTitle("");
       setSelectedColor(predefinedColors[0]);
@@ -53,7 +66,7 @@ function AddStatusModal({
       onClose();
     },
     meta: {
-      invalidateQueries: ["status"]
+      invalidateQueries: userId ? ["status", userId] : ["status"]
     }
   });
 

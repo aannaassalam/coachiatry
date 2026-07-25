@@ -39,14 +39,8 @@ import {
   FormLabel,
   FormMessage
 } from "../ui/form";
+import { Input } from "../ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from "../ui/select";
 import { Separator } from "../ui/separator";
 import { Textarea } from "../ui/textarea";
 
@@ -54,7 +48,7 @@ const schema = yup.object().shape({
   message: yup.string().required("Message is required"),
   date: yup.date().required("Scheduled Date is required"),
   frequency: yup.string().required("Please select a frequency"),
-  time: yup.string().default("")
+  time: yup.string().required("Scheduled time is required")
 });
 
 // "Once" is a one-time send (backend `none`).
@@ -132,7 +126,7 @@ export default function ScheduleMessageModal({
     // toISOString() emits UTC, so the same wall-clock the user sees is what
     // gets scheduled — regardless of the server's timezone.
     const scheduledAt = moment(
-      `${moment(data.date).format("YYYY-MM-DD")} ${data.time || "00:00"}`,
+      `${moment(data.date).format("YYYY-MM-DD")} ${data.time}`,
       "YYYY-MM-DD HH:mm"
     ).toISOString();
 
@@ -157,16 +151,6 @@ export default function ScheduleMessageModal({
       });
     }
   };
-
-  const times = React.useMemo(() => {
-    const slots: string[] = [];
-    for (let h = 0; h < 24; h++) {
-      for (const m of [0, 15, 30, 45]) {
-        slots.push(moment({ hour: h, minute: m }).format("HH:mm"));
-      }
-    }
-    return slots;
-  }, []);
 
   useEffect(() => {
     if (selectedMessage) {
@@ -306,21 +290,11 @@ export default function ScheduleMessageModal({
                       Time
                     </FormLabel>
                     <FormControl>
-                      <Select
-                        value={field.value}
-                        onValueChange={(val) => field.onChange(val)}
-                      >
-                        <SelectTrigger className="w-full !h-[42px]">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="max-h-60">
-                          {times.map((t) => (
-                            <SelectItem key={t} value={t}>
-                              {moment(t, "HH:mm").format("hh:mm A")}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <Input
+                        type="time"
+                        className="h-[42px] font-lato"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

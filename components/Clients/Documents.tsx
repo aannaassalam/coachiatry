@@ -18,7 +18,7 @@ import { parseAsString, useQueryState } from "nuqs";
 import { useState } from "react";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
-import DocumentSheet from "./DocumentSheet";
+import DocumentSheet from "@/components/DocumentSheet";
 
 function Documents() {
   const { userId } = useParams();

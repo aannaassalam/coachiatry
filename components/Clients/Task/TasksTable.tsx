@@ -41,7 +41,7 @@ import { Checkbox } from "../../ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "../../ui/popover";
 import { SmartAvatar } from "../../ui/smart-avatar";
 import AddTaskSheet from "./AddTaskSheet";
-import StatusBox from "./StatusBox";
+import StatusBox from "@/components/Tasks/StatusBox";
 import { useParams } from "next/navigation";
 import { Filter } from "@/typescript/interface/common.interface";
 import { sanitizeFilters } from "@/lib/functions/_helpers.lib";

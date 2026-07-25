@@ -1,15 +1,8 @@
 "use client";
 
 import { Calendar } from "@/components/ui/calendar";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { isBefore, startOfDay } from "date-fns";
-import { Calendar as Clock } from "lucide-react";
 import moment from "moment";
 import * as React from "react";
 
@@ -36,17 +29,6 @@ export function DateTimePicker({ value, onChange }: DateTimePickerProps) {
     }
   }, [date, time, onChange]);
 
-  // Generate time slots every 30 minutes
-  const times = React.useMemo(() => {
-    const slots: string[] = [];
-    for (let h = 0; h < 24; h++) {
-      for (const m of [0, 30]) {
-        slots.push(moment({ hour: h, minute: m }).format("HH:mm"));
-      }
-    }
-    return slots;
-  }, []);
-
   return (
     <div className="w-auto p-3 space-y-3">
       <Calendar
@@ -55,21 +37,12 @@ export function DateTimePicker({ value, onChange }: DateTimePickerProps) {
         onSelect={setDate}
         disabled={(date) => isBefore(date, today)}
       />
-      <div className="flex items-center gap-2">
-        <Clock className="h-4 w-4 text-muted-foreground" />
-        <Select value={time} onValueChange={(val) => setTime(val)}>
-          <SelectTrigger className="w-full">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent className="max-h-60">
-            {times.map((t) => (
-              <SelectItem key={t} value={t}>
-                {moment(t, "HH:mm").format("hh:mm A")}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      <Input
+        type="time"
+        value={time}
+        // Ignore the clear: the parent needs an hh:mm to build a Date from.
+        onChange={(e) => e.target.value && setTime(e.target.value)}
+      />
     </div>
   );
 }

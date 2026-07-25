@@ -5,6 +5,7 @@ import {
   PopoverTrigger
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
+import { sanitizeFilters } from "@/lib/functions/_helpers.lib";
 import { Filter } from "@/typescript/interface/common.interface";
 import { Columns3, ListFilter } from "lucide-react";
 import moment from "moment";
@@ -12,7 +13,7 @@ import { parseAsJson, useQueryState } from "nuqs";
 import { useState } from "react";
 import AddTaskSheet from "./AddTaskSheet";
 import ListView from "./ListView";
-import FilterBox from "./FilterBox";
+import FilterBox from "@/components/Tasks/FilterBox";
 import ColumnBox from "@/components/Tasks/ColumnBox";
 import GroupByControl from "@/components/Tasks/GroupByControl";
 import { TableLayoutProvider } from "@/components/Tasks/TableLayoutContext";
@@ -24,12 +25,6 @@ moment.updateLocale("en", {
     doy: 4 // week 1 must contain Jan 4th (ISO 8601 standard)
   }
 });
-
-function sanitizeFilters(values: Filter[]): Filter[] {
-  return values.filter(
-    (f) => f.selectedKey && f.selectedOperator && f.selectedValue
-  );
-}
 
 function Tasks() {
   const [values] = useQueryState<Filter[]>(

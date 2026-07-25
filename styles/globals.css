@@ -249,6 +249,34 @@ h6 {
   font-style: italic;
   pointer-events: none;
 }
+/* Native time/date fields: Chrome parks the picker button immediately after the
+   digits, leaving dead space after it, so the field looks cramped next to the
+   Date/Repeat controls beside it whose icons sit at the trailing edge.
+   Absolute positioning is what actually pins it there — `margin-inline-start:
+   auto` and stretching ::-webkit-datetime-edit both leave it against the digits,
+   because the button isn't a flex item of the field at these widths.
+   The padding keeps the digits from sliding under it on a narrow field. */
+input[type="time"],
+input[type="date"] {
+  position: relative;
+  padding-inline-end: 2rem;
+}
+input[type="time"]::-webkit-calendar-picker-indicator,
+input[type="date"]::-webkit-calendar-picker-indicator {
+  position: absolute;
+  right: 0.75rem; /* matches the field's px-3 */
+  top: 50%;
+  transform: translateY(-50%);
+  margin: 0;
+  opacity: 0.5;
+  cursor: pointer;
+  transition: opacity 150ms ease;
+}
+input[type="time"]::-webkit-calendar-picker-indicator:hover,
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 0.9;
+}
+
 .tasksTable .table-container {
   overflow: visible !important;
 }

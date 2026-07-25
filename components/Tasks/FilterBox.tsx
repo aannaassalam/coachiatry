@@ -1,7 +1,13 @@
 "use client";
 
-import { getAllCategories } from "@/external-api/functions/category.api";
-import { getAllStatuses } from "@/external-api/functions/status.api";
+import {
+  getAllCategories,
+  getAllCategoriesByCoach
+} from "@/external-api/functions/category.api";
+import {
+  getAllStatuses,
+  getAllStatusesByCoach
+} from "@/external-api/functions/status.api";
 import { VALUELESS_OPERATORS } from "@/lib/functions/_helpers.lib";
 import { Filter } from "@/typescript/interface/common.interface";
 import { PopoverClose } from "@radix-ui/react-popover";
@@ -9,6 +15,7 @@ import { useQueries } from "@tanstack/react-query";
 import { Plus, Trash2, X } from "lucide-react";
 import { Archivo } from "next/font/google";
 import { parseAsJson, parseAsString, useQueryState } from "nuqs";
+import { useParams } from "next/navigation";
 import { Button } from "../ui/button";
 import { Combobox } from "../ui/combobox";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
@@ -22,6 +29,10 @@ type FilterOption = {
 
 function FilterBox() {
   // ✅ store filters in URL instead of local state
+  // Present only under /clients/[userId]; picks the coach-scoped endpoints so
+  // this component serves both the personal and per-client pages.
+  const { userId } = useParams();
+
   const [values, setValues] = useQueryState<Filter[]>(
     "filters",
     parseAsJson<Filter[]>((v) =>
@@ -38,12 +49,16 @@ function FilterBox() {
   ] = useQueries({
     queries: [
       {
-        queryKey: ["categories"],
-        queryFn: getAllCategories
+        queryKey: ["categories", userId ?? null],
+        queryFn: () =>
+          userId
+            ? getAllCategoriesByCoach(userId as string)
+            : getAllCategories()
       },
       {
-        queryKey: ["status"],
-        queryFn: getAllStatuses
+        queryKey: ["status", userId ?? null],
+        queryFn: () =>
+          userId ? getAllStatusesByCoach(userId as string) : getAllStatuses()
       }
     ]
   });

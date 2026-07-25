@@ -24,6 +24,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getAllCategories } from "@/external-api/functions/category.api";
 import { getAllStatuses } from "@/external-api/functions/status.api";
 import AppLayout from "@/layouts/AppLayout";
+import { sanitizeFilters } from "@/lib/functions/_helpers.lib";
 import { Filter } from "@/typescript/interface/common.interface";
 import { useQueryClient } from "@tanstack/react-query";
 import { Columns3, ListFilter } from "lucide-react";
@@ -41,12 +42,6 @@ moment.updateLocale("en", {
     doy: 4 // week 1 must contain Jan 4th (ISO 8601 standard)
   }
 });
-
-function sanitizeFilters(values: Filter[]): Filter[] {
-  return values.filter(
-    (f) => f.selectedKey && f.selectedOperator && f.selectedValue
-  );
-}
 
 function Tasks() {
   const { data } = useSession();
