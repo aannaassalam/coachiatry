@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { ChatConversation } from "@/typescript/interface/chat.interface";
 import { Filter } from "@/typescript/interface/common.interface";
 import moment from "moment";
 import { parseCookies, setCookie } from "nookies";
@@ -58,6 +59,46 @@ export const roleParser = (role: string) => {
  * they're valid without a `selectedValue` (currently only due-date set checks).
  */
 export const VALUELESS_OPERATORS = ["isSet", "isNotSet"];
+
+/**
+ * Avatar + name for a conversation, seen from `ownerId`'s side — that's the
+ * signed-in user on their own chat, and the *client* when a coach/manager is
+ * viewing the client's account.
+ *
+ * Deleted accounts: soft-deleted (`active: false`) keeps the real name and gets
+ * a "(deleted)" suffix; hard-deleted already arrives as "Deleted user" with
+ * `deleted: true`. `label` carries the suffix, `name` stays clean for avatar
+ * initials, and `isDeleted` drives the muted styling.
+ *
+ * Single source of truth for this — every list row and chat header derives the
+ * same way, so a deleted user can't read as active in one view and deleted in
+ * another.
+ */
+export function chatDisplay(
+  chat?: ChatConversation,
+  ownerId?: string
+): { photo?: string; name?: string; label?: string; isDeleted: boolean } {
+  if (chat?.type === "group") {
+    return {
+      photo: chat.groupPhoto,
+      name: chat.name,
+      label: chat.name,
+      isDeleted: false
+    };
+  }
+
+  const user = chat?.members?.find(
+    (member) => member?.user?._id && member.user._id !== ownerId
+  )?.user;
+
+  return {
+    photo: user?.photo,
+    name: user?.fullName,
+    label:
+      user?.active === false ? `${user.fullName} (deleted)` : user?.fullName,
+    isDeleted: user?.active === false || user?.deleted === true
+  };
+}
 
 export function sanitizeFilters(values: Filter[]): Filter[] {
   return values.filter(

@@ -26,6 +26,14 @@ export const getAllCategoriesByCoach = async (
   return res.data;
 };
 
+// Categories of the sheet behind a share link — the owner's, not the watcher's.
+export const getAllCategoriesByShare = async (
+  shareId: string
+): Promise<Category[]> => {
+  const res = await axiosInstance.get(endpoints.category.getAllShared(shareId));
+  return res.data;
+};
+
 export const addCategoryByCoach = async (body: {
   title: string;
   color: {

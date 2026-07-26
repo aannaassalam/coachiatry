@@ -50,15 +50,14 @@ export default function ChatConversation() {
     conversation,
     friend,
     details,
+    isDeleted,
     isLoading: isConversationLoading
   } = useConversationDetails(room);
 
-  // The other member's account has been deleted (soft-deleted → active:false, or
-  // hard-deleted → the `deleted` placeholder). Only then do we offer to delete
-  // the conversation.
-  const isDeletedUserChat =
-    conversation?.type === "direct" &&
-    (friend?.user?.active === false || friend?.user?.deleted === true);
+  // Deleted-account state comes from chatDisplay via the hook, so this view and
+  // the chat list can't disagree. Only then do we offer to delete the
+  // conversation.
+  const isDeletedUserChat = conversation?.type === "direct" && isDeleted;
 
   const { mutate: deleteConversation, isPending: isDeletingConversation } =
     useMutation({

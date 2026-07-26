@@ -6,9 +6,10 @@ import {
 } from "@/external-api/functions/chat.api";
 import { getMessages } from "@/external-api/functions/message.api";
 import { useDebounce } from "@/hooks/utils/useDebounce";
+import { chatDisplay } from "@/lib/functions/_helpers.lib";
 import { cn } from "@/lib/utils";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
-import { Search } from "lucide-react";
+import { Archive, ChevronLeft, ChevronRight, Search } from "lucide-react";
 import moment from "moment";
 import { useParams } from "next/navigation";
 import { parseAsString, useQueryState } from "nuqs";
@@ -46,6 +47,9 @@ export default function ChatList() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 400);
+  // Read-only here: a coach can look inside the client's archive but archiving
+  // is the client's own action (the API only lets a member archive).
+  const [showArchived, setShowArchived] = useState(false);
   const listRef = useRef<HTMLUListElement>(null);
 
   const {
@@ -55,11 +59,19 @@ export default function ChatList() {
     hasNextPage,
     isFetchingNextPage
   } = useInfiniteQuery({
-    queryKey: ["conversations", userId, { search: debouncedSearch }],
+    queryKey: [
+      "conversations",
+      userId,
+      { search: debouncedSearch, showArchived }
+    ],
     queryFn: ({ pageParam }) =>
       getAllConversationsByCoach({
         userId: userId as string,
-        filters: { page: pageParam, search: debouncedSearch }
+        filters: {
+          page: pageParam,
+          search: debouncedSearch,
+          archived: showArchived
+        }
       }),
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {
@@ -71,6 +83,7 @@ export default function ChatList() {
   });
 
   const chats = chatsData?.pages.flatMap((page) => page.data) ?? [];
+  const archivedCount = chatsData?.pages[0]?.meta?.archivedCount ?? 0;
 
   const handleScroll = useCallback(() => {
     const el = listRef.current;
@@ -102,7 +115,18 @@ export default function ChatList() {
     <div className="w-xs mr-auto bg-white pt-4 rounded-lg flex flex-col min-h-0 max-md:w-full">
       {/* Header / Content Above */}
       <div className="flex items-center justify-between gap-2 mb-3 px-3">
-        <h2 className="text-sm font-semibold text-gray-800">All messages</h2>
+        {showArchived ? (
+          <button
+            type="button"
+            className="cursor-pointer flex items-center gap-1 text-sm font-semibold text-gray-800"
+            onClick={() => setShowArchived(false)}
+          >
+            <ChevronLeft size={16} />
+            Archived
+          </button>
+        ) : (
+          <h2 className="text-sm font-semibold text-gray-800">All messages</h2>
+        )}
       </div>
 
       {/* Search Input */}
@@ -142,19 +166,29 @@ export default function ChatList() {
           </div>
         ) : (
           <>
+            {!showArchived && archivedCount > 0 && (
+              <li
+                className="flex cursor-pointer items-center gap-3 py-2.5 px-3 rounded-[8px] transition hover:bg-gray-100"
+                onClick={() => setShowArchived(true)}
+              >
+                <Archive size={18} className="text-gray-500" />
+                <span className="flex-1 text-sm font-medium text-gray-800">
+                  Archived
+                </span>
+                <span className="text-xs text-gray-500">{archivedCount}</span>
+                <ChevronRight size={14} className="text-gray-400" />
+              </li>
+            )}
+            {showArchived && chats.length === 0 && (
+              <li className="px-3 py-6 text-center text-xs text-gray-400">
+                No archived conversations
+              </li>
+            )}
             {chats.map((_chat) => {
-              const chatUser = _chat.members.find(
-                (_member) => _member.user?._id !== userId
-              );
-              const details: { photo?: string; name?: string } = {
-                photo: chatUser?.user?.photo,
-                name: chatUser?.user?.fullName
-              };
-
-              if (_chat && _chat.type === "group") {
-                details.photo = _chat.groupPhoto;
-                details.name = _chat.name;
-              }
+              // Derived from the CLIENT's perspective (userId), not the coach's,
+              // and via the shared helper so a deleted account looks the same
+              // muted way it does in the client's own list.
+              const details = chatDisplay(_chat, userId as string);
 
               return (
                 <li
@@ -175,11 +209,13 @@ export default function ChatList() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center">
                       <span
-                        className={cn("font-medium  text-sm text-gray-900", {
+                        className={cn("font-medium text-sm", {
+                          "text-gray-400": details.isDeleted,
+                          "text-gray-900": !details.isDeleted,
                           "font-bold": _chat.unreadCount > 0
                         })}
                       >
-                        {details.name}
+                        {details.label}
                       </span>
                     </div>
                     <p

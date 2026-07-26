@@ -180,7 +180,7 @@ const PanelHeader = ({
 };
 
 const HeaderTitle = ({ roomId }: { roomId: string | null }) => {
-  const { conversation, details, isLoading } = useConversationDetails(
+  const { conversation, details, isDeleted, isLoading } = useConversationDetails(
     roomId ?? ""
   );
 
@@ -206,8 +206,13 @@ const HeaderTitle = ({ roomId }: { roomId: string | null }) => {
         name={details.name}
         className="size-7 flex-shrink-0"
       />
-      <p className="text-xs font-semibold truncate leading-tight">
+      <p
+        className={cn("text-xs font-semibold truncate leading-tight", {
+          "text-gray-400": isDeleted
+        })}
+      >
         {details.name}
+        {isDeleted ? " (deleted)" : ""}
       </p>
     </div>
   );

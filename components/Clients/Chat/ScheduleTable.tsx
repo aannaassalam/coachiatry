@@ -85,7 +85,10 @@ function ScheduledTable() {
             </>
           ) : !!data?.data.length ? (
             data.data.map((message, index) => {
-              const friend = message.chat.members.find(
+              // `chat` can be absent — the conversation may have been deleted
+              // since the message was scheduled (the API returns the row
+              // regardless). Same guard the client-facing table uses.
+              const friend = message.chat?.members?.find(
                 (_member) => _member?.user?._id !== message.sender?._id
               );
               return (
@@ -94,9 +97,9 @@ function ScheduledTable() {
                     {message.content}
                   </TableCell>
                   <TableCell className="font-medium py-4 text-gray-700 text-sm leading-6 max-w-[300px] whitespace-normal">
-                    {message.chat.type === "group"
+                    {message.chat?.type === "group"
                       ? message.chat.name
-                      : friend?.user?.fullName}
+                      : (friend?.user?.fullName ?? "—")}
                   </TableCell>
                   <TableCell className="py-4.5 text-sm text-gray-600">
                     {moment(message.scheduledAt).format("DD-MM-YYYY")}

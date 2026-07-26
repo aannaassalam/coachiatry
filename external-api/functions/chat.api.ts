@@ -97,6 +97,19 @@ export const deleteDirectConversation = async (chatId: string) => {
   return res.data;
 };
 
+// Archive/unarchive for the signed-in user only — the other members' lists are
+// unaffected.
+export const setChatArchived = async (body: {
+  chatId: string;
+  archived: boolean;
+}) => {
+  const res = await axiosInstance.patch(
+    endpoints.chat.archiveConversation(body.chatId),
+    { archived: body.archived }
+  );
+  return res.data;
+};
+
 export const inviteToGroupByEmail = async (body: {
   chatId: string;
   emails: string[];

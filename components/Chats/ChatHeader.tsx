@@ -1,5 +1,14 @@
 import { BsChevronLeft } from "react-icons/bs";
-import { Ellipsis, Trash2 } from "lucide-react";
+import {
+  Archive,
+  ArchiveRestore,
+  Ellipsis,
+  Settings,
+  Trash2
+} from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
+import { setChatArchived } from "@/external-api/functions/chat.api";
 import { useState } from "react";
 import { Button } from "../ui/button";
 import { SmartAvatar } from "../ui/smart-avatar";
@@ -47,6 +56,20 @@ export const ChatHeader = ({
   isDeletingConversation
 }: Props) => {
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [groupOpen, setGroupOpen] = useState(false);
+  const { data: session } = useSession();
+
+  const { mutate: toggleArchive, isPending: isArchiving } = useMutation({
+    mutationFn: setChatArchived,
+    meta: { invalidateQueries: ["conversations"] }
+  });
+
+  const myMembership = conversation?.members?.find(
+    (_mem) => _mem.user?._id === session?.user?._id
+  );
+  const canEditGroup =
+    conversation?.type === "group" && canManageGroup && conversation.isDeletable;
+  const canDelete = conversation?.type === "direct" && isDeletedUserChat;
 
   return (
     <div className="flex justify-between items-center p-4 border-b max-md:p-3 bg-white">
@@ -96,24 +119,8 @@ export const ChatHeader = ({
           </div>
         </div>
       )}
-      {conversation?.type === "group" &&
-        canManageGroup &&
-        conversation.isDeletable && (
-          <GroupModal
-            data={{
-              name: conversation.name,
-              members: conversation.members
-                .filter((_mem) => _mem.user?._id)
-                .map((_mem) => _mem.user._id),
-              groupPhoto: conversation.groupPhoto
-            }}
-          >
-            <Button variant="ghost" size="sm" className="hover:bg-secondary">
-              <Ellipsis className="text-gray-500" />
-            </Button>
-          </GroupModal>
-        )}
-      {conversation?.type === "direct" && isDeletedUserChat && (
+      {/* One menu for every room action: group settings, archive, delete. */}
+      {conversation && (canEditGroup || myMembership || canDelete) && (
         <>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -127,18 +134,70 @@ export const ChatHeader = ({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                className="gap-2 text-red-600 focus:text-red-600"
-                onSelect={(e) => {
-                  e.preventDefault();
-                  setConfirmOpen(true);
-                }}
-              >
-                <Trash2 className="size-4 text-red-600" />
-                Clear chat & delete conversation
-              </DropdownMenuItem>
+              {canEditGroup && (
+                <DropdownMenuItem
+                  className="gap-2"
+                  onSelect={() => setGroupOpen(true)}
+                >
+                  <Settings className="size-4" />
+                  Group settings
+                </DropdownMenuItem>
+              )}
+              {/* Only a member can archive — a coach viewing a client's room
+                  isn't one, and the API rejects it. */}
+              {myMembership && (
+                <DropdownMenuItem
+                  className="gap-2"
+                  disabled={isArchiving}
+                  onSelect={() =>
+                    toggleArchive({
+                      chatId: conversation._id!,
+                      archived: !myMembership.archived
+                    })
+                  }
+                >
+                  {myMembership.archived ? (
+                    <>
+                      <ArchiveRestore className="size-4" />
+                      Unarchive chat
+                    </>
+                  ) : (
+                    <>
+                      <Archive className="size-4" />
+                      Archive chat
+                    </>
+                  )}
+                </DropdownMenuItem>
+              )}
+              {canDelete && (
+                <DropdownMenuItem
+                  className="gap-2 text-red-600 focus:text-red-600"
+                  onSelect={(e) => {
+                    e.preventDefault();
+                    setConfirmOpen(true);
+                  }}
+                >
+                  <Trash2 className="size-4 text-red-600" />
+                  Clear chat & delete conversation
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
+
+          {canEditGroup && (
+            <GroupModal
+              open={groupOpen}
+              onOpenChange={setGroupOpen}
+              data={{
+                name: conversation.name,
+                members: conversation.members
+                  .filter((_mem) => _mem.user?._id)
+                  .map((_mem) => _mem.user._id),
+                groupPhoto: conversation.groupPhoto
+              }}
+            />
+          )}
+
           <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
             <AlertDialogContent className="sm:max-w-md">
               <AlertDialogHeader>

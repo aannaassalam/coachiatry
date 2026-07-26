@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { SmartAvatar } from "@/components/ui/smart-avatar";
 import { getAllConversations } from "@/external-api/functions/chat.api";
 import { useDebounce } from "@/hooks/utils/useDebounce";
+import { chatDisplay } from "@/lib/functions/_helpers.lib";
 import { useFloatingChat } from "@/lib/floatingChatContext";
 import { cn } from "@/lib/utils";
 import { ChatConversation } from "@/typescript/interface/chat.interface";
@@ -117,16 +118,7 @@ export default function FloatingConversationList() {
         ) : (
           <ul>
             {chats.map((chat) => {
-              const friend = chat.members.find(
-                (m) => m.user?._id !== data?.user?._id
-              );
-              const details =
-                chat.type === "group"
-                  ? { photo: chat.groupPhoto, name: chat.name }
-                  : {
-                      photo: friend?.user?.photo,
-                      name: friend?.user?.fullName
-                    };
+              const details = chatDisplay(chat, data?.user?._id);
 
               return (
                 <li
@@ -142,14 +134,13 @@ export default function FloatingConversationList() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
                       <span
-                        className={cn(
-                          "text-xs font-medium text-gray-900 truncate",
-                          {
-                            "font-bold": chat.unreadCount > 0
-                          }
-                        )}
+                        className={cn("text-xs font-medium truncate", {
+                          "text-gray-400": details.isDeleted,
+                          "text-gray-900": !details.isDeleted,
+                          "font-bold": chat.unreadCount > 0
+                        })}
                       >
-                        {details.name}
+                        {details.label}
                       </span>
                       <span className="text-[10px] text-gray-500 whitespace-nowrap">
                         {chat.lastMessage?.createdAt

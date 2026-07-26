@@ -6,6 +6,7 @@ import { SmartAvatar } from "@/components/ui/smart-avatar";
 import { getConversationByCoach } from "@/external-api/functions/chat.api";
 import { useChatMessages } from "@/hooks/useChatMessages";
 import { useChatSocket } from "@/hooks/useChatSocket";
+import { chatDisplay } from "@/lib/functions/_helpers.lib";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
@@ -59,15 +60,9 @@ export default function ChatConversation() {
     (_member) => _member.user?._id !== (userId as string)
   );
 
-  const details: { photo?: string; name?: string } = {
-    photo: friend?.user?.photo,
-    name: friend?.user?.fullName
-  };
-
-  if (conversation && conversation.type === "group") {
-    details.photo = conversation.groupPhoto;
-    details.name = conversation.name;
-  }
+  // From the client's perspective (userId), via the shared helper, so a deleted
+  // account reads the same here as it does in the client's own view.
+  const details = chatDisplay(conversation, userId as string);
 
   // Realtime: receive new messages, reactions and seen-receipts live, and emit
   // mark_seen on open (inside the hook) so read receipts propagate and the
@@ -188,9 +183,18 @@ export default function ChatConversation() {
               className="size-10"
             />
             <div>
-              <p className="font-semibold font-lato text-base">
+              <p
+                className={cn("font-semibold font-lato text-base", {
+                  "text-gray-400": details.isDeleted
+                })}
+              >
                 {details.name}
               </p>
+              {conversation?.type === "direct" && details.isDeleted && (
+                <p className="text-xs font-lato text-gray-400">
+                  Deleted account
+                </p>
+              )}
             </div>
           </div>
         )}

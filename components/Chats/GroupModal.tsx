@@ -31,13 +31,20 @@ type Details = {
 
 export default function GroupModal({
   children,
-  data
+  data,
+  open: openProp,
+  onOpenChange
 }: {
-  children: ReactNode;
+  /** Omit when driving the dialog with `open` (e.g. from a dropdown item). */
+  children?: ReactNode;
   data?: Partial<Details> & { groupPhoto?: string };
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
   const [room, setRoom] = useQueryState("room", parseAsString.withDefault(""));
-  const [open, setOpen] = useState(false);
+  const [openState, setOpenState] = useState(false);
+  const open = openProp ?? openState;
+  const setOpen = onOpenChange ?? setOpenState;
   const [groupPhoto, setGroupPhoto] = useState<File | string | null>(
     data?.groupPhoto ?? null
   );
@@ -130,7 +137,7 @@ export default function GroupModal({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger>{children}</DialogTrigger>
+      {children && <DialogTrigger>{children}</DialogTrigger>}
       <DialogContent className="w-sm">
         <DialogTitle>{data ? "Edit" : "Create"} Group</DialogTitle>
         <div className="space-y-3 flex flex-col">

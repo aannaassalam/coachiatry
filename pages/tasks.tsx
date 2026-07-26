@@ -1,7 +1,9 @@
 import PageTitle from "@/components/Seo/PageTitle";
 import AddTaskSheet from "@/components/Tasks/AddTaskSheet";
 import ColumnBox from "@/components/Tasks/ColumnBox";
-import FilterBox from "@/components/Tasks/FilterBox";
+import FilterBox, {
+  useAppliedSavedFilterName
+} from "@/components/Tasks/FilterBox";
 import GroupByControl from "@/components/Tasks/GroupByControl";
 import ListView from "@/components/Tasks/ListView";
 import { TableLayoutProvider } from "@/components/Tasks/TableLayoutContext";
@@ -118,6 +120,7 @@ function Tasks() {
   // );
 
   const validatedFilters = sanitizeFilters(values);
+  const appliedFilterName = useAppliedSavedFilterName();
 
   useEffect(() => {
     queryClient.prefetchQuery({
@@ -264,7 +267,9 @@ function Tasks() {
                       }
                     >
                       <ListFilter />
-                      Filter
+                      <span className="max-w-[160px] truncate">
+                        {appliedFilterName || "Filter"}
+                      </span>
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent

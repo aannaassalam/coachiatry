@@ -39,14 +39,24 @@ export const endpoints = {
     getOne: (id: string) => `/categories/${id}`,
     delete: (id: string) => `/categories/${id}`,
     getAllCoach: (userId: string) => `/categories/coach/${userId}`,
-    addCoach: (userId: string) => `/categories/coach/${userId}`
+    addCoach: (userId: string) => `/categories/coach/${userId}`,
+    getAllShared: (shareId: string) => `/categories/shared/${shareId}`
   },
   status: {
     getAll: "/statuses",
     add: "/statuses",
     delete: (id: string) => `/statuses/${id}`,
     getAllCoach: (userId: string) => `/statuses/coach/${userId}`,
-    addCoach: (userId: string) => `/statuses/coach/${userId}`
+    addCoach: (userId: string) => `/statuses/coach/${userId}`,
+    getAllShared: (shareId: string) => `/statuses/shared/${shareId}`
+  },
+  savedFilter: {
+    getAll: "/saved-filters",
+    add: "/saved-filters",
+    getAllCoach: (userId: string) => `/saved-filters/coach/${userId}`,
+    addCoach: (userId: string) => `/saved-filters/coach/${userId}`,
+    edit: (id: string) => `/saved-filters/${id}`,
+    delete: (id: string) => `/saved-filters/${id}`
   },
   transcriptions: {
     getAllTranscriptions: "/transcriptions",
@@ -100,6 +110,7 @@ export const endpoints = {
     editGroup: "/chat/group/edit",
     leaveGroup: (chatId: string) => `/chat/leave-group/${chatId}`,
     deleteConversation: (chatId: string) => `/chat/conversation/${chatId}`,
+    archiveConversation: (chatId: string) => `/chat/${chatId}/archive`,
     inviteToGroup: "/chat/group/invite",
     getGroupInvite: (token: string) => `/chat/group/invite/${token}`,
     acceptGroupInvite: (token: string) => `/chat/group/invite/${token}/accept`

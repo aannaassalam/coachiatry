@@ -35,6 +35,14 @@ export const getAllStatusesByCoach = async (
   return res.data;
 };
 
+// Statuses of the sheet behind a share link — the owner's, not the watcher's.
+export const getAllStatusesByShare = async (
+  shareId: string
+): Promise<Status[]> => {
+  const res = await axiosInstance.get(endpoints.status.getAllShared(shareId));
+  return res.data;
+};
+
 export const addStatusByCoach = async (body: {
   title: string;
   color: {

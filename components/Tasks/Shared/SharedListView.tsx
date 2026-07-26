@@ -1,4 +1,4 @@
-import { getAllStatuses } from "@/external-api/functions/status.api";
+import { getAllStatusesByShare } from "@/external-api/functions/status.api";
 import { getAllSharedTasks } from "@/external-api/functions/task.api";
 import assets from "@/json/assets";
 import { sanitizeFilters } from "@/lib/functions/_helpers.lib";
@@ -69,8 +69,11 @@ function SharedListView() {
         enabled: !!shareId
       },
       {
-        queryKey: ["status"],
-        queryFn: getAllStatuses
+        // The OWNER's status columns — grouping a shared sheet by the watcher's
+        // own statuses buckets nothing.
+        queryKey: ["status", shareId],
+        queryFn: () => getAllStatusesByShare(shareId?.toString() ?? ""),
+        enabled: !!shareId
       }
     ]
   });

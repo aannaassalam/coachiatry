@@ -4,7 +4,7 @@ import {
 } from "@/external-api/functions/chat.api";
 import { getMessages } from "@/external-api/functions/message.api";
 import { useDebounce } from "@/hooks/utils/useDebounce";
-import { formatChatTime } from "@/lib/functions/_helpers.lib";
+import { chatDisplay, formatChatTime } from "@/lib/functions/_helpers.lib";
 import { useSocket } from "@/lib/socketContext";
 import { cn } from "@/lib/utils";
 import { queryClient } from "@/pages/_app";
@@ -12,7 +12,13 @@ import { PaginatedResponse } from "@/typescript/interface/common.interface";
 import { ChatConversation } from "@/typescript/interface/chat.interface";
 import { Message } from "@/typescript/interface/message.interface";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { Plus, Search } from "lucide-react";
+import {
+  Archive,
+  ChevronLeft,
+  ChevronRight,
+  Plus,
+  Search
+} from "lucide-react";
 import moment from "moment";
 import { useSession } from "next-auth/react";
 import { parseAsString, useQueryState } from "nuqs";
@@ -33,7 +39,10 @@ export default function ChatList() {
   const socket = useSocket();
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 400);
+  const [showArchived, setShowArchived] = useState(false);
   const listRef = useRef<HTMLUListElement>(null);
+
+  const listKey = ["conversations", { search: debouncedSearch, showArchived }];
 
   const {
     data: chatsData,
@@ -42,9 +51,13 @@ export default function ChatList() {
     hasNextPage,
     isFetchingNextPage
   } = useInfiniteQuery({
-    queryKey: ["conversations", { search: debouncedSearch }],
+    queryKey: listKey,
     queryFn: ({ pageParam }) =>
-      getAllConversations({ page: pageParam, search: debouncedSearch }),
+      getAllConversations({
+        page: pageParam,
+        search: debouncedSearch,
+        archived: showArchived
+      }),
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {
       if (lastPage.meta.currentPage < lastPage.meta.totalPages) {
@@ -56,6 +69,7 @@ export default function ChatList() {
   });
 
   const chats = chatsData?.pages.flatMap((page) => page.data) ?? [];
+  const archivedCount = chatsData?.pages[0]?.meta?.archivedCount ?? 0;
 
   useEffect(() => {
     if (!socket) return;
@@ -69,7 +83,7 @@ export default function ChatList() {
       queryClient.setQueryData<{
         pages: PaginatedResponse<ChatConversation[]>[];
         pageParams: unknown[];
-      }>(["conversations", { search: debouncedSearch }], (old) => {
+      }>(listKey, (old) => {
         if (!old) return old;
 
         const firstPage = old.pages[0];
@@ -134,7 +148,10 @@ export default function ChatList() {
     return () => {
       socket.off("conversation_updated", handleConversationUpdated);
     };
-  }, [socket, room, data?.user?._id, debouncedSearch]);
+    // listKey is derived from search + showArchived, so those two cover it —
+    // depending on the array itself would resubscribe on every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [socket, room, data?.user?._id, debouncedSearch, showArchived]);
 
   const handleScroll = useCallback(() => {
     const el = listRef.current;
@@ -230,18 +247,33 @@ export default function ChatList() {
 
       {/* Header / Content Above */}
       <div className="flex items-center justify-between gap-2 mb-3 px-3">
-        <h2 className="text-sm font-semibold text-gray-800">All messages</h2>
-        <GroupModal>
-          <Button
-            center
-            size="icon"
-            variant="ghost"
-            className="!size-7"
-            asChild
+        {showArchived ? (
+          <button
+            type="button"
+            className="cursor-pointer flex items-center gap-1 text-sm font-semibold text-gray-800"
+            onClick={() => setShowArchived(false)}
           >
-            <Plus size={16} />
-          </Button>
-        </GroupModal>
+            <ChevronLeft size={16} />
+            Archived
+          </button>
+        ) : (
+          <>
+            <h2 className="text-sm font-semibold text-gray-800">
+              All messages
+            </h2>
+            <GroupModal>
+              <Button
+                center
+                size="icon"
+                variant="ghost"
+                className="!size-7"
+                asChild
+              >
+                <Plus size={16} />
+              </Button>
+            </GroupModal>
+          </>
+        )}
       </div>
 
       {/* Scrollable List */}
@@ -267,29 +299,27 @@ export default function ChatList() {
           </div>
         ) : (
           <>
+            {/* WhatsApp-style: pinned entry into the archived list. */}
+            {!showArchived && archivedCount > 0 && (
+              <li
+                className="flex cursor-pointer items-center gap-3 py-2.5 px-3 rounded-[8px] transition hover:bg-gray-100"
+                onClick={() => setShowArchived(true)}
+              >
+                <Archive size={18} className="text-gray-500" />
+                <span className="flex-1 text-sm font-medium text-gray-800">
+                  Archived
+                </span>
+                <span className="text-xs text-gray-500">{archivedCount}</span>
+                <ChevronRight size={14} className="text-gray-400" />
+              </li>
+            )}
+            {showArchived && chats.length === 0 && (
+              <li className="px-3 py-6 text-center text-xs text-gray-400">
+                No archived conversations
+              </li>
+            )}
             {chats.map((chat) => {
-              const chatUser = chat.members.find(
-                (member) =>
-                  member?.user?._id && member.user._id !== data?.user?._id
-              );
-
-              const details =
-                chat.type === "group"
-                  ? { photo: chat.groupPhoto, name: chat.name }
-                  : {
-                      photo: chatUser?.user?.photo,
-                      name: chatUser?.user?.fullName
-                    };
-
-              // Direct chat with a deleted account. Soft-deleted keeps its real
-              // name (append "(deleted)"); hard-deleted already shows
-              // "Deleted user".
-              const isDeletedChatUser =
-                chat.type !== "group" &&
-                (chatUser?.user?.active === false ||
-                  chatUser?.user?.deleted === true);
-              const showDeletedSuffix =
-                chat.type !== "group" && chatUser?.user?.active === false;
+              const details = chatDisplay(chat, data?.user?._id);
 
               const renderLastMessage = () => {
                 const last = chat.lastMessage;
@@ -336,13 +366,12 @@ export default function ChatList() {
                     <div className="flex items-center">
                       <span
                         className={cn("font-medium text-sm", {
-                          "text-gray-400": isDeletedChatUser,
-                          "text-gray-900": !isDeletedChatUser,
+                          "text-gray-400": details.isDeleted,
+                          "text-gray-900": !details.isDeleted,
                           "font-bold": chat.unreadCount > 0
                         })}
                       >
-                        {details.name}
-                        {showDeletedSuffix ? " (deleted)" : ""}
+                        {details.label}
                       </span>
                     </div>
                     <p

@@ -91,7 +91,9 @@ function ScheduledTable() {
             </>
           ) : !!data?.data.length ? (
             data.data.map((message, index) => {
-              const friend = message.chat?.members.find(
+              // `members` too, not just `chat`: a group whose last member left
+              // has an empty members array.
+              const friend = message.chat?.members?.find(
                 (_member) => _member?.user?._id !== message.sender?._id
               );
               return (

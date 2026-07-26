@@ -13,7 +13,9 @@ import { parseAsJson, useQueryState } from "nuqs";
 import { useState } from "react";
 import AddTaskSheet from "./AddTaskSheet";
 import ListView from "./ListView";
-import FilterBox from "@/components/Tasks/FilterBox";
+import FilterBox, {
+  useAppliedSavedFilterName
+} from "@/components/Tasks/FilterBox";
 import ColumnBox from "@/components/Tasks/ColumnBox";
 import GroupByControl from "@/components/Tasks/GroupByControl";
 import { TableLayoutProvider } from "@/components/Tasks/TableLayoutContext";
@@ -38,6 +40,7 @@ function Tasks() {
 
   const [isOpen, setIsOpen] = useState(false);
   const validatedFilters = sanitizeFilters(values);
+  const appliedFilterName = useAppliedSavedFilterName();
 
   return (
     // Owns column widths / visibility for the table below and for the Columns
@@ -74,7 +77,9 @@ function Tasks() {
                 variant={validatedFilters.length > 0 ? "secondary" : "ghost"}
               >
                 <ListFilter />
-                Filter
+                <span className="max-w-[160px] truncate">
+                  {appliedFilterName || "Filter"}
+                </span>
               </Button>
             </PopoverTrigger>
             <PopoverContent
