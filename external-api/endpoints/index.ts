@@ -99,7 +99,15 @@ export const endpoints = {
     shared: (shareId: string) => `/user/share/${shareId}`,
     revokeAccess: (viewerId: string) => `/user/share/${viewerId}`,
     updateUser: (userId: string) => `/user/update-user/${userId}`,
-    deleteUser: (userId: string) => `/user/delete-user/${userId}`
+    deleteUser: (userId: string) => `/user/delete-user/${userId}`,
+    // Coach-managing-a-client mirrors of the self-scoped routes above.
+    addWatchersFor: (userId: string) => `/user/${userId}/add-watchers`,
+    inviteWatchersFor: (userId: string) => `/user/${userId}/invite-watchers`,
+    revokeAccessFor: (userId: string, viewerId: string) =>
+      `/user/${userId}/share/${viewerId}`,
+    updateProfilePictureFor: (userId: string) =>
+      `/user/${userId}/update-profile-picture`,
+    setPasswordFor: (userId: string) => `/user/${userId}/password`
   },
   chat: {
     getConversations: "/chat",

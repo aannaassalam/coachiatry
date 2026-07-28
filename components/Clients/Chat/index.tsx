@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils";
 import { parseAsString, useQueryState } from "nuqs";
 import React from "react";
 import { Tabs, TabsList, TabsTrigger } from "../../ui/tabs";
@@ -14,7 +15,7 @@ export default function ChatCoach() {
   const [room, setRoom] = useQueryState("room", parseAsString.withDefault(""));
 
   return (
-    <div className="max-md:min-h-[500px] md:flex md:flex-col md:flex-1 md:min-h-0">
+    <div className="flex flex-col flex-1 min-h-0">
       <div className="flex justify-between items-center mb-2 max-sm:gap-2">
         <div className="flex items-center justify-between gap-5 ">
           <h1 className="font-semibold text-gray-900 text-2xl leading-7 tracking-[-3%] max-sm:text-xl">
@@ -50,8 +51,17 @@ export default function ChatCoach() {
       </div>
       <Separator />
       {tab === "chats" ? (
-        <div className="w-full grid grid-cols-[0.3fr_auto] md:flex-1 md:min-h-0 md:grid-rows-[minmax(0,1fr)] max-md:grid-cols-1 max-md:relative">
-          <ChatList />
+        <div className="w-full flex-1 min-h-0 flex flex-col md:grid md:grid-cols-[0.3fr_auto] md:grid-rows-[minmax(0,1fr)]">
+          {/* On mobile the two panes swap instead of sitting side by side: the
+              list hides while a room is open, so each owns the full height. */}
+          <div
+            className={cn(
+              "flex flex-col min-h-0 flex-1 md:contents",
+              room && "max-md:hidden"
+            )}
+          >
+            <ChatList />
+          </div>
           {room && <ChatConversation />}
         </div>
       ) : (

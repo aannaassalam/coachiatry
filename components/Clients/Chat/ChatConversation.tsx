@@ -153,13 +153,11 @@ export default function ChatConversation() {
     }
   }, [containerRef, chatDragShow]);
 
+  // Fills the height its parent hands down instead of the old absolute /
+  // min-h-[500px] overlay, so on mobile it ends at the viewport bottom and the
+  // message list owns the scrolling.
   return (
-    <div
-      className={cn(
-        "flex flex-col min-h-0 border-r border-l border-gray-200 relative max-md:absolute max-md:w-full max-md:min-h-[500px]",
-        room ? "max-md:left-0" : "max-md:left-[110%]"
-      )}
-    >
+    <div className="flex flex-col min-h-0 relative border-r border-l border-gray-200 max-md:w-full max-md:flex-1 max-md:border-x-0">
       {/* Header */}
       <div className="flex justify-between items-center p-4 border-b max-md:p-3 bg-white">
         {isConversationLoading ? (

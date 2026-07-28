@@ -55,7 +55,7 @@ import {
 } from "@/external-api/functions/user.api";
 import { useDebounce } from "@/hooks/utils/useDebounce";
 import AppLayout from "@/layouts/AppLayout";
-import { createPageRange } from "@/lib/functions/_helpers.lib";
+import { createPageRange, roleLabel } from "@/lib/functions/_helpers.lib";
 import { PaginatedResponse } from "@/typescript/interface/common.interface";
 import { User } from "@/typescript/interface/user.interface";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -467,7 +467,7 @@ export default function Users() {
                       {user.email}
                     </TableCell>
                     <TableCell className="py-3.5 text-sm text-gray-600 capitalize">
-                      {user.role === "user" ? "Client" : user.role}
+                      {roleLabel(user.role)}
                     </TableCell>
                     <TableCell className="py-3.5 text-sm text-gray-600 capitalize max-w-[300px] flex flex-wrap gap-1">
                       {user.assignedCoach?.map((ac) => (
@@ -836,7 +836,7 @@ export default function Users() {
                         </div>
                         <div className="flex items-center gap-3">
                           <RadioGroupItem value="user" id="r4" />
-                          <Label htmlFor="r4">Patient</Label>
+                          <Label htmlFor="r4">Client</Label>
                         </div>
                       </RadioGroup>
                     </FormControl>

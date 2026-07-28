@@ -29,12 +29,15 @@ interface AddWatchersProps {
   existingWatcherIds: string[];
   onClose: () => void;
   onSuccess: () => void;
+  /** Manage this client's watchers instead of the signed-in user's. */
+  userId?: string;
 }
 
 export default function AddWatchers({
   existingWatcherIds,
   onClose,
-  onSuccess
+  onSuccess,
+  userId
 }: AddWatchersProps) {
   const [email, setEmail] = useState("");
   const [search, setSearch] = useState<SearchState>({ status: "idle" });
@@ -42,7 +45,8 @@ export default function AddWatchers({
   const [invitedEmails, setInvitedEmails] = useState<string[]>([]);
 
   const { mutate: runSearch, isPending: isSearching } = useMutation({
-    mutationFn: findWatcherByEmail,
+    mutationFn: (searchEmail: string) =>
+      findWatcherByEmail(searchEmail, userId),
     onSuccess: (res, searchedEmail) => {
       if (res.isSelf) {
         setSearch({ status: "self" });
@@ -63,9 +67,9 @@ export default function AddWatchers({
     mutationFn: async () => {
       const ids = selectedUsers.map((u) => u._id);
       let lastRes;
-      if (ids.length) lastRes = await addWatchers(ids);
+      if (ids.length) lastRes = await addWatchers(ids, userId);
       if (invitedEmails.length)
-        lastRes = await inviteWatchersByEmail(invitedEmails);
+        lastRes = await inviteWatchersByEmail(invitedEmails, userId);
       return lastRes;
     },
     onSuccess: () => {

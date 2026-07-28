@@ -83,7 +83,7 @@ function Clients() {
               onClick={() => setIsAddOpen(true)}
             >
               <Plus size={16} />
-              Add User
+              Add Client
             </Button>
           )}
         </div>

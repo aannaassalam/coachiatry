@@ -40,8 +40,10 @@ function ScheduledTable() {
 
   const pageNumbers = createPageRange(1, data?.meta?.totalPages ?? 0, page);
 
+  // w-full + own horizontal scroll: the old 95vw/90vw widths ignored the page
+  // padding, so the table pushed the whole page sideways on mobile.
   return (
-    <div className="mt-5 max-md:w-[95vw] max-md:overflow-auto scrollbar-hide max-[480px]:!w-[90vw]">
+    <div className="mt-5 w-full max-w-full overflow-x-auto scrollbar-hide">
       <Table className="">
         <TableHeader className="bg-gray-100 ">
           <TableRow className="border-none rounded-sm">

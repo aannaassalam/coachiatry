@@ -163,7 +163,7 @@ export default function Settings() {
   });
 
   const { mutate: updatePicture, isPending: isPictureUpdating } = useMutation({
-    mutationFn: updateProfilePicture,
+    mutationFn: (file: File) => updateProfilePicture(file),
     onSuccess: () => update()
   });
 
@@ -174,7 +174,7 @@ export default function Settings() {
     });
 
   const { mutate: revokeMutate, isPending: isRevoking } = useMutation({
-    mutationFn: revokeViewAccess,
+    mutationFn: (viewerId: string) => revokeViewAccess(viewerId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["conversations"] });
     },

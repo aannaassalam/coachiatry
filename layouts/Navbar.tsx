@@ -9,7 +9,7 @@ import { SmartAvatar } from "@/components/ui/smart-avatar";
 import assets from "@/json/assets";
 import Logo from "@/ui/Logo/Logo";
 import { Menu } from "lucide-react";
-import { getInitials } from "@/lib/functions/_helpers.lib";
+import { getInitials, roleLabel } from "@/lib/functions/_helpers.lib";
 import { teardownWebPush } from "@/lib/fcm";
 import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
@@ -55,7 +55,7 @@ export default function Navbar({
                   variant="secondary"
                   className="capitalize rounded-full py-0 px-1.5 font-archivo font-medium text-[10px] leading-4 text-indigo-600"
                 >
-                  {data.user.role === "user" ? "client" : data.user.role}
+                  {roleLabel(data.user.role)}
                 </Badge>
               )}
             </div>

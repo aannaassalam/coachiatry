@@ -29,13 +29,20 @@ export default function ImageMessage({
   if (!message.files?.length) return null;
 
   return (
-    <div>
+    <div className="min-w-0">
       {!isUser && showAvatar && isGroup && (
         <p className="pl-12 text-xs font-medium text-gray-600/90 mb-1">
           {sender?.fullName}
         </p>
       )}
-      <div className="flex items-start gap-3 relative">
+      <div
+        className={cn(
+          "flex items-start gap-3 relative min-w-0",
+          // Own messages hug the right edge; without this the bubble sits at
+          // the start of a stretched row and leaves dead space beside it.
+          isUser && "justify-end"
+        )}
+      >
         {!isUser && showAvatar && (
           <SmartAvatar
             src={sender?.photo}
@@ -47,7 +54,7 @@ export default function ImageMessage({
         {/* If user: Emoji first then bubble; if not user: bubble then emoji */}
         <div
           className={cn(
-            "max-w-xs relative px-[7px] py-[7px] rounded-lg rounded-tr-none text-sm ",
+            "max-w-xs min-w-0 relative px-[7px] py-[7px] rounded-lg rounded-tr-none text-sm ",
             isUser ? "bg-primary text-white" : "bg-gray-100 text-primary",
             !isUser && !showAvatar && "ml-[2.75rem]"
           )}

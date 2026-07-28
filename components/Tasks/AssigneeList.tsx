@@ -6,6 +6,7 @@ import { Check, Loader2, Search } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Badge } from "../ui/badge";
 import { SmartAvatar } from "../ui/smart-avatar";
+import { roleLabel } from "@/lib/functions/_helpers.lib";
 
 function AssigneeRow({
   user,
@@ -42,7 +43,7 @@ function AssigneeRow({
           variant="outline"
           className="capitalize rounded-full py-0 px-2 font-archivo font-medium text-[10px] leading-4 text-gray-500"
         >
-          {user.role}
+          {roleLabel(user.role)}
         </Badge>
       )}
     </button>

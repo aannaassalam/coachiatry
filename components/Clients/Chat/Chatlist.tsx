@@ -112,7 +112,7 @@ export default function ChatList() {
   };
 
   return (
-    <div className="w-xs mr-auto bg-white pt-4 rounded-lg flex flex-col min-h-0 max-md:w-full">
+    <div className="w-xs mr-auto bg-white pt-4 rounded-lg flex flex-col min-h-0 max-md:w-full max-md:flex-1">
       {/* Header / Content Above */}
       <div className="flex items-center justify-between gap-2 mb-3 px-3">
         {showArchived ? (
@@ -147,7 +147,7 @@ export default function ChatList() {
       <ul
         ref={listRef}
         onScroll={handleScroll}
-        className="space-y-2 overflow-y-auto pr-2 pb-6 md:flex-1 md:min-h-0 max-md:max-h-[calc(100vh-200px)] max-md:w-full"
+        className="space-y-2 overflow-y-auto pr-2 pb-6 flex-1 min-h-0 max-md:w-full"
       >
         {isLoading ? (
           <div className="space-y-2">

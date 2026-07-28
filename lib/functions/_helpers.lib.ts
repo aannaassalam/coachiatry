@@ -55,6 +55,12 @@ export const roleParser = (role: string) => {
 };
 
 /**
+ * The backend role for a coachee is `"user"`; everywhere it is shown to a human
+ * it reads "Client". Display only — never send this back to the API.
+ */
+export const roleLabel = (role?: string) => (role === "user" ? "Client" : role);
+
+/**
  * Operators that compare against the field's presence rather than a value, so
  * they're valid without a `selectedValue` (currently only due-date set checks).
  */
