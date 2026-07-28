@@ -68,7 +68,9 @@ export const ChatHeader = ({
     (_mem) => _mem.user?._id === session?.user?._id
   );
   const canEditGroup =
-    conversation?.type === "group" && canManageGroup && conversation.isDeletable;
+    conversation?.type === "group" &&
+    canManageGroup &&
+    conversation.isDeletable;
   const canDelete = conversation?.type === "direct" && isDeletedUserChat;
 
   return (

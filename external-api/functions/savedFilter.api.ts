@@ -14,7 +14,9 @@ export const getSavedFilters = async (
   userId?: string
 ): Promise<SavedFilter[]> => {
   const res = await axiosInstance.get(
-    userId ? endpoints.savedFilter.getAllCoach(userId) : endpoints.savedFilter.getAll
+    userId
+      ? endpoints.savedFilter.getAllCoach(userId)
+      : endpoints.savedFilter.getAll
   );
   return res.data;
 };

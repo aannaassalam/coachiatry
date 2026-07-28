@@ -14,14 +14,12 @@ import { getAllStatusesByCoach } from "@/external-api/functions/status.api";
 import { getAllTasksByCoach } from "@/external-api/functions/task.api";
 import { getAllTranscriptionsByCoach } from "@/external-api/functions/transcriptions.api";
 import { getUserById } from "@/external-api/functions/user.api";
-import assets from "@/json/assets";
 import AppLayout from "@/layouts/AppLayout";
 import { cn } from "@/lib/utils";
 import { User } from "@/typescript/interface/user.interface";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import moment from "moment";
-import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { parseAsString, useQueryState } from "nuqs";
@@ -38,63 +36,39 @@ const ClientInfo = ({
   );
 
   return (
-    <div className="p-6 rounded-[12px] border-1 border-gray-100 flex gap-4 mt-2 w-full max-md:flex-col max-md:items-center max-sm:p-4">
+    // Compact single-row band: avatar, name + email/joined on one line, action
+    // pinned right. Was a 6-unit-padded card with a 86px avatar and stacked
+    // rows, which pushed the tabs and the actual content below the fold.
+    <div className="px-4 py-3 rounded-[12px] border-1 border-gray-100 flex items-center gap-3 mt-2 w-full max-sm:flex-col max-sm:items-start max-sm:gap-2">
       <SmartAvatar
         src={details?.photo}
         name={details?.fullName}
-        className="size-21.5 rounded-[20px]"
-        textSize="text-xl"
+        className="size-11 rounded-[12px]"
       />
-      <div className="py-1 flex flex-col max-md:gap-4 max-sm:w-full">
-        <div className="flex gap-4 items-center max-md:w-full max-md:justify-center">
-          <p className="font-archivo text-2xl font-semibold text-gray-900">
-            {details?.fullName}
-          </p>
+      <div className="min-w-0 flex flex-col">
+        <p className="font-archivo text-base font-semibold text-gray-900 truncate">
+          {details?.fullName}
+        </p>
+        <div className="flex items-center gap-2 text-xs text-gray-600 font-lato">
           <Link
             href={`mailto:${details?.email}`}
-            className="p-1 border-1 border-gray-200 rounded-full bg-[#FCFCFD]"
+            className="truncate hover:text-gray-900"
           >
-            <Image
-              src={assets.icons.envelope}
-              alt="envelope"
-              width={20}
-              height={20}
-            />
+            {details?.email}
           </Link>
-        </div>
-        <div className="flex gap-6 items-center mt-auto max-sm:gap-3">
-          {/* <div className="flex gap-2 items-center">
-            <Image src={assets.icons.user} alt="user" width={24} height={24} />
-            <p className="font-lato text-gray-600">Female</p>
-          </div> */}
-          <div className="flex gap-2 items-center max-sm:w-full justify-center">
-            <Image
-              src={assets.icons.dateCalendar}
-              alt="datecalender"
-              width={24}
-              height={24}
-            />
-            <p className="font-lato text-gray-600">
-              {moment(details?.createdAt).format("MMMM DD, YYYY")}
-            </p>
-          </div>
-          {/* <div className="flex gap-2 items-center">
-            <Image src={assets.icons.map} alt="user" width={24} height={24} />
-            <p className="font-lato text-gray-600">Springfield</p>
-          </div> */}
+          <span className="text-gray-300">•</span>
+          <span className="whitespace-nowrap">
+            Joined {moment(details?.createdAt).format("MMM DD, YYYY")}
+          </span>
         </div>
       </div>
-      <div className="ml-auto flex items-stretch gap-3 self-start max-md:ml-0 max-md:self-center ">
-        {/* <Button
-          size="sm"
-          className="bg-white border-primary border-1 text-primary hover:text-white"
-        >
-          Chat Now
-        </Button> */}
-        <Button size="sm" onClick={() => setTab("task")}>
-          View Task
-        </Button>
-      </div>
+      <Button
+        size="sm"
+        className="ml-auto max-sm:ml-0"
+        onClick={() => setTab("task")}
+      >
+        View Task
+      </Button>
     </div>
   );
 };
@@ -201,7 +175,7 @@ function ClientDetails() {
         value={tab}
         onValueChange={(value) => setTab(value)}
         className={cn(
-          "mt-6",
+          "mt-1",
           // On the chat tab (desktop), let the tabs region fill the remaining
           // viewport so the list + conversation share that height (each scrolls
           // internally) instead of growing the page. Other tabs — and mobile,

@@ -49,6 +49,7 @@ import {
   createUser,
   deleteUser,
   getAllUsers,
+  getUserById,
   getUsers,
   updateUser
 } from "@/external-api/functions/user.api";
@@ -220,6 +221,23 @@ export default function Users() {
       }
     ]
   });
+
+  // The details page blocks on ["clientDetails", id] (it renders a full-page
+  // Loader until it resolves), so warm it on hover — the same trick the coach's
+  // client list uses in pages/clients/index.tsx. The route bundle is prefetched
+  // once too, since these rows navigate via router.push, which (unlike <Link>)
+  // doesn't preload the page chunk.
+  useEffect(() => {
+    router.prefetch("/clients/[userId]");
+  }, [router]);
+
+  const prefetchUserOnMouseEnter = (id: string) => {
+    queryClient.prefetchQuery({
+      queryKey: ["clientDetails", id],
+      queryFn: () => getUserById(id),
+      staleTime: 5 * 60 * 1000
+    });
+  };
 
   const { mutate, isPending } = useMutation({
     mutationFn: createUser,
@@ -434,6 +452,7 @@ export default function Users() {
                     <TableCell
                       className="py-3.5 cursor-pointer"
                       onClick={() => router.push(`/clients/${user._id}`)}
+                      onMouseEnter={() => prefetchUserOnMouseEnter(user._id)}
                     >
                       <div className="flex items-center gap-3">
                         <SmartAvatar

@@ -180,9 +180,8 @@ const PanelHeader = ({
 };
 
 const HeaderTitle = ({ roomId }: { roomId: string | null }) => {
-  const { conversation, details, isDeleted, isLoading } = useConversationDetails(
-    roomId ?? ""
-  );
+  const { conversation, details, isDeleted, isLoading } =
+    useConversationDetails(roomId ?? "");
 
   if (!roomId) {
     return (

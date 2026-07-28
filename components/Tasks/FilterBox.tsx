@@ -46,7 +46,9 @@ const EMPTY_ROW: Filter = {
 /** Order-sensitive signature — good enough to answer "is this row set dirty?". */
 const signature = (rows: Filter[]) =>
   sanitizeFilters(rows)
-    .map((r) => `${r.selectedKey}|${r.selectedOperator}|${r.selectedValue ?? ""}`)
+    .map(
+      (r) => `${r.selectedKey}|${r.selectedOperator}|${r.selectedValue ?? ""}`
+    )
     .join(";");
 
 /**
@@ -300,7 +302,9 @@ function FilterBox() {
                     key={filter._id}
                     className="flex items-center gap-1 rounded-md bg-red-50 px-2 py-1.5 text-xs text-red-700"
                   >
-                    <span className="flex-1 min-w-0 truncate">Delete this?</span>
+                    <span className="flex-1 min-w-0 truncate">
+                      Delete this?
+                    </span>
                     <button
                       type="button"
                       className="cursor-pointer p-1 hover:opacity-70 disabled:opacity-50"

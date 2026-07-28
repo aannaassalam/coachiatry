@@ -12,13 +12,7 @@ import { PaginatedResponse } from "@/typescript/interface/common.interface";
 import { ChatConversation } from "@/typescript/interface/chat.interface";
 import { Message } from "@/typescript/interface/message.interface";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import {
-  Archive,
-  ChevronLeft,
-  ChevronRight,
-  Plus,
-  Search
-} from "lucide-react";
+import { Archive, ChevronLeft, ChevronRight, Plus, Search } from "lucide-react";
 import moment from "moment";
 import { useSession } from "next-auth/react";
 import { parseAsString, useQueryState } from "nuqs";
