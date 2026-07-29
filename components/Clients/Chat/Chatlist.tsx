@@ -2,9 +2,9 @@ import { SmartAvatar } from "@/components/ui/smart-avatar";
 import { Input } from "@/components/ui/input";
 import {
   getAllConversationsByCoach,
-  getConversation
+  getConversationByCoach
 } from "@/external-api/functions/chat.api";
-import { getMessages } from "@/external-api/functions/message.api";
+import { getMessagesByCoach } from "@/external-api/functions/message.api";
 import { useDebounce } from "@/hooks/utils/useDebounce";
 import { chatDisplay } from "@/lib/functions/_helpers.lib";
 import { cn } from "@/lib/utils";
@@ -97,15 +97,21 @@ export default function ChatList() {
     }
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
+  // Coach-scoped prefetch. This used to call the member-guarded getConversation
+  // / getMessages: for any room the coach isn't in (every group, and the
+  // client's chats with other people) those 403, and the failed messages fetch
+  // landed on ["messages", room] — the very key the conversation view reads —
+  // so opening those rooms showed no messages at all. It also warmed
+  // ["conversations", room], which the coach view doesn't even read.
   const prefetchChatRoom = (room: string) => {
     queryClient.prefetchQuery({
-      queryKey: ["conversations", room],
-      queryFn: () => getConversation(room),
+      queryKey: ["conversations", room, userId],
+      queryFn: () => getConversationByCoach(room),
       staleTime: 5 * 60 * 1000
     });
     queryClient.prefetchInfiniteQuery({
       queryKey: ["messages", room],
-      queryFn: getMessages,
+      queryFn: getMessagesByCoach,
       initialPageParam: 1,
       staleTime: 5 * 60 * 1000
     });
