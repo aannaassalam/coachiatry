@@ -27,6 +27,13 @@ import {
 } from "../ui/pagination";
 import { createPageRange } from "@/lib/functions/_helpers.lib";
 
+const repeatLabel = (repeat?: string) =>
+  repeat === "none" || repeat === "once"
+    ? "Once"
+    : repeat
+      ? repeat.charAt(0).toUpperCase() + repeat.slice(1)
+      : "Once";
+
 function ScheduledTable() {
   const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
   const [showScheduledModal, setShowScheduledModal] = useState(false);
@@ -120,7 +127,7 @@ function ScheduledTable() {
                     {moment(message.scheduledAt).format("hh:mm A")}
                   </TableCell>
                   <TableCell className="py-4.5 text-sm text-gray-600">
-                    {message.repeat}
+                    {repeatLabel(message.repeat)}
                   </TableCell>
                 </TableRow>
               );
@@ -185,7 +192,7 @@ function ScheduledTable() {
             message: selectedMessage?.content || "",
             date: new Date(selectedMessage?.scheduledAt || ""),
             time: moment(selectedMessage?.scheduledAt).format("HH:mm"),
-            repeat: selectedMessage?.repeat ?? "none"
+            repeat: selectedMessage?.repeat ?? "once"
           }}
           receiverName={
             selectedMessage?.chat?.name ??

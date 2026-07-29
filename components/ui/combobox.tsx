@@ -118,6 +118,9 @@ export function Combobox({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
+          // Without this the trigger is a submit button (Button sets no type),
+          // so opening the dropdown submits whatever form it sits in.
+          type="button"
           variant="outline"
           role="combobox"
           className={cn("w-full justify-between", className)}

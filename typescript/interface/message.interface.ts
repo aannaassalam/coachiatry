@@ -25,6 +25,14 @@ export type MessageStatus =
   | "seen"
   | "failed";
 
+export type MessageRepeat =
+  | "none"
+  | "once"
+  | "daily"
+  | "weekly"
+  | "monthly"
+  | "yearly";
+
 export interface Message {
   _id?: string;
   chat: string;
@@ -35,7 +43,7 @@ export interface Message {
   reactions?: MessageReaction[];
   replyTo?: Message | null;
   scheduledAt?: Date;
-  repeat: "none" | "daily" | "weekly" | "monthly" | "yearly";
+  repeat: MessageRepeat;
   createdAt?: string;
   updatedAt?: string;
   status: MessageStatus;

@@ -16,6 +16,7 @@ import {
 } from "@/external-api/functions/message.api";
 import assets from "@/json/assets";
 import { cn } from "@/lib/utils";
+import type { MessageRepeat } from "@/typescript/interface/message.interface";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -51,9 +52,8 @@ const schema = yup.object().shape({
   time: yup.string().required("Scheduled time is required")
 });
 
-// "Once" is a one-time send (backend `none`).
 const frequency = [
-  { label: "Once", value: "none" },
+  { label: "Once", value: "once" },
   { label: "Daily", value: "daily" },
   { label: "Weekly", value: "weekly" },
   { label: "Monthly", value: "monthly" },
@@ -65,11 +65,15 @@ const frequency = [
 const defaultTime = () =>
   moment().add(1, "hour").startOf("hour").format("HH:mm");
 
+const normalizeRepeat = (repeat?: string): MessageRepeat =>
+  repeat === "none" || !repeat ? "once" : (repeat as MessageRepeat);
+
 export default function ScheduleMessageModal({
   message = "",
   selectedMessage,
   receiverName,
   onClose,
+  onScheduled,
   editing
 }: {
   message?: string;
@@ -82,6 +86,7 @@ export default function ScheduleMessageModal({
   };
   receiverName: string;
   onClose: () => void;
+  onScheduled?: () => void;
   editing?: boolean;
 }) {
   const [room] = useQueryState("room", parseAsString.withDefault(""));
@@ -91,6 +96,7 @@ export default function ScheduleMessageModal({
     mutationFn: scheduleMessage,
     onSuccess: () => {
       form.reset();
+      onScheduled?.();
       onClose();
     },
     meta: {
@@ -102,6 +108,7 @@ export default function ScheduleMessageModal({
     mutationFn: editScheduleMessage,
     onSuccess: () => {
       form.reset();
+      onScheduled?.();
       onClose();
     },
     meta: {
@@ -114,7 +121,9 @@ export default function ScheduleMessageModal({
     defaultValues: {
       message: selectedMessage ? selectedMessage.message : message,
       date: selectedMessage ? selectedMessage.date : new Date(),
-      frequency: selectedMessage ? selectedMessage.repeat : "none",
+      frequency: selectedMessage
+        ? normalizeRepeat(selectedMessage.repeat)
+        : "once",
       time: selectedMessage ? selectedMessage.time : defaultTime()
     },
     disabled: isPending || isEditPending
@@ -138,14 +147,14 @@ export default function ScheduleMessageModal({
     if (editing) {
       edit({
         message: data.message,
-        frequency: data.frequency,
+        repeat: normalizeRepeat(data.frequency),
         scheduledAt,
         messageId: selectedMessage?._id || ""
       });
     } else {
       mutate({
         message: data.message,
-        frequency: data.frequency,
+        repeat: normalizeRepeat(data.frequency),
         scheduledAt,
         chatId: room
       });
@@ -157,7 +166,7 @@ export default function ScheduleMessageModal({
       form.reset({
         message: selectedMessage.message,
         date: selectedMessage.date,
-        frequency: selectedMessage.repeat, // or selectedMessage.frequency if you rename
+        frequency: normalizeRepeat(selectedMessage.repeat),
         time: selectedMessage.time
       });
       return;
@@ -166,7 +175,7 @@ export default function ScheduleMessageModal({
       form.reset({
         message,
         date: new Date(),
-        frequency: "none",
+        frequency: "once",
         time: defaultTime()
       });
     }
@@ -191,7 +200,17 @@ export default function ScheduleMessageModal({
         <Separator />
       </DialogHeader>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+        <form
+          // This dialog is rendered inside the chat composer's <form> in the
+          // React tree (portals still bubble synthetic events), so a submit
+          // here would also fire the composer's onSubmit and send the message
+          // immediately.
+          onSubmit={(e) => {
+            e.stopPropagation();
+            form.handleSubmit(onSubmit)(e);
+          }}
+          className="space-y-5"
+        >
           <div className="px-4 mt-1">
             <FormField
               control={form.control}
@@ -211,6 +230,7 @@ export default function ScheduleMessageModal({
                         />
                       </FormControl>
                       <Button
+                        type="button"
                         size="sm"
                         onClick={() => setEditMessage(false)}
                         className="ml-auto"
@@ -224,6 +244,7 @@ export default function ScheduleMessageModal({
                         {field.value}
                       </pre>
                       <Button
+                        type="button"
                         variant="ghost"
                         size="sm"
                         onClick={() => setEditMessage(true)}

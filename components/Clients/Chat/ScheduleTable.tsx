@@ -23,6 +23,13 @@ import moment from "moment";
 import { useParams } from "next/navigation";
 import { parseAsInteger, useQueryState } from "nuqs";
 
+const repeatLabel = (repeat?: string) =>
+  repeat === "none" || repeat === "once"
+    ? "Once"
+    : repeat
+      ? repeat.charAt(0).toUpperCase() + repeat.slice(1)
+      : "Once";
+
 function ScheduledTable() {
   const { userId } = useParams();
   const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
@@ -110,7 +117,7 @@ function ScheduledTable() {
                     {moment(message.scheduledAt).format("hh:mm A")}
                   </TableCell>
                   <TableCell className="py-4.5 text-sm text-gray-600">
-                    {message.repeat}
+                    {repeatLabel(message.repeat)}
                   </TableCell>
                 </TableRow>
               );

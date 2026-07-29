@@ -212,6 +212,7 @@ const InputButtons = ({
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
+            type="button"
             onClick={handleSubmit}
             size="sm"
             className="aspect-square p-2"
@@ -402,6 +403,14 @@ export default function ChatInput({
               <ScheduleMessageModal
                 message={value}
                 receiverName={receiverName}
+                onScheduled={() => {
+                  setValue("");
+                  setReplyingTo(null);
+                  socket?.emit("stop_typing", {
+                    chatId: room,
+                    userId: data?.user?._id
+                  });
+                }}
                 onClose={() => setOpen(false)}
               />
             </Dialog>

@@ -73,6 +73,12 @@ const TaskBox = ({
             <div
               className="p-4 pb-3 flex flex-row gap-3 cursor-pointer"
               key={index}
+              // Without stopPropagation this falls through to the container's
+              // openStatus and only expands the group.
+              onClick={(e) => {
+                e.stopPropagation();
+                router.push(`/tasks?task=${task._id}`);
+              }}
             >
               {/* <Checkbox checked={task.isDone} /> */}
               <div className="flex flex-col space-y-2 flex-1">

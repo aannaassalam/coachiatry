@@ -43,7 +43,7 @@ export const scheduleMessage = async (body: {
   // Absolute send time as an ISO/UTC string, computed from the user's local
   // date + time so the backend never has to guess a timezone.
   scheduledAt: string;
-  frequency: string;
+  repeat: Message["repeat"];
   chatId: string;
 }) => {
   const res = await axiosInstance.post(
@@ -57,7 +57,7 @@ export const editScheduleMessage = async (body: {
   messageId: string;
   message: string;
   scheduledAt: string;
-  frequency: string;
+  repeat: Message["repeat"];
 }) => {
   const res = await axiosInstance.patch(
     endpoints.messages.editScheduleMessage(body.messageId),
