@@ -88,7 +88,7 @@ export default function CustomApp({ Component, pageProps }: AppProps) {
             <HydrationBoundary state={pageProps.dehydratedState}>
               <SocketProvider>
                 <FloatingChatProvider>
-                  <Toaster richColors position="bottom-left" />
+                  <Toaster richColors position="bottom-left" closeButton />
                   <Component {...pageProps} />
                   <FloatingChat />
                 </FloatingChatProvider>
