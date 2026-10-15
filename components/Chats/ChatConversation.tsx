@@ -51,8 +51,15 @@ export default function ChatConversation() {
     friend,
     details,
     isDeleted,
-    isLoading: isConversationLoading
+    isLoading: isConversationLoading,
+    isUnavailable
   } = useConversationDetails(room);
+
+  // A room the API won't open (a stale link, or a chat that is hidden from
+  // this user): go back to the list instead of sitting on an empty pane.
+  useEffect(() => {
+    if (isUnavailable) setSelectedChat("");
+  }, [isUnavailable, setSelectedChat]);
 
   // Deleted-account state comes from chatDisplay via the hook, so this view and
   // the chat list can't disagree. Only then do we offer to delete the
@@ -78,6 +85,7 @@ export default function ChatConversation() {
     isFetchingNextPage,
     isLoading: isMessageLoading,
     insertOptimisticMessage,
+    rejectOptimisticMessage,
     updateMessageByTempId,
     upsertIncomingMessage,
     updateReactions,
@@ -241,12 +249,12 @@ export default function ChatConversation() {
 
     insertOptimisticMessage(optimisticMessage as unknown as Message);
 
-    // Server-side send failures (removed from chat, DB error, …) come back via
-    // the ack callback; mark the optimistic bubble failed instead of leaving it
-    // stuck as "sent".
+    // Server-side send failures (not allowed to write here, DB error, …) come
+    // back via the ack callback; surface them instead of leaving the optimistic
+    // bubble looking sent.
     const onSendAck = (res?: { success?: boolean; error?: string }) => {
       if (res && res.success === false) {
-        updateMessageByTempId(tempId, (m) => ({ ...m, status: "failed" }));
+        rejectOptimisticMessage(tempId, res.error);
       }
     };
 

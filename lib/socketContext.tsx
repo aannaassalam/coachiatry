@@ -9,6 +9,7 @@ import {
   useState
 } from "react";
 import { io, Socket } from "socket.io-client";
+import { queryClient } from "@/pages/_app";
 import { initWebPush } from "./fcm";
 
 const SocketContext = createContext<Socket | null>(null);
@@ -47,6 +48,11 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
     // re-emit online after reconnection
     s.io.on("reconnect", () => {
       s.emit("user_online", { userId });
+      // conversation_updated is the only thing that tells an open tab a chat
+      // has appeared (a new coach, a staff member's first message), and events
+      // sent while the socket was down are never replayed — so catch the lists
+      // up whenever the connection comes back.
+      queryClient.invalidateQueries({ queryKey: ["conversations"] });
     });
 
     // Tear down THIS socket when the user changes or the provider unmounts.

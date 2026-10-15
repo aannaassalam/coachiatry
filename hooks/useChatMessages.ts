@@ -1,6 +1,7 @@
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo } from "react";
 import moment from "moment";
+import { toast } from "sonner";
 import {
   getMessages,
   getMessagesByCoach
@@ -137,6 +138,29 @@ export const useChatMessages = (room: string, byCoach = false) => {
             return newData;
           })
       );
+    },
+    [queryClient, room]
+  );
+
+  // The server refused the send (the ack of send_message came back with
+  // success: false). No "failed" state is rendered on a bubble, so say it,
+  // drop the bubble that was never stored, and refresh the lists — the chat
+  // may no longer be one this user can write in.
+  const rejectOptimisticMessage = useCallback(
+    (tempId: string, error?: string) => {
+      toast.error(error || "Message not sent");
+      queryClient.setQueryData<InfiniteData<PaginatedResponse<Message[]>>>(
+        ["messages", room],
+        (old) =>
+          old && {
+            ...old,
+            pages: old.pages.map((page) => ({
+              ...page,
+              data: page.data.filter((m) => m.tempId !== tempId)
+            }))
+          }
+      );
+      queryClient.invalidateQueries({ queryKey: ["conversations"] });
     },
     [queryClient, room]
   );
@@ -335,6 +359,7 @@ export const useChatMessages = (room: string, byCoach = false) => {
     isFetchingNextPage,
     isLoading,
     insertOptimisticMessage,
+    rejectOptimisticMessage,
     updateMessageByTempId,
     upsertIncomingMessage,
     updateReactions,

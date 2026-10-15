@@ -13,6 +13,8 @@ type UseConversationDetailsReturn = {
   /** The other member's account is deactivated or gone — render it muted. */
   isDeleted: boolean;
   isLoading: boolean;
+  /** The API won't open this room (not a member, or hidden from this user). */
+  isUnavailable: boolean;
 };
 
 export const useConversationDetails = (
@@ -20,11 +22,17 @@ export const useConversationDetails = (
 ): UseConversationDetailsReturn => {
   const { data: session } = useSession();
 
-  const { data: conversation, isLoading } = useQuery({
+  const {
+    data: conversation,
+    isLoading,
+    error
+  } = useQuery({
     queryKey: ["conversations", room],
     queryFn: () => getConversation(room),
     enabled: !!room
   });
+  const status = (error as { response?: { status?: number } } | null)?.response
+    ?.status;
 
   const friend = conversation?.members?.find(
     (member) => member.user?._id !== session?.user?._id
@@ -39,6 +47,7 @@ export const useConversationDetails = (
     // and the avatar derives initials from this.
     details: { photo: display.photo, name: display.name },
     isDeleted: display.isDeleted,
-    isLoading
+    isLoading,
+    isUnavailable: status === 403 || status === 404
   };
 };

@@ -9,6 +9,7 @@ import { useChatSocket } from "@/hooks/useChatSocket";
 import { useChatUploadManager } from "@/hooks/useChatUploadManager";
 import { useConversationDetails } from "@/hooks/useConversationDetails";
 import { getStableMessageKey } from "@/lib/chatMessage";
+import { useFloatingChat } from "@/lib/floatingChatContext";
 import { useSocket } from "@/lib/socketContext";
 import {
   Message,
@@ -28,7 +29,16 @@ export default function FloatingChatWindow({ roomId }: Props) {
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const messageKeyMap = useRef<Map<string, string>>(new Map());
 
-  const { conversation, friend } = useConversationDetails(roomId);
+  const { conversation, friend, isUnavailable } =
+    useConversationDetails(roomId);
+  const { backToList } = useFloatingChat();
+
+  // A room the API won't open (the panel remembers its last room across page
+  // loads, and that chat may since have been hidden from this user): fall back
+  // to the list instead of an endless skeleton.
+  useEffect(() => {
+    if (isUnavailable) backToList();
+  }, [isUnavailable, backToList]);
 
   const {
     allMessages,
@@ -37,6 +47,7 @@ export default function FloatingChatWindow({ roomId }: Props) {
     isFetchingNextPage,
     isLoading: isMessageLoading,
     insertOptimisticMessage,
+    rejectOptimisticMessage,
     updateMessageByTempId,
     upsertIncomingMessage,
     updateReactions,
@@ -150,7 +161,7 @@ export default function FloatingChatWindow({ roomId }: Props) {
     // Surface server-side send failures instead of a stuck "sent" bubble.
     const onSendAck = (res?: { success?: boolean; error?: string }) => {
       if (res && res.success === false) {
-        updateMessageByTempId(tempId, (m) => ({ ...m, status: "failed" }));
+        rejectOptimisticMessage(tempId, res.error);
       }
     };
 

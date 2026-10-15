@@ -20,8 +20,9 @@ export default withAuth(
       return NextResponse.redirect(new URL("/", req.url));
     }
 
-    // 3️⃣ Role-based access control: only "coach" can access /clients/*
-    if (pathname.startsWith("/clients")) {
+    // 3️⃣ Role-based access control: the client and user directories are for
+    // staff. A client must never get a list of other people.
+    if (pathname.startsWith("/clients") || pathname.startsWith("/users")) {
       const role = token?.user?.role || token?.role; // adapt based on how you store it in jwt callback
       if (role === "user") {
         return NextResponse.redirect(new URL("/", req.url));
